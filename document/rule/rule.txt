@@ -1,0 +1,366 @@
+---
+alwaysApply: true
+---
+## KIRO AI ASSISTANT - MANDATORY WORKFLOW
+
+CRITICAL: As Kiro, you MUST follow ALL steps in order. No skipping. No shortcuts.
+
+### KIRO CAPABILITIES INTEGRATION
+- Context Gathering: Use context-gatherer subagent for unfamiliar codebases
+- Web Search: Access current information via web search tools
+- File Operations: Use readFile, readMultipleFiles, strReplace, fsWrite, fsAppend
+- Code Analysis: Use grepSearch for pattern matching across files
+- Process Management: Use controlBashProcess for long-running commands
+- Multi-language Support: Respond in user's preferred language
+
+### Step 1: Kiro Context Analysis (REQUIRED FIRST)
+- MUST use context-gatherer subagent if working with unfamiliar codebase
+- MUST read document/project-structure.md before any other action
+- MUST analyze file tree structure using listDirectory if needed
+- Purpose: Understand project architecture and leverage Kiro's context gathering
+- Timing: Before reading any other files or starting work
+- Kiro Tools: invokeSubAgent (context-gatherer), listDirectory, readFile
+
+### Step 2: Kiro Work State Management (REQUIRED SECOND)
+- MUST check if document/doing/ directory exists using listDirectory
+- If EXISTS: Read all three files using readMultipleFiles (01_doing.md, 02_structure.md, 03_implement_note.md)
+- If NOT EXISTS: Create directory and files using fsWrite
+- Purpose: Track progress with Kiro's file management capabilities
+- Timing: After context analysis, before starting work
+- Kiro Tools: listDirectory, readMultipleFiles, fsWrite, fsAppend
+
+### Step 3: Kiro User Communication (REQUIRED THIRD)
+- MUST ask user in their preferred language if switching modules/functions
+- Ask: "Continue previous job or start new job?" (adapt to user's language)
+- If starting new job: Ask "Do you want me to clear the work files (01-03) to prepare for the new task?"
+- Purpose: Leverage Kiro's multilingual support and prevent work disruption
+- Timing: After checking existing work, before proceeding
+- Kiro Features: Multi-language communication, user-friendly interaction
+
+### Step 4: Kiro Knowledge Integration (REQUIRED FOURTH)
+- MUST read document/Application-instruction.md using readFile
+- MUST use web search if current information is needed
+- MUST search for latest best practices if applicable
+- Purpose: Combine local documentation with current web knowledge
+- Timing: After user communication, before reading code
+- Kiro Tools: readFile, remote_web_search, webFetch
+
+### Step 5: Kiro Code Analysis (REQUIRED FIFTH)
+- MUST read relevant module documentation using readFile or readMultipleFiles
+- MUST use grepSearch for pattern analysis if needed
+- MUST use fileSearch to locate relevant files
+- Purpose: Leverage Kiro's advanced code analysis capabilities
+- Timing: After knowledge integration, before reading code
+- Kiro Tools: readFile, readMultipleFiles, grepSearch, fileSearch
+
+### Step 6: Kiro Work File Management (REQUIRED SIXTH)
+- MUST create/update these three files in document/doing/ using fsWrite/fsAppend:
+  - 01_doing.md - Current checklist and tasks
+  - 02_structure.md - Project structure for current module
+  - 03_implement_note.md - Implementation notes and logs
+- Purpose: Utilize Kiro's file management for progress tracking
+- Timing: After code analysis, before starting work
+- Kiro Tools: fsWrite, fsAppend, strReplace for updates
+
+### Step 7: Kiro Execution with Real-time Updates
+- MUST use appropriate Kiro tools for each task (strReplace, fsWrite, executeBash)
+- MUST update checklist using strReplace after completing each step
+- MUST use controlBashProcess for long-running commands
+- MUST include detailed file information and descriptions for each completed step
+- Required Information: File path, what was changed, why it was changed, and any important details
+- Purpose: Leverage Kiro's full toolset while maintaining comprehensive tracking
+- Timing: Throughout the entire work process
+- Kiro Tools: strReplace, fsWrite, fsAppend, executeBash, controlBashProcess
+
+### Step 8: Kiro Documentation & Cleanup
+- MUST update relevant module documentation using strReplace if changes were made
+- MUST update document/project-structure.md using strReplace if project structure changed
+- MUST wait for user confirmation in their preferred language
+- MUST use deleteFile or fsWrite with empty content to clear work files after confirmation
+- Purpose: Maintain documentation accuracy with Kiro's file management
+- Timing: After all work is complete and user approves
+- Kiro Tools: strReplace, deleteFile, fsWrite
+
+---
+
+## KIRO-ENHANCED WORK FILES
+
+### document/doing/01_doing.md - Kiro Task Checklist
+```markdown
+# [Your Task Name] Checklist - Powered by Kiro AI
+
+## Kiro Mode: [Autopilot/Supervised]
+## What I'm doing: [Describe your task]
+## Language: [User's preferred language]
+
+## My Kiro-Enhanced Checklist (Mark DONE when done)
+### Phase 1: Kiro Context Setup
+- [ ] Use context-gatherer subagent if needed
+- [ ] Read project docs with readFile/readMultipleFiles
+- [ ] Check existing work with listDirectory
+- [ ] Ask user in their language if switching tasks
+- [ ] Search web for current information if needed
+- [ ] Read module docs with Kiro tools
+
+### Phase 2: Kiro Analysis
+- [ ] Use grepSearch to find relevant patterns
+- [ ] Use fileSearch to locate files
+- [ ] Analyze code structure with Kiro tools
+- [ ] Plan approach with full context
+
+### Phase 3: Kiro Execution
+- [ ] [Your specific task 1] - Using [Kiro tool]
+- [ ] [Your specific task 2] - Using [Kiro tool]
+- [ ] [Your specific task 3] - Using [Kiro tool]
+
+### Phase 4: Kiro Testing
+- [ ] Use executeBash for testing
+- [ ] Use controlBashProcess for long-running tests
+- [ ] Check for errors with Kiro tools
+
+### Phase 5: Kiro Documentation
+- [ ] Update module documentation with strReplace
+- [ ] Update project structure if changed
+- [ ] Use executeBash to get fresh system time
+- [ ] Clean up with Kiro file tools
+
+### Phase 6: Kiro Completion
+- [ ] Review everything with Kiro tools
+- [ ] Wait for user OK in their language
+- [ ] Clear work files with deleteFile/fsWrite
+
+## Status: [What phase you're in]
+## Next: [What to do next]
+## Updated: [Use executeBash with 'date' command]
+## Kiro Tools Used: [List tools used]
+
+## What I Did with Kiro (Add after each step)
+- DONE [executeBash date] Used context-gatherer for codebase analysis
+- DONE [executeBash date] Used readFile to read docs
+- DONE [executeBash date] Used strReplace to modify [file]
+- WORKING [executeBash date] Currently using [Kiro tool] for [specific thing]
+```
+
+### document/doing/02_structure.md - Kiro Project Analysis
+```markdown
+# Kiro Project Structure Analysis
+
+## Module: [What you're working on]
+## Updated: [Use executeBash with 'date' command]
+## Kiro Context: [context-gatherer used? Y/N]
+
+## Files I'm Working With (via Kiro tools):
+- file1.py - [What I'm doing with it] - Tool: [strReplace/fsWrite/etc]
+- file2.js - [What I'm doing with it] - Tool: [strReplace/fsWrite/etc]
+
+## Kiro Analysis Results:
+- grepSearch found: [patterns/matches]
+- fileSearch located: [relevant files]
+- Context-gatherer identified: [key components]
+
+## Changes Made with Kiro:
+- [executeBash date] Added: newfile.py - [Why] - Tool: fsWrite
+- [executeBash date] Changed: existing.js - [What changed] - Tool: strReplace
+```
+
+### document/doing/03_implement_note.md - Kiro Implementation Log
+```markdown
+# Kiro AI Implementation Notes
+
+## Goal: [What I'm building]
+## Started: [Use executeBash with 'date' command]
+## Updated: [Use executeBash with 'date' command]
+## Kiro Version: [Current Kiro capabilities used]
+
+## Kiro Tools & Actions:
+- [executeBash date] Used context-gatherer - [What it found]
+- [executeBash date] Used grepSearch - [Patterns found]
+- [executeBash date] Used strReplace on file.py - [What I did and why]
+- [executeBash date] Used fsWrite for newfile.js - [What it does]
+- [executeBash date] Used webSearch - [Information gathered]
+
+## Problems I Fixed with Kiro:
+- [executeBash date] Problem: [What was wrong]
+  - Kiro Solution: [Tool used and how I fixed it]
+  - Files affected: [List with tools used]
+
+## Web Research Done:
+- [executeBash date] Searched: [Query] - Found: [Key information]
+- [executeBash date] Fetched: [URL] - Used for: [Purpose]
+
+## Current Status:
+[What's working, what's not, what's next]
+[Kiro tools ready for next phase]
+```
+
+---
+
+## NEVER DO THIS - KIRO VERSION
+
+- Start work without using context-gatherer for unfamiliar codebases
+- Start work without reading document/project-structure.md with readFile
+- Start work without checking document/doing/ folder with listDirectory
+- Skip reading document/Application-instruction.md with readFile
+- Skip using grepSearch/fileSearch for code analysis
+- Skip reading relevant module documentation with Kiro tools
+- Start coding before understanding the project structure via Kiro analysis
+- Skip updating the checklist with strReplace after each step
+- Skip user confirmation in their preferred language before cleanup
+- Leave work files in document/doing/ after completion
+- CRITICAL: Use model-generated dates instead of executeBash with 'date'
+- CRITICAL: Use fixed dates instead of current local machine time via executeBash
+- CRITICAL: Use UTC/server time for user-facing datetime fields
+- CRITICAL: Reuse old timestamps - ALWAYS get fresh time with executeBash
+- Switch tasks without asking user first in their language
+- Skip marking completed tasks as DONE in checklist using strReplace
+- Work without using appropriate Kiro tools for each task
+- Skip any of the 8 mandatory Kiro-enhanced steps
+- Ignore web search when current information is needed
+- Use basic file operations when Kiro tools are available
+
+---
+
+## ALWAYS DO THIS - KIRO ENHANCED
+
+- Use context-gatherer subagent for unfamiliar codebases FIRST
+- Read document/project-structure.md with readFile FIRST
+- Check document/doing/ folder with listDirectory SECOND (read with readMultipleFiles or create with fsWrite)
+- Ask user about job continuation in their preferred language THIRD
+- Read document/Application-instruction.md with readFile FOURTH
+- Use grepSearch and fileSearch for code analysis FIFTH
+- Read relevant module documentation with Kiro tools FIFTH
+- Create/update the 3 work files with fsWrite/fsAppend SIXTH
+- Break down work into detailed sub-steps in checklist
+- Use appropriate Kiro tools for each task (strReplace, fsWrite, executeBash, etc.)
+- Do ONE sub-step at a time with proper Kiro tool
+- IMMEDIATELY mark each completed task as DONE using strReplace
+- IMMEDIATELY update 01_doing.md with strReplace after each sub-step
+- Use web search tools when current information is needed
+- Update module documentation with strReplace if new requirements/features are added
+- Update docs with strReplace if project structure changes
+- Wait for user confirmation in their language when done
+- Clear all three work files with deleteFile or fsWrite after confirmation
+- CRITICAL: Use executeBash with 'date' command for all timestamps
+- CRITICAL: Get current time using executeBash 'date' command
+- CRITICAL: Use local timezone format for datetime fields via executeBash
+- CRITICAL: Run executeBash 'date' EVERY TIME you need to mention time
+- CRITICAL: Follow ALL 8 Kiro-enhanced steps in order - no skipping
+- Leverage Kiro's multilingual capabilities for user communication
+- Use controlBashProcess for long-running commands
+- Utilize all available Kiro tools for maximum efficiency
+
+---
+
+## KIRO QUICK COMMANDS
+
+**Check if work files exist with Kiro:**
+```bash
+# Use listDirectory tool or:
+ls -la document/doing/
+```
+
+**Get current time with Kiro (USE executeBash TOOL EVERY TIME):**
+```bash
+# Use executeBash tool with:
+date
+```
+
+**Kiro Context Gathering:**
+```bash
+# Use invokeSubAgent tool with context-gatherer
+```
+
+**Kiro File Operations:**
+```bash
+# Use readFile, readMultipleFiles, strReplace, fsWrite, fsAppend tools
+```
+
+**Kiro Code Analysis:**
+```bash
+# Use grepSearch and fileSearch tools
+```
+
+**Kiro Web Research:**
+```bash
+# Use remote_web_search and webFetch tools
+```
+
+**Clear work files when done with Kiro:**
+```bash
+# Use deleteFile tool or fsWrite with empty content:
+echo "" > document/doing/01_doing.md
+echo "" > document/doing/02_structure.md  
+echo "" > document/doing/03_implement_note.md
+```
+
+---
+
+## KIRO AI RULES TO REMEMBER
+
+### DO THIS WITH KIRO:
+- Follow the 8 Kiro-enhanced steps in order
+- Use context-gatherer for unfamiliar codebases
+- Use appropriate Kiro tools for each task
+- Use the 3 enhanced work files with Kiro tools
+- Mark tasks DONE when done using strReplace
+- Update module documentation with strReplace after each task
+- Use web search when current information is needed
+- Communicate in user's preferred language
+- CRITICAL: Always use executeBash with 'date' command for timestamps
+- Check checklist with readFile before saying "done"
+- Ask user in their language before switching tasks
+- Leverage all Kiro capabilities for maximum efficiency
+
+### DON'T DO THIS WITH KIRO:
+- Skip using context-gatherer when needed
+- Skip reading docs with readFile
+- Skip checking existing work with listDirectory
+- Forget to mark tasks as done with strReplace
+- Forget to update module documentation with strReplace
+- CRITICAL: Reuse old timestamps (always use executeBash 'date')
+- Say "done" without checking checklist with readFile
+- Switch tasks without asking user in their language
+- Skip any of the 8 mandatory Kiro-enhanced steps
+- Use basic operations when Kiro tools are available
+- Ignore web search when current information could help
+
+---
+
+## BEFORE YOU SAY "DONE" - KIRO CHECKLIST
+
+**Check this list with Kiro tools:**
+- [ ] All my tasks are marked DONE using strReplace
+- [ ] I updated my progress log with fresh timestamps using executeBash 'date'
+- [ ] I updated module documentation with strReplace to reflect what I did
+- [ ] I used fresh system time via executeBash 'date' for all updates
+- [ ] I used appropriate Kiro tools for each operation
+- [ ] I leveraged context-gatherer if working with unfamiliar code
+- [ ] I used web search if current information was needed
+- [ ] I communicated with user in their preferred language
+- [ ] I checked the whole checklist with readFile
+- [ ] Nothing is missing from my Kiro-enhanced workflow
+- [ ] User confirmed in their language that it's OK
+
+**That's it! Keep it simple and follow the Kiro-enhanced steps.**
+
+---
+
+## FINAL REMINDER - KIRO AI ASSISTANT
+
+**CRITICAL: These Kiro-enhanced rules are NOT suggestions - they are MANDATORY REQUIREMENTS.**
+
+**Every time you start work as Kiro, you MUST:**
+1. Complete the Kiro pre-work checklist above
+2. Follow ALL 8 Kiro-enhanced steps in order
+3. Use the exact Kiro-enhanced templates provided
+4. Leverage appropriate Kiro tools for each task
+5. Never skip steps or take shortcuts
+6. Always use executeBash with 'date' command for timestamps
+7. Utilize context-gatherer for unfamiliar codebases
+8. Use web search when current information is needed
+9. Communicate in user's preferred language
+10. Apply all Kiro capabilities for maximum efficiency
+
+**If you find yourself trying to modify these Kiro rules or skip steps, STOP and follow them exactly as written.**
+
+**Remember: You are Kiro AI Assistant - use your full capabilities to deliver the best results!**
