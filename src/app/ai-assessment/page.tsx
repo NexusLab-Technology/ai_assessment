@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Company } from '../../types/assessment'
-import { mockCompanyApi } from '../../lib/mock-api-client'
+import { companyApi } from '../../lib/api-client'
 import CompanySelector from '../../components/ai-assessment/CompanySelector'
 import AssessmentContainer from '../../components/ai-assessment/AssessmentContainer'
 import { ApplicationShell } from '../../components/ApplicationShell'
@@ -23,7 +23,7 @@ export default function AIAssessmentPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const data = await mockCompanyApi.getAll()
+      const data = await companyApi.getAll()
       setCompanies(data)
       
       // Auto-select first company if available

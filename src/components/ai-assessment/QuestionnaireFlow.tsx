@@ -5,9 +5,12 @@ import {
   ArrowLeftIcon, 
   ArrowRightIcon,
   CheckIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CloudArrowUpIcon
 } from '@heroicons/react/24/outline'
 import { Assessment, QuestionSection, AssessmentResponses } from '../../types/assessment'
+import { assessmentApi } from '../../lib/api-client'
+import { useAutoSave } from '../../hooks/useAutoSave'
 import QuestionStep from './QuestionStep'
 import ProgressTracker from './ProgressTracker'
 
@@ -38,28 +41,73 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   const [stepValidation, setStepValidation] = useState<StepValidation>({})
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [isLoadingResponses, setIsLoadingResponses] = useState(true)
 
-  // Storage key for localStorage persistence
-  const storageKey = `assessment_${assessment.id}_responses`
-
-  // Load responses from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedData = localStorage.getItem(storageKey)
-      if (savedData) {
-        const { responses: savedResponses, completedSteps: savedCompleted } = JSON.parse(savedData)
-        setResponses(savedResponses || {})
-        setCompletedSteps(savedCompleted || [])
+  // Auto-save hook with API integration
+  const { saveStatus, lastSaved, saveNow, hasUnsavedChanges } = useAutoSave(
+    responses,
+    currentStep,
+    {
+      assessmentId: assessment.id,
+      autoSaveInterval: 30000, // 30 seconds
+      onSaveSuccess: () => {
+        // Call the optional onSave callback for compatibility
+        onSave?.(responses, currentStep)
+      },
+      onSaveError: (error) => {
+        console.error('Auto-save error:', error)
       }
-    } catch (error) {
-      console.error('Failed to load saved responses:', error)
     }
-  }, [storageKey])
+  )
 
-  // Auto-save to localStorage whenever responses change
+  // Load responses from server on mount
   useEffect(() => {
+    const loadResponses = async () => {
+      try {
+        setIsLoadingResponses(true)
+        const data = await assessmentApi.getResponses(assessment.id)
+        
+        setResponses(data.responses || {})
+        setCurrentStep(data.currentStep || 1)
+        
+        // Determine completed steps based on responses
+        const completed: number[] = []
+        Object.keys(data.responses || {}).forEach(stepId => {
+          const stepNumber = parseInt(stepId.replace('step-', ''))
+          if (!isNaN(stepNumber)) {
+            completed.push(stepNumber)
+          }
+        })
+        setCompletedSteps(completed)
+        
+      } catch (error) {
+        console.error('Failed to load assessment responses:', error)
+        // Fallback to localStorage for offline support
+        try {
+          const storageKey = `assessment_${assessment.id}_responses`
+          const savedData = localStorage.getItem(storageKey)
+          if (savedData) {
+            const { responses: savedResponses, completedSteps: savedCompleted } = JSON.parse(savedData)
+            setResponses(savedResponses || {})
+            setCompletedSteps(savedCompleted || [])
+          }
+        } catch (localError) {
+          console.error('Failed to load from localStorage:', localError)
+        }
+      } finally {
+        setIsLoadingResponses(false)
+      }
+    }
+
+    loadResponses()
+  }, [assessment.id])
+
+  // Backup to localStorage for offline support
+  useEffect(() => {
+    if (isLoadingResponses) return
+    
     try {
+      const storageKey = `assessment_${assessment.id}_responses`
       const dataToSave = {
         responses,
         completedSteps,
@@ -67,37 +115,9 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
       }
       localStorage.setItem(storageKey, JSON.stringify(dataToSave))
     } catch (error) {
-      console.error('Failed to save responses to localStorage:', error)
+      console.error('Failed to backup to localStorage:', error)
     }
-  }, [responses, completedSteps, storageKey])
-
-  // Auto-save to server every 30 seconds
-  useEffect(() => {
-    if (!onSave) return
-
-    const autoSaveInterval = setInterval(() => {
-      if (Object.keys(responses).length > 0) {
-        handleSave()
-      }
-    }, 30000) // 30 seconds
-
-    return () => clearInterval(autoSaveInterval)
-  }, [responses, onSave])
-
-  const handleSave = useCallback(async () => {
-    if (!onSave) return
-
-    setSaveStatus('saving')
-    try {
-      await onSave(responses, currentStep)
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 2000)
-    } catch (error) {
-      console.error('Failed to save responses:', error)
-      setSaveStatus('error')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    }
-  }, [onSave, responses, currentStep])
+  }, [responses, completedSteps, assessment.id, isLoadingResponses])
 
   const getCurrentSection = () => {
     return sections.find(section => section.stepNumber === currentStep)
@@ -164,9 +184,12 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
       setCompletedSteps(prev => [...prev, currentStep])
     }
 
-    // Save on navigation
-    if (onSave) {
-      await handleSave()
+    // Save on navigation (immediate save)
+    try {
+      await saveNow()
+    } catch (error) {
+      console.error('Failed to save on navigation:', error)
+      // Continue navigation even if save fails
     }
 
     if (currentStep < sections.length) {
@@ -193,11 +216,16 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     setIsLoading(true)
     try {
       // Final save before completion
-      if (onSave) {
-        await handleSave()
-      }
+      await saveNow()
+      
+      // Update assessment status to completed
+      await assessmentApi.update(assessment.id, {
+        status: 'COMPLETED',
+        currentStep: sections.length
+      })
       
       // Clear localStorage after successful completion
+      const storageKey = `assessment_${assessment.id}_responses`
       localStorage.removeItem(storageKey)
       
       onComplete(responses)
@@ -211,6 +239,21 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   const isFirstStep = currentStep === 1
   const isLastStep = currentStep === sections.length
   const canProceed = validateCurrentStep()
+
+  // Show loading state while fetching responses
+  if (isLoadingResponses) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Loading Assessment</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Retrieving your saved responses...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   if (!currentSection) {
     return (
@@ -253,7 +296,8 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
                 </div>
                 
                 {/* Save Status */}
-                {onSave && (
+                <div className="flex items-center space-x-4">
+                  {/* Auto-save status */}
                   <div className="flex items-center space-x-2">
                     {saveStatus === 'saving' && (
                       <div className="flex items-center text-sm text-gray-500">
@@ -273,8 +317,21 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
                         Save failed
                       </div>
                     )}
+                    {saveStatus === 'idle' && hasUnsavedChanges && (
+                      <div className="flex items-center text-sm text-amber-600">
+                        <CloudArrowUpIcon className="h-4 w-4 mr-1" />
+                        Unsaved changes
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Last saved timestamp */}
+                  {lastSaved && (
+                    <div className="text-xs text-gray-400">
+                      Last saved: {lastSaved.toLocaleTimeString()}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -309,16 +366,19 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
 
               <div className="flex items-center space-x-4">
                 {/* Manual Save Button */}
-                {onSave && (
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saveStatus === 'saving'}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    Save Progress
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={saveNow}
+                  disabled={saveStatus === 'saving' || !hasUnsavedChanges}
+                  className={`inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md ${
+                    hasUnsavedChanges && saveStatus !== 'saving'
+                      ? 'text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                      : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                  }`}
+                >
+                  <CloudArrowUpIcon className="-ml-1 mr-2 h-4 w-4" />
+                  {saveStatus === 'saving' ? 'Saving...' : 'Save Progress'}
+                </button>
 
                 {/* Next/Complete Button */}
                 {isLastStep ? (

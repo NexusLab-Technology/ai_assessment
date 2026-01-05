@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Assessment, Company, AssessmentResponses, QuestionSection } from '../../types/assessment'
-import { mockAssessmentApi, mockCompanyApi } from '../../lib/mock-api-client'
+import { assessmentApi, companyApi } from '../../lib/api-client'
 import AssessmentDashboard from './AssessmentDashboard'
 import AssessmentWizard from './AssessmentWizard'
 import QuestionnaireFlow from './QuestionnaireFlow'
@@ -47,7 +47,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     try {
       setIsLoading(true)
       setError(null)
-      const data = await mockAssessmentApi.getAll(selectedCompany.id)
+      const data = await assessmentApi.getAll(selectedCompany.id)
       setAssessments(data)
     } catch (error) {
       console.error('Failed to load assessments:', error)
@@ -66,7 +66,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
 
     try {
       setIsLoading(true)
-      const newAssessment = await mockAssessmentApi.create({
+      const newAssessment = await assessmentApi.create({
         name,
         companyId: selectedCompany.id,
         type
@@ -97,7 +97,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
   const handleDeleteAssessment = async (assessmentId: string) => {
     try {
       setIsLoading(true)
-      await mockAssessmentApi.delete(assessmentId)
+      await assessmentApi.delete(assessmentId)
       await loadAssessments() // Refresh the list
     } catch (error) {
       console.error('Failed to delete assessment:', error)
@@ -120,7 +120,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
       const currentSection = sections.find(s => s.stepNumber === currentStep)
       if (!currentSection) return
 
-      await mockAssessmentApi.saveResponses(
+      await assessmentApi.saveResponses(
         currentAssessment.id,
         currentSection.id,
         responses[currentSection.id] || {},
@@ -139,7 +139,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
       setIsLoading(true)
       
       // Update assessment status to completed
-      await mockAssessmentApi.update(currentAssessment.id, {
+      await assessmentApi.update(currentAssessment.id, {
         status: 'COMPLETED',
         responses
       })
