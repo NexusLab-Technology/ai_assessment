@@ -72,20 +72,24 @@ const CompanyContainer: React.FC = () => {
         }
       )
       
+      console.log('Full API response:', response)
+      console.log('Response company:', response.company)
+      console.log('Response data:', response.data)
+      
       if (editingCompany) {
-        // Update existing company
+        // Update existing company - use response directly since api-client already extracts data
         console.log('Before update - companies:', companies.length)
-        console.log('Updating company:', editingCompany.id, 'with response:', response.company)
+        console.log('Updating company:', editingCompany.id, 'with response:', response)
         setCompanies(prev => {
           const updated = prev.map(c => 
-            c.id === editingCompany.id ? response.company : c
+            c.id === editingCompany.id ? response : c
           )
           console.log('After update - companies:', updated.length)
           return updated
         })
       } else {
-        // Add new company
-        setCompanies(prev => [response.company, ...prev])
+        // Add new company - use response directly
+        setCompanies(prev => [response, ...prev])
       }
       
       // Reset form state
