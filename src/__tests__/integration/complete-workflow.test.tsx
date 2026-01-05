@@ -8,7 +8,7 @@
  */
 
 // Test configuration
-const PROPERTY_TEST_RUNS = 10
+const COMPLETE_WORKFLOW_TEST_RUNS = 10
 
 describe('Complete Workflow Integration Tests', () => {
   
@@ -282,7 +282,7 @@ describe('Complete Workflow Integration Tests', () => {
    * Verify data remains consistent across all operations
    */
   test('Property: Data consistency across operations', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < COMPLETE_WORKFLOW_TEST_RUNS; i++) {
       const originalCompany = generateCompanyData(i)
       
       // Test data preservation through operations

@@ -8,7 +8,7 @@
  */
 
 // Test configuration
-const PROPERTY_TEST_RUNS = 20
+const PERFORMANCE_TEST_RUNS = 20
 
 describe('Performance Optimization Properties', () => {
   
@@ -25,7 +25,7 @@ describe('Performance Optimization Properties', () => {
     expect(debounceMs).toBeLessThanOrEqual(maxDebounce)
     
     // Test debounce timing for different input scenarios
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < PERFORMANCE_TEST_RUNS; i++) {
       const inputCount = Math.floor(Math.random() * 10) + 1 // 1-10 inputs
       const inputInterval = Math.floor(Math.random() * 100) + 50 // 50-150ms between inputs
       
@@ -204,7 +204,7 @@ describe('Performance Optimization Properties', () => {
    * System should handle multiple concurrent requests efficiently
    */
   test('Property: Concurrent request handling', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < PERFORMANCE_TEST_RUNS; i++) {
       const concurrentRequests = Math.floor(Math.random() * 20) + 1 // 1-20 concurrent requests
       const maxConcurrent = 10 // Maximum recommended concurrent requests
       

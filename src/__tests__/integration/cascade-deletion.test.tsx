@@ -8,7 +8,7 @@
  */
 
 // Test configuration
-const PROPERTY_TEST_RUNS = 20
+const CASCADE_TEST_RUNS = 20
 
 describe('Cascade Deletion Properties', () => {
   
@@ -30,7 +30,7 @@ describe('Cascade Deletion Properties', () => {
    * When a company is deleted, all associated assessments should also be deleted
    */
   test('Property 6: Company deletion cascade', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < CASCADE_TEST_RUNS; i++) {
       const companyId = generateObjectId()
       const assessmentCount = generateAssessmentCount()
       
@@ -68,7 +68,7 @@ describe('Cascade Deletion Properties', () => {
    * The deletion response should always contain required fields
    */
   test('Property: Cascade deletion response consistency', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < CASCADE_TEST_RUNS; i++) {
       const assessmentCount = Math.floor(Math.random() * 20) // 0-19 assessments
       
       const mockResponse = {
@@ -105,7 +105,7 @@ describe('Cascade Deletion Properties', () => {
    * The number of deleted assessments should never exceed the total count
    */
   test('Property: Assessment count validation', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < CASCADE_TEST_RUNS; i++) {
       const totalAssessments = Math.floor(Math.random() * 15) + 1 // 1-15 assessments
       const deletedAssessments = Math.floor(Math.random() * totalAssessments) + 1 // 1 to totalAssessments
       
@@ -174,7 +174,7 @@ describe('Cascade Deletion Properties', () => {
    * Company IDs should be valid MongoDB ObjectIds
    */
   test('Property: Company ID validation for deletion', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < CASCADE_TEST_RUNS; i++) {
       const companyId = generateObjectId()
       
       // Verify ObjectId format

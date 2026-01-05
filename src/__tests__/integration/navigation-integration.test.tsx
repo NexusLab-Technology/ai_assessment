@@ -8,7 +8,7 @@
  */
 
 // Test configuration
-const PROPERTY_TEST_RUNS = 50
+const NAVIGATION_TEST_RUNS = 50
 
 describe('Navigation Integration Properties', () => {
   
@@ -27,7 +27,7 @@ describe('Navigation Integration Properties', () => {
    * For any company ID, navigation URLs should follow consistent parameter format
    */
   test('Property 8: Navigation integration correctness', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < NAVIGATION_TEST_RUNS; i++) {
       const companyId = generateObjectId()
       
       // Test URL generation for AI Assessment navigation
@@ -49,7 +49,7 @@ describe('Navigation Integration Properties', () => {
    * For any valid company ID, navigation URLs should be properly encoded
    */
   test('Property: URL parameter format consistency', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < NAVIGATION_TEST_RUNS; i++) {
       const companyId = generateObjectId()
       
       // Test URL encoding
@@ -69,7 +69,7 @@ describe('Navigation Integration Properties', () => {
    * For any navigation URL, it should be parseable and contain valid parameters
    */
   test('Property: Navigation URL validation', () => {
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < NAVIGATION_TEST_RUNS; i++) {
       const companyId = generateObjectId()
       const navigationUrl = `/ai-assessment?companyId=${companyId}`
       

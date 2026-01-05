@@ -8,7 +8,7 @@
  */
 
 // Test configuration
-const PROPERTY_TEST_RUNS = 20
+const RESPONSIVE_TEST_RUNS = 20
 
 // Common screen sizes for testing
 const SCREEN_SIZES = {
@@ -27,7 +27,7 @@ describe('Responsive Design Properties', () => {
   test('Property 9: Responsive layout preservation', () => {
     const screenSizes = Object.values(SCREEN_SIZES)
     
-    for (let i = 0; i < PROPERTY_TEST_RUNS; i++) {
+    for (let i = 0; i < RESPONSIVE_TEST_RUNS; i++) {
       const randomScreen = screenSizes[Math.floor(Math.random() * screenSizes.length)]
       
       // Test responsive breakpoints
