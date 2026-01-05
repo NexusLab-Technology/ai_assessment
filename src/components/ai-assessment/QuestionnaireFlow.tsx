@@ -147,7 +147,6 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   const validateCurrentQuestion = (): boolean => {
     const currentSection = getCurrentSection()
     if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
-      console.log('No current section or question')
       return false
     }
 
@@ -156,40 +155,27 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     const response = sectionResponses[currentQuestion.id]
     const validation = stepValidation[currentQuestion.id]
 
-    console.log('Validating question:', {
-      questionId: currentQuestion.id,
-      required: currentQuestion.required,
-      response,
-      validation,
-      hasValidation: !!validation
-    })
-
     // If question is not required and no response, it's valid
     if (!currentQuestion.required && (response === null || response === undefined || response === '')) {
-      console.log('Optional question with no response - valid')
       return true
     }
 
     // Check if required question is answered
     if (currentQuestion.required) {
       if (response === null || response === undefined || response === '') {
-        console.log('Required question not answered')
         return false
       }
       // For array responses (multiselect, checkbox)
       if (Array.isArray(response) && response.length === 0) {
-        console.log('Required array question empty')
         return false
       }
     }
 
     // Check if validation failed (only if validation exists)
     if (validation && !validation.isValid) {
-      console.log('Validation failed:', validation.error)
       return false
     }
 
-    console.log('Question validation passed')
     return true
   }
 
@@ -229,13 +215,11 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     if (!currentSection) return
 
     if (!validateCurrentQuestion()) {
-      console.log('Cannot proceed - validation failed')
       return
     }
 
     // Auto save current response before moving to next question
     try {
-      console.log('Auto-saving before next...')
       await saveNow()
     } catch (error) {
       console.error('Failed to auto-save:', error)
@@ -503,15 +487,6 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
                   </button>
                 )}
               </div>
-              
-              {/* Debug info - remove in production */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-400 mt-2">
-                  Debug: canProceed={canProceed.toString()}, 
-                  currentQuestion={currentSection?.questions[currentQuestionIndex]?.id},
-                  required={currentSection?.questions[currentQuestionIndex]?.required?.toString()}
-                </div>
-              )}
             </div>
           </div>
         </div>
