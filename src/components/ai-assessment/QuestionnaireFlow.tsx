@@ -146,29 +146,50 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
 
   const validateCurrentQuestion = (): boolean => {
     const currentSection = getCurrentSection()
-    if (!currentSection || !currentSection.questions[currentQuestionIndex]) return false
+    if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
+      console.log('No current section or question')
+      return false
+    }
 
     const currentQuestion = currentSection.questions[currentQuestionIndex]
     const sectionResponses = responses[currentSection.id] || {}
     const response = sectionResponses[currentQuestion.id]
     const validation = stepValidation[currentQuestion.id]
 
+    console.log('Validating question:', {
+      questionId: currentQuestion.id,
+      required: currentQuestion.required,
+      response,
+      validation,
+      hasValidation: !!validation
+    })
+
+    // If question is not required and no response, it's valid
+    if (!currentQuestion.required && (response === null || response === undefined || response === '')) {
+      console.log('Optional question with no response - valid')
+      return true
+    }
+
     // Check if required question is answered
     if (currentQuestion.required) {
       if (response === null || response === undefined || response === '') {
+        console.log('Required question not answered')
         return false
       }
       // For array responses (multiselect, checkbox)
       if (Array.isArray(response) && response.length === 0) {
+        console.log('Required array question empty')
         return false
       }
     }
 
-    // Check if validation failed
+    // Check if validation failed (only if validation exists)
     if (validation && !validation.isValid) {
+      console.log('Validation failed:', validation.error)
       return false
     }
 
+    console.log('Question validation passed')
     return true
   }
 
@@ -208,7 +229,17 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     if (!currentSection) return
 
     if (!validateCurrentQuestion()) {
+      console.log('Cannot proceed - validation failed')
       return
+    }
+
+    // Auto save current response before moving to next question
+    try {
+      console.log('Auto-saving before next...')
+      await saveNow()
+    } catch (error) {
+      console.error('Failed to auto-save:', error)
+      // Continue navigation even if save fails
     }
 
     // Check if this is the last question in current section
@@ -218,14 +249,6 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
       // Mark current step as completed
       if (!completedSteps.includes(currentStep)) {
         setCompletedSteps(prev => [...prev, currentStep])
-      }
-
-      // Save on section completion (immediate save)
-      try {
-        await saveNow()
-      } catch (error) {
-        console.error('Failed to save on navigation:', error)
-        // Continue navigation even if save fails
       }
 
       // Move to next section
@@ -473,12 +496,22 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
                         ? 'text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                         : 'text-gray-400 bg-gray-100 cursor-not-allowed'
                     }`}
+                    title={!canProceed ? 'Please answer the required question to continue' : 'Continue to next question'}
                   >
                     Next
                     <ArrowRightIcon className="ml-2 -mr-1 h-5 w-5" />
                   </button>
                 )}
               </div>
+              
+              {/* Debug info - remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-gray-400 mt-2">
+                  Debug: canProceed={canProceed.toString()}, 
+                  currentQuestion={currentSection?.questions[currentQuestionIndex]?.id},
+                  required={currentSection?.questions[currentQuestionIndex]?.required?.toString()}
+                </div>
+              )}
             </div>
           </div>
         </div>
