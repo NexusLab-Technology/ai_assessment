@@ -132,7 +132,7 @@ describe('Company Validation', () => {
       fc.assert(fc.property(
         fc.record({
           name: fc.string(),
-          description: fc.option(fc.string())
+          description: fc.option(fc.string(), { nil: undefined })
         }),
         (formData: CompanyFormData) => {
           const errors = validateCompanyForm(formData)
@@ -185,7 +185,7 @@ describe('Company Validation', () => {
 
     it('should validate company descriptions with length constraints', () => {
       fc.assert(fc.property(
-        fc.option(fc.string()),
+        fc.option(fc.string(), { nil: undefined }),
         (description) => {
           const error = validateCompanyDescription(description)
           

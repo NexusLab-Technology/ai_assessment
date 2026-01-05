@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { 
   PlusIcon, 
   EyeIcon, 
+  PencilIcon,
   TrashIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -16,6 +17,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
   assessments,
   onCreateAssessment,
   onSelectAssessment,
+  onViewAssessment,
   onDeleteAssessment,
   isLoading = false,
   isDeletingAssessment = null
@@ -64,6 +66,22 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
   const getProgressPercentage = (assessment: Assessment) => {
     if (assessment.totalSteps === 0) return 0
     return Math.round((assessment.currentStep / assessment.totalSteps) * 100)
+  }
+
+  const getActionIcon = (status: Assessment['status']) => {
+    return status === 'COMPLETED' ? EyeIcon : PencilIcon
+  }
+
+  const getActionTitle = (status: Assessment['status']) => {
+    return status === 'COMPLETED' ? 'View Assessment' : 'Edit Assessment'
+  }
+
+  const handleAssessmentAction = (assessment: Assessment) => {
+    if (assessment.status === 'COMPLETED') {
+      onViewAssessment?.(assessment.id)
+    } else {
+      onSelectAssessment(assessment)
+    }
   }
 
   const handleDeleteClick = (assessmentId: string) => {
@@ -185,11 +203,11 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
 
               <div className="flex items-center space-x-2 ml-4">
                 <button
-                  onClick={() => onSelectAssessment(assessment)}
+                  onClick={() => handleAssessmentAction(assessment)}
                   className="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  title={assessment.status === 'COMPLETED' ? 'View Report' : 'Continue Assessment'}
+                  title={getActionTitle(assessment.status)}
                 >
-                  <EyeIcon className="h-4 w-4" />
+                  {React.createElement(getActionIcon(assessment.status), { className: "h-4 w-4" })}
                 </button>
 
                 {assessment.status === 'DRAFT' && (

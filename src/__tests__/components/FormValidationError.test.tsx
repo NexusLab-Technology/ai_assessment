@@ -82,7 +82,7 @@ describe('FormValidationError Component', () => {
       render(<FormValidationError error="Test error" />)
       
       const errorContainer = screen.getByText('Test error').parentElement
-      expect(errorContainer).toHaveClass('text-sm', 'text-red-600')
+      expect(errorContainer).toHaveClass('text-sm text-red-600')
     })
   })
 

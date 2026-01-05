@@ -147,7 +147,9 @@ export const mockCompanyAPI = {
     
     return {
       message: 'Company deleted successfully',
-      deletedAssessments
+      deletedCompany: true,
+      deletedAssessments,
+      totalAssessments: deletedAssessments
     }
   },
 

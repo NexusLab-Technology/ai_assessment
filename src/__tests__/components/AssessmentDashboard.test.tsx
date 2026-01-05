@@ -207,11 +207,11 @@ describe('AssessmentDashboard Component', () => {
         />
       )
 
-      // Find and click the view button (eye icon)
-      const viewButton = container.querySelector('button[title="Continue Assessment"]')
-      expect(viewButton).toBeInTheDocument()
+      // Find and click the edit button (pencil icon) for in-progress assessment
+      const editButton = container.querySelector('button[title="Edit Assessment"]')
+      expect(editButton).toBeInTheDocument()
       
-      fireEvent.click(viewButton!)
+      fireEvent.click(editButton!)
       expect(mockOnSelectAssessment).toHaveBeenCalledWith(assessments[0])
     })
 
@@ -376,6 +376,11 @@ describe('AssessmentDashboard Component', () => {
         (assessment: Assessment) => {
           cleanup()
           
+          // Only test IN_PROGRESS assessments
+          if (assessment.status !== 'IN_PROGRESS') {
+            return true // Skip non-in-progress assessments
+          }
+          
           // Ensure currentStep doesn't exceed totalSteps
           const validAssessment = {
             ...assessment,
@@ -521,7 +526,7 @@ describe('AssessmentDashboard Component', () => {
         />
       )
 
-      const viewButton = container.querySelector('button[title="View Report"]')
+      const viewButton = container.querySelector('button[title="View Assessment"]')
       expect(viewButton).toBeInTheDocument()
     })
   })

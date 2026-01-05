@@ -131,35 +131,35 @@ describe('CompanySearch', () => {
      * with the correct query value
      * Validates: Requirements 3.5
      */
-    it('Property 5: Search functionality correctness - debouncing behavior', () => {
-      fc.assert(fc.property(
+    it('Property 5: Search functionality correctness - debouncing behavior', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.string({ maxLength: 100 }),
         fc.integer({ min: 100, max: 1000 }),
         async (searchQuery: string, debounceMs: number) => {
           const onSearch = jest.fn()
-          const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
-          
-          render(<CompanySearch onSearch={onSearch} debounceMs={debounceMs} />)
-          
-          const input = screen.getByRole('textbox')
-          await user.clear(input)
-          await user.type(input, searchQuery)
-          
-          // Should not have called onSearch immediately
-          expect(onSearch).not.toHaveBeenCalled()
-          
-          // Advance timers by debounce amount
-          jest.advanceTimersByTime(debounceMs)
-          
-          // Should have called onSearch exactly once with the search query
-          expect(onSearch).toHaveBeenCalledTimes(1)
-          expect(onSearch).toHaveBeenCalledWith(searchQuery)
+            const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
+            
+            render(<CompanySearch onSearch={onSearch} debounceMs={debounceMs} />)
+            
+            const input = screen.getByRole('textbox')
+            await user.clear(input)
+            await user.type(input, searchQuery)
+            
+            // Should not have called onSearch immediately
+            expect(onSearch).not.toHaveBeenCalled()
+            
+            // Advance timers by debounce amount
+            jest.advanceTimersByTime(debounceMs)
+            
+            // Should have called onSearch exactly once with the search query
+            expect(onSearch).toHaveBeenCalledTimes(1)
+            expect(onSearch).toHaveBeenCalledWith(searchQuery)
         }
       ), { numRuns: 20 })
     })
 
-    it('should handle various input values correctly', () => {
-      fc.assert(fc.property(
+    it('should handle various input values correctly', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.string({ maxLength: 200 }),
         async (inputValue: string) => {
           const onSearch = jest.fn()
@@ -181,15 +181,15 @@ describe('CompanySearch', () => {
             expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument()
           }
           
-          // Advance timers and check onSearch call
-          jest.advanceTimersByTime(100)
-          expect(onSearch).toHaveBeenCalledWith(inputValue)
+            // Advance timers and check onSearch call
+            jest.advanceTimersByTime(100)
+            expect(onSearch).toHaveBeenCalledWith(inputValue)
         }
       ), { numRuns: 30 })
     })
 
-    it('should handle rapid typing correctly with debouncing', () => {
-      fc.assert(fc.property(
+    it('should handle rapid typing correctly with debouncing', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.array(fc.string({ minLength: 1, maxLength: 10 }), { minLength: 2, maxLength: 5 }),
         fc.integer({ min: 200, max: 500 }),
         async (typingSequence: string[], debounceMs: number) => {
@@ -214,9 +214,9 @@ describe('CompanySearch', () => {
           // Advance by full debounce time
           jest.advanceTimersByTime(debounceMs)
           
-          // Should have called onSearch once with the final value
-          expect(onSearch).toHaveBeenCalledTimes(1)
-          expect(onSearch).toHaveBeenCalledWith(typingSequence[typingSequence.length - 1])
+            // Should have called onSearch once with the final value
+            expect(onSearch).toHaveBeenCalledTimes(1)
+            expect(onSearch).toHaveBeenCalledWith(typingSequence[typingSequence.length - 1])
         }
       ), { numRuns: 20 })
     })

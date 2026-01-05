@@ -110,6 +110,7 @@ export interface AssessmentDashboardProps {
   assessments: Assessment[]
   onCreateAssessment: () => void
   onSelectAssessment: (assessment: Assessment) => void
+  onViewAssessment?: (assessmentId: string) => void
   onDeleteAssessment: (assessmentId: string) => void
   isLoading?: boolean
   isDeletingAssessment?: string | null

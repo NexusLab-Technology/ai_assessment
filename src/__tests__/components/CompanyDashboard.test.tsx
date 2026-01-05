@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import fc from 'fast-check'
 import CompanyDashboard from '@/components/company-settings/CompanyDashboard'
@@ -211,7 +211,7 @@ describe('CompanyDashboard', () => {
         fc.array(fc.record({
           id: fc.string({ minLength: 1 }),
           name: fc.string({ minLength: 2, maxLength: 100 }),
-          description: fc.option(fc.string({ maxLength: 500 })),
+          description: fc.option(fc.string({ maxLength: 500 }), { nil: undefined }),
           createdAt: fc.date(),
           updatedAt: fc.date(),
           assessmentCount: fc.integer({ min: 0, max: 100 })
@@ -242,7 +242,7 @@ describe('CompanyDashboard', () => {
         fc.array(fc.record({
           id: fc.string({ minLength: 1 }),
           name: fc.string({ minLength: 2, maxLength: 100 }),
-          description: fc.option(fc.string({ maxLength: 500 })),
+          description: fc.option(fc.string({ maxLength: 500 }), { nil: undefined }),
           createdAt: fc.date(),
           updatedAt: fc.date(),
           assessmentCount: fc.integer({ min: 0, max: 100 })
@@ -281,7 +281,7 @@ describe('CompanyDashboard', () => {
         fc.array(fc.record({
           id: fc.string({ minLength: 1 }),
           name: fc.string({ minLength: 2, maxLength: 100 }),
-          description: fc.option(fc.string({ maxLength: 500 })),
+          description: fc.option(fc.string({ maxLength: 500 }), { nil: undefined }),
           createdAt: fc.date(),
           updatedAt: fc.date(),
           assessmentCount: fc.integer({ min: 0, max: 100 })
@@ -307,11 +307,11 @@ describe('CompanyDashboard', () => {
     it('should maintain consistent state across loading and error conditions', () => {
       fc.assert(fc.property(
         fc.boolean(),
-        fc.option(fc.string({ minLength: 1, maxLength: 200 })),
+        fc.option(fc.string({ minLength: 1, maxLength: 200 }), { nil: undefined }),
         fc.array(fc.record({
           id: fc.string({ minLength: 1 }),
           name: fc.string({ minLength: 2, maxLength: 100 }),
-          description: fc.option(fc.string({ maxLength: 500 })),
+          description: fc.option(fc.string({ maxLength: 500 }), { nil: undefined }),
           createdAt: fc.date(),
           updatedAt: fc.date(),
           assessmentCount: fc.integer({ min: 0, max: 100 })

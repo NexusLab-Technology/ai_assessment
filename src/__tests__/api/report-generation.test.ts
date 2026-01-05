@@ -27,7 +27,7 @@ jest.mock('@aws-sdk/client-bedrock-runtime', () => ({
 }))
 
 // Mock the credentials function
-jest.mock('../../app/api/aws/credentials/route', () => ({
+jest.mock('../../../lib/aws-credentials', () => ({
   getDecryptedCredentials: jest.fn().mockResolvedValue({
     accessKeyId: 'AKIATEST123456789012',
     secretAccessKey: 'test-secret-key-12345678901234567890123456789012',

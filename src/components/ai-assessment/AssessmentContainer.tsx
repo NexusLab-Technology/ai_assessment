@@ -5,6 +5,7 @@ import { Assessment, Company, AssessmentResponses, QuestionSection } from '../..
 import { assessmentApi } from '../../lib/api-client'
 import { getErrorMessage, logError } from '../../utils/error-handling'
 import AssessmentDashboard from './AssessmentDashboard'
+import AssessmentViewer from './AssessmentViewer'
 import AssessmentWizard from './AssessmentWizard'
 import QuestionnaireFlow from './QuestionnaireFlow'
 import ReportGenerator from './ReportGenerator'
@@ -18,11 +19,12 @@ interface AssessmentContainerProps {
   onCompanySelectorDisabled?: (disabled: boolean) => void
 }
 
-type ViewMode = 'dashboard' | 'wizard' | 'questionnaire' | 'report'
+type ViewMode = 'dashboard' | 'wizard' | 'questionnaire' | 'report' | 'viewer'
 
 export default function AssessmentContainer({ selectedCompany, onCompanySelectorDisabled }: AssessmentContainerProps) {
   const [assessments, setAssessments] = useState<Assessment[]>([])
   const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null)
+  const [viewerAssessmentId, setViewerAssessmentId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
   
   // Loading states
@@ -118,6 +120,11 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     setCompleteAssessmentError(null)
   }
 
+  const handleViewAssessment = (assessmentId: string) => {
+    setViewerAssessmentId(assessmentId)
+    setViewMode('viewer')
+  }
+
   const handleDeleteAssessment = async (assessmentId: string) => {
     try {
       setIsDeletingAssessment(assessmentId)
@@ -193,6 +200,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
   const handleBackToDashboard = () => {
     setViewMode('dashboard')
     setCurrentAssessment(null)
+    setViewerAssessmentId(null)
     setCreateAssessmentError(null)
     setCompleteAssessmentError(null)
   }
@@ -301,6 +309,24 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     )
   }
 
+  if (viewMode === 'viewer' && viewerAssessmentId) {
+    return (
+      <AssessmentViewer
+        assessmentId={viewerAssessmentId}
+        onClose={handleBackToDashboard}
+        onEdit={() => {
+          // Find the assessment and switch to edit mode
+          const assessment = assessments.find(a => a.id === viewerAssessmentId)
+          if (assessment) {
+            setCurrentAssessment(assessment)
+            setViewMode('questionnaire')
+            setViewerAssessmentId(null)
+          }
+        }}
+      />
+    )
+  }
+
   if (viewMode === 'report' && currentAssessment && selectedCompany) {
     return (
       <ErrorBoundary
@@ -384,6 +410,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
               assessments={assessments}
               onCreateAssessment={handleCreateAssessment}
               onSelectAssessment={handleSelectAssessment}
+              onViewAssessment={handleViewAssessment}
               onDeleteAssessment={handleDeleteAssessment}
               isLoading={false}
               isDeletingAssessment={isDeletingAssessment}

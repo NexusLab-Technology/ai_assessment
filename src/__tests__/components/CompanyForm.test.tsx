@@ -168,11 +168,11 @@ describe('CompanyForm', () => {
      * and display appropriate error messages for all invalid fields
      * Validates: Requirements 7.1, 7.2, 7.3
      */
-    it('Property 7: Form validation consistency', () => {
-      fc.assert(fc.property(
+    it('Property 7: Form validation consistency', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.record({
           name: fc.string(),
-          description: fc.option(fc.string())
+          description: fc.option(fc.string(), { nil: undefined })
         }),
         async (formData: CompanyFormData) => {
           const user = userEvent.setup()
@@ -241,12 +241,12 @@ describe('CompanyForm', () => {
      * For any valid company creation, the form should submit the correct data
      * Validates: Requirements 2.5, 2.6, 2.7
      */
-    it('Property 2: Company CRUD operations consistency - form submission', () => {
-      fc.assert(fc.property(
+    it('Property 2: Company CRUD operations consistency - form submission', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.record({
           name: fc.string({ minLength: COMPANY_NAME_MIN_LENGTH, maxLength: COMPANY_NAME_MAX_LENGTH })
             .filter(name => /^[a-zA-Z0-9\s\-_&.()]+$/.test(name.trim())),
-          description: fc.option(fc.string({ maxLength: COMPANY_DESCRIPTION_MAX_LENGTH }))
+          description: fc.option(fc.string({ maxLength: COMPANY_DESCRIPTION_MAX_LENGTH }), { nil: undefined })
         }),
         async (validFormData: CompanyFormData) => {
           const user = userEvent.setup()
@@ -278,16 +278,16 @@ describe('CompanyForm', () => {
       ), { numRuns: 30 })
     })
 
-    it('should handle various input edge cases', () => {
-      fc.assert(fc.property(
+    it('should handle various input edge cases', async () => {
+      await fc.assert(fc.asyncProperty(
         fc.string(),
-        fc.option(fc.string()),
+        fc.option(fc.string(), { nil: undefined }),
         fc.boolean(),
         fc.option(fc.record({
-          name: fc.option(fc.string()),
-          description: fc.option(fc.string()),
-          general: fc.option(fc.string())
-        })),
+          name: fc.option(fc.string(), { nil: undefined }),
+          description: fc.option(fc.string(), { nil: undefined }),
+          general: fc.option(fc.string(), { nil: undefined })
+        }), { nil: undefined }),
         async (name: string, description: string | undefined, loading: boolean, errors: FormErrors | undefined) => {
           render(
             <CompanyForm 

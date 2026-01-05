@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
 import { getDatabase } from '../../../../lib/mongodb'
 import { createSuccessResponse, createErrorResponse } from '../../../../lib/api-utils'
-import { getDecryptedCredentials } from '../../aws/credentials/route'
+import { getDecryptedCredentials } from '../../../../lib/aws-credentials'
 import { ObjectId } from 'mongodb'
 
 interface GenerateReportRequest {
@@ -11,7 +11,7 @@ interface GenerateReportRequest {
 }
 
 interface AssessmentData {
-  _id: string
+  _id: ObjectId
   companyId: string
   name: string
   path: 'EXPLORATORY' | 'MIGRATION'
@@ -204,7 +204,7 @@ function formatAsHtmlReport(content: string, assessment: AssessmentData, company
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n\n/g, '</p><p>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>')
 
   // Wrap paragraphs
   htmlContent = '<p>' + htmlContent + '</p>'

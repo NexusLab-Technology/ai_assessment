@@ -14,10 +14,9 @@ describe('ReportGenerator Component', () => {
   const mockCompany: Company = {
     id: 'company-1',
     name: 'Test Company',
-    industry: 'Technology',
-    size: 'MEDIUM',
+    description: 'A test company',
     createdAt: new Date(),
-    updatedAt: new Date()
+    assessmentCount: 1
   }
 
   const mockCompletedAssessment: Assessment = {
@@ -28,7 +27,6 @@ describe('ReportGenerator Component', () => {
     status: 'COMPLETED',
     currentStep: 7,
     totalSteps: 7,
-    responses: {},
     createdAt: new Date(),
     updatedAt: new Date(),
     completedAt: new Date()

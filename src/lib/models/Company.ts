@@ -102,7 +102,7 @@ export class CompanyModel {
 
     const document: Omit<CompanyDocument, '_id'> = {
       name: data.name.trim(),
-      description: data.description?.trim() || null, // Store as null for consistency
+      description: data.description?.trim() || undefined, // Store as undefined for consistency
       userId: data.userId,
       createdAt: now,
       updatedAt: now

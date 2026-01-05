@@ -8,6 +8,7 @@ import {
   Assessment, 
   AssessmentReport, 
   AssessmentResponses,
+  QuestionSection,
   CreateCompanyRequest,
   CreateAssessmentRequest,
   SaveResponsesRequest,
@@ -151,6 +152,14 @@ export const assessmentApi = {
     status: string
   }> {
     const response = await fetch(`${API_BASE}/assessments/${id}/responses`)
+    return handleResponse(response)
+  },
+
+  async getQuestionnaireSections(type: 'exploratory' | 'migration'): Promise<{
+    type: string
+    sections: QuestionSection[]
+  }> {
+    const response = await fetch(`${API_BASE}/questionnaires?type=${type}`)
     return handleResponse(response)
   }
 }

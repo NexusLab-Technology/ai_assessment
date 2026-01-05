@@ -73,13 +73,13 @@ const CompanyContainer: React.FC = () => {
       )
       
       if (editingCompany) {
-        // Update existing company - use response directly since api-client already extracts data
+        // Update existing company - extract company from response
         setCompanies(prev => prev.map(c => 
-          c.id === editingCompany.id ? response : c
+          c.id === editingCompany.id ? response.company : c
         ))
       } else {
-        // Add new company - use response directly
-        setCompanies(prev => [response, ...prev])
+        // Add new company - extract company from response
+        setCompanies(prev => [response.company, ...prev])
       }
       
       // Reset form state

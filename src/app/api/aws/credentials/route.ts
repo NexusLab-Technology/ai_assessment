@@ -182,39 +182,3 @@ export async function DELETE(request: NextRequest) {
     return createErrorResponse('Failed to delete AWS credentials', 500)
   }
 }
-
-// Helper function to get decrypted credentials for internal use
-export async function getDecryptedCredentials(companyId: string): Promise<AWSCredentials | null> {
-  try {
-    const db = await getDatabase()
-    const collection = db.collection<StoredCredentials>('aws_credentials')
-
-    const storedCredentials = await collection.findOne({ companyId })
-
-    if (!storedCredentials) {
-      return null
-    }
-
-    const accessKeyId = decrypt({
-      encrypted: storedCredentials.encryptedAccessKeyId,
-      iv: storedCredentials.accessKeyIdIv,
-      authTag: storedCredentials.accessKeyIdAuthTag
-    })
-
-    const secretAccessKey = decrypt({
-      encrypted: storedCredentials.encryptedSecretAccessKey,
-      iv: storedCredentials.secretAccessKeyIv,
-      authTag: storedCredentials.secretAccessKeyAuthTag
-    })
-
-    return {
-      accessKeyId,
-      secretAccessKey,
-      region: storedCredentials.region
-    }
-
-  } catch (error) {
-    console.error('Error decrypting AWS credentials:', error)
-    return null
-  }
-}
