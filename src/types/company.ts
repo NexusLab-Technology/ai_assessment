@@ -31,7 +31,7 @@ export interface FormErrors {
 }
 
 export interface CompanyDashboardProps {
-  companies: Company[]
+  companies?: Company[]
   loading: boolean
   error?: string
   onCreateCompany: () => void

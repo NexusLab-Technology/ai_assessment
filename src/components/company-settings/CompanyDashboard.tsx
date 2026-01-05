@@ -22,16 +22,14 @@ interface ExtendedCompanyDashboardProps extends CompanyDashboardProps {
   onDismissError?: () => void
   retryCount?: number
 }
-import ErrorMessage from '../ai-assessment/ErrorMessage'
 
 const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
-  companies,
+  companies = [], // Add default empty array
   loading,
   error,
   onCreateCompany,
   onEditCompany,
   onDeleteCompany,
-  onSearchCompanies,
   currentFormData,
   editingCompany,
   onFormSubmit,
@@ -45,7 +43,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>(companies)
+  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>(companies || [])
   
   // Refs for focus management
   const modalRef = useRef<HTMLDivElement>(null)
@@ -100,6 +98,11 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 
   // Update filtered companies when companies or search query changes
   useEffect(() => {
+    if (!companies) {
+      setFilteredCompanies([])
+      return
+    }
+    
     if (!searchQuery.trim()) {
       setFilteredCompanies(companies)
     } else {
@@ -285,7 +288,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
                   onSubmit={handleFormSubmit}
                   onCancel={handleFormCancel}
                   loading={formLoading}
-                  existingCompanies={companies}
+                  existingCompanies={companies || []}
                 />
               </div>
             </div>
@@ -331,7 +334,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
           <div className="mb-4 text-sm text-gray-600">
             {searchQuery ? (
               <>
-                Found {filteredCompanies.length} of {companies.length} companies
+                Found {filteredCompanies.length} of {companies?.length || 0} companies
                 {searchQuery && (
                   <span className="ml-2">
                     matching "{searchQuery}"
@@ -345,7 +348,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
                 )}
               </>
             ) : (
-              `Showing ${companies.length} ${companies.length === 1 ? 'company' : 'companies'}`
+              `Showing ${companies?.length || 0} ${(companies?.length || 0) === 1 ? 'company' : 'companies'}`
             )}
           </div>
 
@@ -355,7 +358,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
             role="grid"
             aria-label="Companies list"
           >
-            {filteredCompanies.map((company, index) => (
+            {filteredCompanies.map((company) => (
               <div
                 key={company.id}
                 role="gridcell"
