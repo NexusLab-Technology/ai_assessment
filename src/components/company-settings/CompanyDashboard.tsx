@@ -53,8 +53,6 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
   // Initialize filtered companies when companies prop changes
   // Combined logic for filtering companies based on companies prop and search query
   useEffect(() => {
-    console.log('CompanyDashboard useEffect - companies changed:', companies?.length, companies)
-    
     if (!companies || !Array.isArray(companies)) {
       setFilteredCompanies([])
       return
@@ -62,11 +60,9 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
     
     // Filter out any undefined or null companies
     const validCompanies = companies.filter(company => company && company.name)
-    console.log('Valid companies after filter:', validCompanies.length)
     
     if (!searchQuery.trim()) {
       setFilteredCompanies(validCompanies)
-      console.log('Set filtered companies (no search):', validCompanies.length)
     } else {
       const query = searchQuery.toLowerCase().trim()
       const filtered = validCompanies.filter(company =>
@@ -74,7 +70,6 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
         (company.description && company.description.toLowerCase().includes(query))
       )
       setFilteredCompanies(filtered)
-      console.log('Set filtered companies (with search):', filtered.length)
     }
   }, [companies, searchQuery])
 
