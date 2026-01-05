@@ -37,6 +37,7 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   className = ''
 }) => {
   const [currentStep, setCurrentStep] = useState(assessment.currentStep || 1)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0) // Track current question in section
   const [responses, setResponses] = useState<AssessmentResponses>({})
   const [stepValidation, setStepValidation] = useState<StepValidation>({})
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
@@ -143,6 +144,34 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     }))
   }
 
+  const validateCurrentQuestion = (): boolean => {
+    const currentSection = getCurrentSection()
+    if (!currentSection || !currentSection.questions[currentQuestionIndex]) return false
+
+    const currentQuestion = currentSection.questions[currentQuestionIndex]
+    const sectionResponses = responses[currentSection.id] || {}
+    const response = sectionResponses[currentQuestion.id]
+    const validation = stepValidation[currentQuestion.id]
+
+    // Check if required question is answered
+    if (currentQuestion.required) {
+      if (response === null || response === undefined || response === '') {
+        return false
+      }
+      // For array responses (multiselect, checkbox)
+      if (Array.isArray(response) && response.length === 0) {
+        return false
+      }
+    }
+
+    // Check if validation failed
+    if (validation && !validation.isValid) {
+      return false
+    }
+
+    return true
+  }
+
   const validateCurrentStep = (): boolean => {
     const currentSection = getCurrentSection()
     if (!currentSection) return false
@@ -175,36 +204,58 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   }
 
   const handleNext = async () => {
-    if (!validateCurrentStep()) {
+    const currentSection = getCurrentSection()
+    if (!currentSection) return
+
+    if (!validateCurrentQuestion()) {
       return
     }
 
-    // Mark current step as completed
-    if (!completedSteps.includes(currentStep)) {
-      setCompletedSteps(prev => [...prev, currentStep])
-    }
+    // Check if this is the last question in current section
+    const isLastQuestionInSection = currentQuestionIndex === currentSection.questions.length - 1
 
-    // Save on navigation (immediate save)
-    try {
-      await saveNow()
-    } catch (error) {
-      console.error('Failed to save on navigation:', error)
-      // Continue navigation even if save fails
-    }
+    if (isLastQuestionInSection) {
+      // Mark current step as completed
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps(prev => [...prev, currentStep])
+      }
 
-    if (currentStep < sections.length) {
-      setCurrentStep(currentStep + 1)
+      // Save on section completion (immediate save)
+      try {
+        await saveNow()
+      } catch (error) {
+        console.error('Failed to save on navigation:', error)
+        // Continue navigation even if save fails
+      }
+
+      // Move to next section
+      if (currentStep < sections.length) {
+        setCurrentStep(currentStep + 1)
+        setCurrentQuestionIndex(0) // Reset to first question of next section
+      }
+    } else {
+      // Move to next question in same section
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
     }
   }
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+    if (currentQuestionIndex > 0) {
+      // Go to previous question in same section
+      setCurrentQuestionIndex(currentQuestionIndex - 1)
+    } else if (currentStep > 1) {
+      // Go to previous section, last question
+      const prevStep = currentStep - 1
+      const prevSection = sections.find(s => s.stepNumber === prevStep)
+      if (prevSection) {
+        setCurrentStep(prevStep)
+        setCurrentQuestionIndex(prevSection.questions.length - 1)
+      }
     }
   }
 
   const handleComplete = async () => {
-    if (!validateCurrentStep()) {
+    if (!validateCurrentQuestion()) {
       return
     }
 
@@ -236,9 +287,9 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   }
 
   const currentSection = getCurrentSection()
-  const isFirstStep = currentStep === 1
-  const isLastStep = currentStep === sections.length
-  const canProceed = validateCurrentStep()
+  const isFirstQuestion = currentStep === 1 && currentQuestionIndex === 0
+  const isLastQuestion = currentStep === sections.length && currentSection && currentQuestionIndex === currentSection.questions.length - 1
+  const canProceed = validateCurrentQuestion()
 
   // Show loading state while fetching responses
   if (isLoadingResponses) {
@@ -268,10 +319,10 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   }
 
   return (
-    <div className={`max-w-4xl mx-auto ${className}`}>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Progress Tracker - Left Sidebar */}
-        <div className="lg:col-span-1">
+    <div className={`w-full max-w-none ${className}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Progress Tracker - Left Sidebar (3 columns) */}
+        <div className="lg:col-span-3">
           <ProgressTracker
             sections={sections}
             currentStep={currentStep}
@@ -280,8 +331,8 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
           />
         </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-3">
+        {/* Main Content (9 columns) */}
+        <div className="lg:col-span-9">
           <div className="bg-white shadow-sm rounded-lg">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200">
@@ -335,17 +386,25 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
               </div>
             </div>
 
-            {/* Questions */}
-            <div className="px-6 py-6 space-y-8">
-              {currentSection.questions.map((question) => (
-                <QuestionStep
-                  key={question.id}
-                  question={question}
-                  value={responses[currentSection.id]?.[question.id]}
-                  onChange={(value) => handleResponseChange(question.id, value)}
-                  onValidation={(isValid, error) => handleQuestionValidation(question.id, isValid, error)}
-                />
-              ))}
+            {/* Questions - Show only current question */}
+            <div className="px-6 py-6">
+              {currentSection.questions.length > 0 && (
+                <div className="space-y-6">
+                  {/* Question counter */}
+                  <div className="text-sm text-gray-500 mb-4">
+                    Question {currentQuestionIndex + 1} of {currentSection.questions.length} in this section
+                  </div>
+                  
+                  {/* Current question */}
+                  <QuestionStep
+                    key={currentSection.questions[currentQuestionIndex].id}
+                    question={currentSection.questions[currentQuestionIndex]}
+                    value={responses[currentSection.id]?.[currentSection.questions[currentQuestionIndex].id]}
+                    onChange={(value) => handleResponseChange(currentSection.questions[currentQuestionIndex].id, value)}
+                    onValidation={(isValid, error) => handleQuestionValidation(currentSection.questions[currentQuestionIndex].id, isValid, error)}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
@@ -353,9 +412,9 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
               <button
                 type="button"
                 onClick={handlePrevious}
-                disabled={isFirstStep}
+                disabled={isFirstQuestion}
                 className={`inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md ${
-                  isFirstStep
+                  isFirstQuestion
                     ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                     : 'text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                 }`}
@@ -381,7 +440,7 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
                 </button>
 
                 {/* Next/Complete Button */}
-                {isLastStep ? (
+                {isLastQuestion ? (
                   <button
                     type="button"
                     onClick={handleComplete}
