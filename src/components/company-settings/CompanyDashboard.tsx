@@ -131,7 +131,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-    onSearchCompanies(query)
+    // Note: Filtering is handled in useEffect, no need to call API for client-side search
   }
 
   const handleViewAssessments = (companyId: string) => {
