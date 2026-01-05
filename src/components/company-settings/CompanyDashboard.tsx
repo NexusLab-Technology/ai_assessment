@@ -43,12 +43,22 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>(companies || [])
+  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   
   // Refs for focus management
   const modalRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const createButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Initialize filtered companies when companies prop changes
+  useEffect(() => {
+    if (companies && Array.isArray(companies)) {
+      const validCompanies = companies.filter(company => company && company.name)
+      setFilteredCompanies(validCompanies)
+    } else {
+      setFilteredCompanies([])
+    }
+  }, [companies])
 
   // Show form when currentFormData is provided
   useEffect(() => {
@@ -98,16 +108,19 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 
   // Update filtered companies when companies or search query changes
   useEffect(() => {
-    if (!companies) {
+    if (!companies || !Array.isArray(companies)) {
       setFilteredCompanies([])
       return
     }
     
+    // Filter out any undefined or null companies
+    const validCompanies = companies.filter(company => company && company.name)
+    
     if (!searchQuery.trim()) {
-      setFilteredCompanies(companies)
+      setFilteredCompanies(validCompanies)
     } else {
       const query = searchQuery.toLowerCase().trim()
-      const filtered = companies.filter(company =>
+      const filtered = validCompanies.filter(company =>
         company.name.toLowerCase().includes(query) ||
         (company.description && company.description.toLowerCase().includes(query))
       )
@@ -358,7 +371,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
             role="grid"
             aria-label="Companies list"
           >
-            {filteredCompanies.map((company) => (
+            {filteredCompanies.filter(company => company && company.id && company.name).map((company) => (
               <div
                 key={company.id}
                 role="gridcell"
@@ -370,7 +383,7 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
                     handleEditCompany(company)
                   }
                 }}
-                aria-label={`Company: ${company.name}. ${company.assessmentCount} assessments. Press Enter to edit.`}
+                aria-label={`Company: ${company.name}. ${company.assessmentCount || 0} assessments. Press Enter to edit.`}
               >
                 <CompanyCard
                   company={company}
