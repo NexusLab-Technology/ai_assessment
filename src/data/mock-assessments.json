@@ -1,0 +1,70 @@
+[
+  {
+    "id": "assessment-1",
+    "name": "Customer Service AI Implementation",
+    "companyId": "company-1",
+    "type": "EXPLORATORY",
+    "status": "IN_PROGRESS",
+    "currentStep": 3,
+    "totalSteps": 7,
+    "createdAt": "2024-01-20T11:00:00Z",
+    "updatedAt": "2024-01-22T15:30:00Z"
+  },
+  {
+    "id": "assessment-2",
+    "name": "Legacy System AI Migration",
+    "companyId": "company-1",
+    "type": "MIGRATION",
+    "status": "COMPLETED",
+    "currentStep": 8,
+    "totalSteps": 8,
+    "createdAt": "2024-02-01T09:15:00Z",
+    "updatedAt": "2024-02-15T17:45:00Z",
+    "completedAt": "2024-02-15T17:45:00Z"
+  },
+  {
+    "id": "assessment-3",
+    "name": "Document Processing Automation",
+    "companyId": "company-1",
+    "type": "EXPLORATORY",
+    "status": "DRAFT",
+    "currentStep": 1,
+    "totalSteps": 7,
+    "createdAt": "2024-03-01T13:20:00Z",
+    "updatedAt": "2024-03-01T13:20:00Z"
+  },
+  {
+    "id": "assessment-4",
+    "name": "ML Model Optimization",
+    "companyId": "company-2",
+    "type": "MIGRATION",
+    "status": "IN_PROGRESS",
+    "currentStep": 5,
+    "totalSteps": 8,
+    "createdAt": "2024-02-25T10:30:00Z",
+    "updatedAt": "2024-03-05T14:15:00Z"
+  },
+  {
+    "id": "assessment-5",
+    "name": "Predictive Analytics Platform",
+    "companyId": "company-3",
+    "type": "EXPLORATORY",
+    "status": "COMPLETED",
+    "currentStep": 7,
+    "totalSteps": 7,
+    "createdAt": "2024-03-15T08:45:00Z",
+    "updatedAt": "2024-03-28T16:30:00Z",
+    "completedAt": "2024-03-28T16:30:00Z"
+  },
+  {
+    "id": "assessment-6",
+    "name": "Real-time Data Processing",
+    "companyId": "company-3",
+    "type": "EXPLORATORY",
+    "status": "IN_PROGRESS",
+    "currentStep": 2,
+    "totalSteps": 7,
+    "createdAt": "2024-03-30T12:00:00Z",
+    "updatedAt": "2024-04-02T10:15:00Z"
+  }
+]

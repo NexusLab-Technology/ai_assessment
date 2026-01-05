@@ -1,0 +1,36 @@
+graph TB
+    Start([User Lands on Platform])
+    Start --> Choice{Select Path}
+    
+    %% Exploratory Path (New AI Development)
+    Choice -->|New AI Development| E1[1. Use Case Discovery]
+    E1 --> E2[2. Data Readiness Assessment]
+    E2 --> E3[3. Compliance & Integration]
+    E3 --> E4[4. Model Evaluation<br/>Test AWS Bedrock Models<br/>Including Amazon Nova]
+    E4 --> E5[5. Business Value & ROI]
+    E5 --> E6[6. Implementation Plan]
+    E6 --> E7[7. Generate Report]
+    E7 --> EndE([Download Comprehensive<br/>Assessment Report])
+    
+    %% Migration Path
+    Choice -->|Migrate Existing AI| M1[1. Use Case Discovery]
+    M1 --> M2[2. Current System Assessment<br/>Document existing GenAI app]
+    M2 --> M3[3. Data Readiness Assessment]
+    M3 --> M4[4. Compliance & Integration]
+    M4 --> M5[5. Model Comparison<br/>Current vs AWS Bedrock]
+    M5 --> M6[6. Migration ROI Analysis]
+    M6 --> M7[7. Migration Plan]
+    M7 --> M8[8. Generate Report]
+    M8 --> EndM([Download Migration<br/>Assessment Report])
+    
+    %% Styling
+    classDef exploratory fill:#3498db,stroke:#2980b9,color:#fff,stroke-width:2px
+    classDef migration fill:#e74c3c,stroke:#c0392b,color:#fff,stroke-width:2px
+    classDef decision fill:#f39c12,stroke:#e67e22,color:#fff,stroke-width:2px
+    classDef endpoint fill:#27ae60,stroke:#229954,color:#fff,stroke-width:3px
+    
+    class E1,E2,E3,E4,E5,E6,E7 exploratory
+    class M1,M2,M3,M4,M5,M6,M7,M8 migration
+    class Choice decision
+    class EndE,EndM endpoint
+    class Start decision

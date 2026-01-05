@@ -46,6 +46,12 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     icon: '🏠',
     href: '/',
   },
+  {
+    id: 'ai-assessment',
+    label: 'AI Assessment',
+    icon: '🤖',
+    href: '/ai-assessment',
+  },
 ];
 
 // User action navigation items (for footer section)

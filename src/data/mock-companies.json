@@ -1,0 +1,30 @@
+[
+  {
+    "id": "company-1",
+    "name": "TechCorp Solutions",
+    "description": "Leading technology consulting firm specializing in digital transformation",
+    "createdAt": "2024-01-15T10:30:00Z",
+    "assessmentCount": 3
+  },
+  {
+    "id": "company-2", 
+    "name": "InnovateLab Inc",
+    "description": "AI research and development company focused on machine learning solutions",
+    "createdAt": "2024-02-20T14:15:00Z",
+    "assessmentCount": 1
+  },
+  {
+    "id": "company-3",
+    "name": "DataDriven Analytics",
+    "description": "Business intelligence and data analytics consultancy",
+    "createdAt": "2024-03-10T09:45:00Z",
+    "assessmentCount": 2
+  },
+  {
+    "id": "company-4",
+    "name": "CloudFirst Systems",
+    "description": "Cloud infrastructure and DevOps automation specialists",
+    "createdAt": "2024-03-25T16:20:00Z",
+    "assessmentCount": 0
+  }
+]

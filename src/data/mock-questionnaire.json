@@ -1,0 +1,418 @@
+{
+  "exploratory": [
+    {
+      "id": "use-case-discovery",
+      "title": "Use Case Discovery",
+      "description": "Understanding your business context and GenAI objectives",
+      "stepNumber": 1,
+      "questions": [
+        {
+          "id": "business-problem",
+          "type": "textarea",
+          "label": "What business problem(s) does your GenAI application aim to solve?",
+          "description": "Establishes the fundamental business purpose",
+          "required": true,
+          "validation": {
+            "minLength": 50,
+            "maxLength": 1000
+          }
+        },
+        {
+          "id": "use-case-state",
+          "type": "select",
+          "label": "What is the current state of this use case?",
+          "required": true,
+          "options": [
+            { "value": "ideated", "label": "Ideated - Concept stage" },
+            { "value": "planned", "label": "Planned - Requirements defined" },
+            { "value": "in-progress", "label": "In Progress - Development started" },
+            { "value": "pilot", "label": "Pilot - Testing with users" },
+            { "value": "production", "label": "Production - Live deployment" }
+          ]
+        },
+        {
+          "id": "target-users",
+          "type": "multiselect",
+          "label": "Who are the target users for this GenAI application?",
+          "required": true,
+          "options": [
+            { "value": "internal-employees", "label": "Internal Employees" },
+            { "value": "customers", "label": "External Customers" },
+            { "value": "partners", "label": "Business Partners" },
+            { "value": "developers", "label": "Developers/Technical Users" },
+            { "value": "executives", "label": "Executives/Management" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data-readiness",
+      "title": "Data Readiness Assessment",
+      "description": "Evaluating your data infrastructure and quality",
+      "stepNumber": 2,
+      "questions": [
+        {
+          "id": "data-sources",
+          "type": "checkbox",
+          "label": "What types of data sources do you have access to?",
+          "required": true,
+          "options": [
+            { "value": "structured-db", "label": "Structured databases (SQL)" },
+            { "value": "unstructured-docs", "label": "Unstructured documents" },
+            { "value": "apis", "label": "APIs and web services" },
+            { "value": "files", "label": "Files (CSV, JSON, XML)" },
+            { "value": "real-time", "label": "Real-time data streams" }
+          ]
+        },
+        {
+          "id": "data-volume",
+          "type": "select",
+          "label": "What is the approximate volume of data you'll be working with?",
+          "required": true,
+          "options": [
+            { "value": "small", "label": "Small (< 1GB)" },
+            { "value": "medium", "label": "Medium (1GB - 100GB)" },
+            { "value": "large", "label": "Large (100GB - 1TB)" },
+            { "value": "very-large", "label": "Very Large (> 1TB)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compliance-integration",
+      "title": "Compliance & Integration",
+      "description": "Security, compliance, and system integration requirements",
+      "stepNumber": 3,
+      "questions": [
+        {
+          "id": "compliance-requirements",
+          "type": "multiselect",
+          "label": "What compliance requirements must be met?",
+          "required": false,
+          "options": [
+            { "value": "gdpr", "label": "GDPR" },
+            { "value": "hipaa", "label": "HIPAA" },
+            { "value": "sox", "label": "SOX" },
+            { "value": "pci-dss", "label": "PCI DSS" },
+            { "value": "iso27001", "label": "ISO 27001" },
+            { "value": "none", "label": "No specific requirements" }
+          ]
+        },
+        {
+          "id": "integration-systems",
+          "type": "textarea",
+          "label": "What existing systems need to integrate with the GenAI solution?",
+          "description": "List key systems, databases, or applications",
+          "required": false,
+          "validation": {
+            "maxLength": 500
+          }
+        }
+      ]
+    },
+    {
+      "id": "model-evaluation",
+      "title": "Model Evaluation",
+      "description": "Testing and comparing different AI models",
+      "stepNumber": 4,
+      "questions": [
+        {
+          "id": "evaluation-criteria",
+          "type": "checkbox",
+          "label": "What criteria are most important for model evaluation?",
+          "required": true,
+          "options": [
+            { "value": "accuracy", "label": "Accuracy" },
+            { "value": "speed", "label": "Response Speed" },
+            { "value": "cost", "label": "Cost Efficiency" },
+            { "value": "reliability", "label": "Reliability" },
+            { "value": "scalability", "label": "Scalability" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business-value",
+      "title": "Business Value & ROI",
+      "description": "Expected business impact and return on investment",
+      "stepNumber": 5,
+      "questions": [
+        {
+          "id": "expected-benefits",
+          "type": "textarea",
+          "label": "What are the expected business benefits?",
+          "required": true,
+          "validation": {
+            "minLength": 30,
+            "maxLength": 800
+          }
+        },
+        {
+          "id": "success-metrics",
+          "type": "text",
+          "label": "How will you measure success?",
+          "required": true,
+          "validation": {
+            "minLength": 10,
+            "maxLength": 200
+          }
+        }
+      ]
+    },
+    {
+      "id": "implementation-plan",
+      "title": "Implementation Plan",
+      "description": "Timeline and resource planning",
+      "stepNumber": 6,
+      "questions": [
+        {
+          "id": "timeline",
+          "type": "select",
+          "label": "What is your expected implementation timeline?",
+          "required": true,
+          "options": [
+            { "value": "1-3-months", "label": "1-3 months" },
+            { "value": "3-6-months", "label": "3-6 months" },
+            { "value": "6-12-months", "label": "6-12 months" },
+            { "value": "12-months-plus", "label": "12+ months" }
+          ]
+        },
+        {
+          "id": "team-size",
+          "type": "number",
+          "label": "How many team members will be involved?",
+          "required": true,
+          "validation": {
+            "min": 1,
+            "max": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "review-summary",
+      "title": "Review & Summary",
+      "description": "Final review of your assessment responses",
+      "stepNumber": 7,
+      "questions": [
+        {
+          "id": "additional-notes",
+          "type": "textarea",
+          "label": "Any additional notes or considerations?",
+          "required": false,
+          "validation": {
+            "maxLength": 1000
+          }
+        }
+      ]
+    }
+  ],
+  "migration": [
+    {
+      "id": "use-case-discovery",
+      "title": "Use Case Discovery",
+      "description": "Understanding your current AI system and migration goals",
+      "stepNumber": 1,
+      "questions": [
+        {
+          "id": "current-system",
+          "type": "textarea",
+          "label": "Describe your current AI/ML system",
+          "description": "Include technology stack, capabilities, and limitations",
+          "required": true,
+          "validation": {
+            "minLength": 50,
+            "maxLength": 1000
+          }
+        },
+        {
+          "id": "migration-reason",
+          "type": "multiselect",
+          "label": "What are the main reasons for migration?",
+          "required": true,
+          "options": [
+            { "value": "cost-reduction", "label": "Cost Reduction" },
+            { "value": "performance", "label": "Better Performance" },
+            { "value": "scalability", "label": "Improved Scalability" },
+            { "value": "maintenance", "label": "Easier Maintenance" },
+            { "value": "features", "label": "New Features/Capabilities" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "current-system-assessment",
+      "title": "Current System Assessment",
+      "description": "Detailed analysis of your existing GenAI application",
+      "stepNumber": 2,
+      "questions": [
+        {
+          "id": "current-models",
+          "type": "text",
+          "label": "What AI models are you currently using?",
+          "required": true,
+          "validation": {
+            "minLength": 5,
+            "maxLength": 200
+          }
+        },
+        {
+          "id": "current-performance",
+          "type": "textarea",
+          "label": "How would you rate the current system's performance?",
+          "required": true,
+          "validation": {
+            "minLength": 20,
+            "maxLength": 500
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-readiness",
+      "title": "Data Readiness Assessment",
+      "description": "Evaluating data migration and compatibility",
+      "stepNumber": 3,
+      "questions": [
+        {
+          "id": "data-migration",
+          "type": "select",
+          "label": "How complex will data migration be?",
+          "required": true,
+          "options": [
+            { "value": "simple", "label": "Simple - Direct transfer" },
+            { "value": "moderate", "label": "Moderate - Some transformation needed" },
+            { "value": "complex", "label": "Complex - Significant restructuring" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compliance-integration",
+      "title": "Compliance & Integration",
+      "description": "Migration compliance and integration requirements",
+      "stepNumber": 4,
+      "questions": [
+        {
+          "id": "downtime-tolerance",
+          "type": "select",
+          "label": "What is your downtime tolerance during migration?",
+          "required": true,
+          "options": [
+            { "value": "none", "label": "Zero downtime required" },
+            { "value": "minimal", "label": "Minimal (< 1 hour)" },
+            { "value": "moderate", "label": "Moderate (1-8 hours)" },
+            { "value": "flexible", "label": "Flexible (> 8 hours acceptable)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "model-comparison",
+      "title": "Model Comparison",
+      "description": "Comparing current models with AWS Bedrock options",
+      "stepNumber": 5,
+      "questions": [
+        {
+          "id": "comparison-criteria",
+          "type": "checkbox",
+          "label": "What aspects are most important for comparison?",
+          "required": true,
+          "options": [
+            { "value": "accuracy", "label": "Accuracy Improvement" },
+            { "value": "cost", "label": "Cost Reduction" },
+            { "value": "latency", "label": "Lower Latency" },
+            { "value": "throughput", "label": "Higher Throughput" },
+            { "value": "maintenance", "label": "Reduced Maintenance" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "migration-roi",
+      "title": "Migration ROI Analysis",
+      "description": "Cost-benefit analysis of migration",
+      "stepNumber": 6,
+      "questions": [
+        {
+          "id": "current-costs",
+          "type": "text",
+          "label": "What are your current monthly AI/ML costs?",
+          "required": true,
+          "validation": {
+            "minLength": 3,
+            "maxLength": 50
+          }
+        },
+        {
+          "id": "expected-savings",
+          "type": "textarea",
+          "label": "What cost savings do you expect from migration?",
+          "required": true,
+          "validation": {
+            "minLength": 20,
+            "maxLength": 500
+          }
+        }
+      ]
+    },
+    {
+      "id": "migration-plan",
+      "title": "Migration Plan",
+      "description": "Strategy and timeline for migration",
+      "stepNumber": 7,
+      "questions": [
+        {
+          "id": "migration-approach",
+          "type": "radio",
+          "label": "What migration approach do you prefer?",
+          "required": true,
+          "options": [
+            { "value": "big-bang", "label": "Big Bang - Complete migration at once" },
+            { "value": "phased", "label": "Phased - Gradual migration" },
+            { "value": "parallel", "label": "Parallel - Run both systems temporarily" }
+          ]
+        },
+        {
+          "id": "migration-timeline",
+          "type": "select",
+          "label": "What is your preferred migration timeline?",
+          "required": true,
+          "options": [
+            { "value": "1-month", "label": "1 month" },
+            { "value": "2-3-months", "label": "2-3 months" },
+            { "value": "3-6-months", "label": "3-6 months" },
+            { "value": "6-months-plus", "label": "6+ months" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review-summary",
+      "title": "Review & Summary",
+      "description": "Final review of your migration assessment",
+      "stepNumber": 8,
+      "questions": [
+        {
+          "id": "migration-concerns",
+          "type": "textarea",
+          "label": "What are your main concerns about the migration?",
+          "required": false,
+          "validation": {
+            "maxLength": 800
+          }
+        },
+        {
+          "id": "success-criteria",
+          "type": "text",
+          "label": "How will you define migration success?",
+          "required": true,
+          "validation": {
+            "minLength": 10,
+            "maxLength": 200
+          }
+        }
+      ]
+    }
+  ]
+}
