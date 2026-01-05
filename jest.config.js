@@ -25,7 +25,8 @@ const customJestConfig = {
         '<rootDir>/src/__tests__/components/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/__tests__/hooks/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/__tests__/types/**/*.test.{js,jsx,ts,tsx}',
-        '<rootDir>/src/__tests__/validation/**/*.test.{js,jsx,ts,tsx}'
+        '<rootDir>/src/__tests__/validation/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/integration/**/*.test.{js,jsx,ts,tsx}'
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       moduleNameMapper: {
@@ -48,10 +49,6 @@ const customJestConfig = {
       ],
       testEnvironmentOptions: {
         customExportConditions: ['node', 'node-addons'],
-      },
-      preset: 'ts-jest',
-      transform: {
-        '^.+\\.(ts|tsx)$': 'ts-jest',
       },
     }
   ]

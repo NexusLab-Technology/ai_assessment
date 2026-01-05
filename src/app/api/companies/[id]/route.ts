@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/companies/[id]
- * Delete a specific company
+ * Delete a specific company and all associated assessments (cascade deletion)
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
@@ -100,22 +100,41 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse('Invalid company ID format', 400)
     }
     
-    // Check if company has assessments
+    // Get assessment count for confirmation message
     const assessmentCount = await CompanyModel.getAssessmentCount(id, userId)
-    if (assessmentCount > 0) {
-      return createErrorResponse(
-        'Cannot delete company with existing assessments. Please delete all assessments first.',
-        400
-      )
+    
+    // Import AssessmentModel for cascade deletion
+    const { AssessmentModel } = await import('../../../../lib/models/Assessment')
+    
+    // Get all assessments for this company
+    const assessments = await AssessmentModel.getByCompany(id, userId)
+    
+    // Delete all associated assessments first
+    let deletedAssessments = 0
+    for (const assessment of assessments) {
+      const deleted = await AssessmentModel.delete(assessment.id, userId)
+      if (deleted) {
+        deletedAssessments++
+      }
     }
     
+    // Now delete the company
     const deleted = await CompanyModel.delete(id, userId)
     
     if (!deleted) {
       return createErrorResponse('Company not found', 404)
     }
     
-    return createSuccessResponse(null, 'Company deleted successfully')
+    // Return success with cascade deletion details
+    const message = assessmentCount > 0 
+      ? `Company deleted successfully. ${deletedAssessments} associated assessments were also deleted.`
+      : 'Company deleted successfully'
+    
+    return createSuccessResponse({
+      deletedCompany: true,
+      deletedAssessments: deletedAssessments,
+      totalAssessments: assessmentCount
+    }, message)
   } catch (error) {
     return handleApiError(error)
   }

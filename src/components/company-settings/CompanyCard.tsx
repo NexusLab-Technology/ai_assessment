@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   PencilIcon, 
   TrashIcon, 
   ChartBarIcon,
   BuildingOfficeIcon,
-  CalendarIcon
+  CalendarIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline'
 import { CompanyCardProps } from '@/types/company'
 import Tooltip from './Tooltip'
@@ -18,6 +20,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onViewAssessments
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const router = useRouter()
   const cardRef = React.useRef<HTMLDivElement>(null)
 
   const handleEditClick = () => {
@@ -39,6 +42,16 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
   const handleViewAssessments = () => {
     onViewAssessments(company.id)
+  }
+
+  const handleStartNewAssessment = () => {
+    // Navigate to AI Assessment page with pre-selected company
+    router.push(`/ai-assessment?companyId=${company.id}`)
+  }
+
+  const handleGoToAIAssessment = () => {
+    // Navigate to AI Assessment page with pre-selected company
+    router.push(`/ai-assessment?companyId=${company.id}`)
   }
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -144,21 +157,38 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
               </span>
             </div>
             
-            {company.assessmentCount > 0 && (
-              <Tooltip content={`View all ${company.assessmentCount} assessments for ${company.name}`} position="top">
+            <div className="flex items-center space-x-2">
+              {company.assessmentCount > 0 && (
+                <Tooltip content={`View all ${company.assessmentCount} assessments for ${company.name}`} position="top">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleGoToAIAssessment()
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium px-3 py-1 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    aria-label={`View assessments for ${company.name}`}
+                    tabIndex={-1}
+                  >
+                    View assessments →
+                  </button>
+                </Tooltip>
+              )}
+              
+              <Tooltip content={`Start new assessment for ${company.name}`} position="top">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleViewAssessments()
+                    handleStartNewAssessment()
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium px-3 py-1 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                  aria-label={`View assessments for ${company.name}`}
+                  className="inline-flex items-center text-sm text-green-600 hover:text-green-800 hover:bg-green-50 font-medium px-3 py-1 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+                  aria-label={`Start new assessment for ${company.name}`}
                   tabIndex={-1}
                 >
-                  View assessments →
+                  <PlusIcon className="h-3 w-3 mr-1" />
+                  New Assessment
                 </button>
               </Tooltip>
-            )}
+            </div>
           </div>
         </div>
       </div>

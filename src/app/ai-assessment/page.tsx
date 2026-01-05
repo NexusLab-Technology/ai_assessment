@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Company } from '../../types/assessment'
 import { companyApi } from '../../lib/api-client'
 import CompanySelector from '../../components/ai-assessment/CompanySelector'
@@ -14,10 +15,22 @@ export default function AIAssessmentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCompanySelectorDisabled, setIsCompanySelectorDisabled] = useState(false)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     loadCompanies()
   }, [])
+
+  // Handle pre-selection from URL parameters
+  useEffect(() => {
+    const companyId = searchParams.get('companyId')
+    if (companyId && companies.length > 0 && !selectedCompany) {
+      const preSelectedCompany = companies.find(c => c.id === companyId)
+      if (preSelectedCompany) {
+        setSelectedCompany(preSelectedCompany)
+      }
+    }
+  }, [companies, searchParams, selectedCompany])
 
   const loadCompanies = async () => {
     try {
@@ -39,9 +52,8 @@ export default function AIAssessmentPage() {
   }
 
   const handleCreateCompany = () => {
-    // For now, just redirect to company settings
-    // In a real app, this would open a modal or navigate to company creation
-    alert('Company creation would redirect to Company Settings module')
+    // Navigate to company settings for company creation
+    window.location.href = '/company-settings'
   }
 
   const handleCompanySelectorDisabled = (disabled: boolean) => {

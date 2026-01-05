@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import { Company, CompanyDashboardProps, CompanyFormData } from '@/types/company'
 import { CompanyError } from '@/utils/company-error-handling'
 import CompanyCard from '@/components/company-settings/CompanyCard'
@@ -136,7 +136,12 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
 
   const handleViewAssessments = (companyId: string) => {
     // Navigate to AI Assessment with company pre-selected
-    window.location.href = `/ai-assessment?company=${companyId}`
+    window.location.href = `/ai-assessment?companyId=${companyId}`
+  }
+
+  const handleGoToAIAssessment = () => {
+    // Navigate to AI Assessment page
+    window.location.href = '/ai-assessment'
   }
 
   if (loading) {
@@ -215,17 +220,29 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
               Manage your companies and organizations for AI assessments
             </p>
           </div>
-          <Tooltip content="Create a new company for AI assessments" position="bottom">
-            <button
-              ref={createButtonRef}
-              onClick={handleCreateCompany}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-              aria-label="Create new company"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create New Company
-            </button>
-          </Tooltip>
+          <div className="flex items-center space-x-3">
+            <Tooltip content="Go to AI Assessment module" position="bottom">
+              <button
+                onClick={handleGoToAIAssessment}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                aria-label="Go to AI Assessment"
+              >
+                <ChartBarIcon className="h-4 w-4 mr-2" />
+                AI Assessment
+              </button>
+            </Tooltip>
+            <Tooltip content="Create a new company for AI assessments" position="bottom">
+              <button
+                ref={createButtonRef}
+                onClick={handleCreateCompany}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
+                aria-label="Create new company"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Create New Company
+              </button>
+            </Tooltip>
+          </div>
         </div>
       </div>
 

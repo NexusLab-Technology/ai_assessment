@@ -89,7 +89,9 @@ export interface UpdateCompanyResponse {
 
 export interface DeleteCompanyResponse {
   message: string
+  deletedCompany: boolean
   deletedAssessments: number
+  totalAssessments: number
 }
 
 export interface SearchCompaniesResponse {
