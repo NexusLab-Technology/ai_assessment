@@ -1,11 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { 
-  InformationCircleIcon,
-  ExclamationTriangleIcon 
-} from '@heroicons/react/24/outline'
+import { InformationCircleIcon } from '@heroicons/react/24/outline'
 import { Question, ValidationRules } from '../../types/assessment'
+import FormValidationError from './FormValidationError'
 
 interface QuestionStepProps {
   question: Question
@@ -298,10 +296,10 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
       </div>
 
       {displayError && (
-        <div className="flex items-start mt-2">
-          <ExclamationTriangleIcon className="h-4 w-4 text-red-500 mt-0.5 mr-1 flex-shrink-0" />
-          <p className="text-sm text-red-600">{displayError}</p>
-        </div>
+        <FormValidationError 
+          error={displayError}
+          className="mt-2"
+        />
       )}
     </div>
   )

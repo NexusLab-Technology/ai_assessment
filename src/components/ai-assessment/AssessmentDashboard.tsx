@@ -17,7 +17,8 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
   onCreateAssessment,
   onSelectAssessment,
   onDeleteAssessment,
-  isLoading = false
+  isLoading = false,
+  isDeletingAssessment = null
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
@@ -87,7 +88,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
           </div>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No assessments</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Get started by creating your first assessment for {company.name}.
+            Get started by creating your first assessment for {company?.name || 'your company'}.
           </p>
           <div className="mt-6">
             <button
@@ -110,7 +111,7 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-medium text-gray-900">
-              Assessments for {company.name}
+              Assessments for {company?.name || 'Company'}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               {assessments.length} assessment{assessments.length !== 1 ? 's' : ''} found
@@ -194,10 +195,17 @@ const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
                 {assessment.status === 'DRAFT' && (
                   <button
                     onClick={() => handleDeleteClick(assessment.id)}
-                    className="inline-flex items-center p-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    disabled={isDeletingAssessment === assessment.id}
+                    className={`inline-flex items-center p-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                      isDeletingAssessment === assessment.id ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     title="Delete Draft"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    {isDeletingAssessment === assessment.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
+                    ) : (
+                      <TrashIcon className="h-4 w-4" />
+                    )}
                   </button>
                 )}
               </div>

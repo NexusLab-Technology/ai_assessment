@@ -106,12 +106,13 @@ export interface CompanySelectorProps {
 }
 
 export interface AssessmentDashboardProps {
-  company: Company
+  company: Company | null
   assessments: Assessment[]
   onCreateAssessment: () => void
   onSelectAssessment: (assessment: Assessment) => void
   onDeleteAssessment: (assessmentId: string) => void
   isLoading?: boolean
+  isDeletingAssessment?: string | null
 }
 
 export interface AssessmentWizardProps {

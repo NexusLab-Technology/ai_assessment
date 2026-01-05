@@ -1,30 +1,57 @@
 [
   {
-    "id": "company-1",
+    "id": "comp-001",
     "name": "TechCorp Solutions",
-    "description": "Leading technology consulting firm specializing in digital transformation",
-    "createdAt": "2024-01-15T10:30:00Z",
+    "description": "Leading technology solutions provider specializing in enterprise software development and digital transformation.",
+    "createdAt": "2024-01-15T08:30:00.000Z",
+    "updatedAt": "2024-01-15T08:30:00.000Z",
     "assessmentCount": 3
   },
   {
-    "id": "company-2", 
-    "name": "InnovateLab Inc",
-    "description": "AI research and development company focused on machine learning solutions",
-    "createdAt": "2024-02-20T14:15:00Z",
+    "id": "comp-002",
+    "name": "Digital Innovations Ltd",
+    "description": "Innovative digital agency focused on AI-powered marketing solutions and customer experience optimization.",
+    "createdAt": "2024-02-10T14:20:00.000Z",
+    "updatedAt": "2024-02-12T09:15:00.000Z",
     "assessmentCount": 1
   },
   {
-    "id": "company-3",
-    "name": "DataDriven Analytics",
-    "description": "Business intelligence and data analytics consultancy",
-    "createdAt": "2024-03-10T09:45:00Z",
+    "id": "comp-003",
+    "name": "Global Manufacturing Inc",
+    "description": "International manufacturing company exploring AI integration for supply chain optimization and predictive maintenance.",
+    "createdAt": "2024-03-05T11:45:00.000Z",
+    "updatedAt": "2024-03-05T11:45:00.000Z",
     "assessmentCount": 2
   },
   {
-    "id": "company-4",
-    "name": "CloudFirst Systems",
-    "description": "Cloud infrastructure and DevOps automation specialists",
-    "createdAt": "2024-03-25T16:20:00Z",
+    "id": "comp-004",
+    "name": "FinTech Pioneers",
+    "description": "Financial technology startup developing AI-driven investment platforms and automated trading systems.",
+    "createdAt": "2024-03-20T16:10:00.000Z",
+    "updatedAt": "2024-03-22T10:30:00.000Z",
     "assessmentCount": 0
+  },
+  {
+    "id": "comp-005",
+    "name": "Healthcare Analytics Co",
+    "description": "Healthcare data analytics company leveraging AI for patient outcome prediction and treatment optimization.",
+    "createdAt": "2024-04-02T13:25:00.000Z",
+    "updatedAt": "2024-04-02T13:25:00.000Z",
+    "assessmentCount": 4
+  },
+  {
+    "id": "comp-006",
+    "name": "EduTech Solutions",
+    "createdAt": "2024-04-15T09:00:00.000Z",
+    "updatedAt": "2024-04-15T09:00:00.000Z",
+    "assessmentCount": 1
+  },
+  {
+    "id": "comp-007",
+    "name": "Smart Retail Systems",
+    "description": "Retail technology company implementing AI for inventory management, customer behavior analysis, and personalized shopping experiences.",
+    "createdAt": "2024-05-01T12:15:00.000Z",
+    "updatedAt": "2024-05-03T14:20:00.000Z",
+    "assessmentCount": 2
   }
 ]

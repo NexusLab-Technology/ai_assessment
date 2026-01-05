@@ -16,12 +16,45 @@ const customJestConfig = {
   transformIgnorePatterns: [
     'node_modules/(?!(mongodb|bson|mongodb-memory-server)/)'
   ],
-  // Use node environment for API tests
-  testEnvironment: 'node',
-  // Override testEnvironment for specific test patterns
-  testEnvironmentOptions: {
-    customExportConditions: ['node', 'node-addons'],
-  },
+  // Use different test environments based on test file patterns
+  projects: [
+    {
+      displayName: 'jsdom',
+      testEnvironment: 'jsdom',
+      testMatch: [
+        '<rootDir>/src/__tests__/components/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/hooks/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/types/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/validation/**/*.test.{js,jsx,ts,tsx}'
+      ],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+    },
+    {
+      displayName: 'node',
+      testEnvironment: 'node',
+      testMatch: [
+        '<rootDir>/src/__tests__/api/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/lib/**/*.test.{js,jsx,ts,tsx}'
+      ],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.api.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      transformIgnorePatterns: [
+        'node_modules/(?!(mongodb|bson|mongodb-memory-server)/)'
+      ],
+      testEnvironmentOptions: {
+        customExportConditions: ['node', 'node-addons'],
+      },
+      preset: 'ts-jest',
+      transform: {
+        '^.+\\.(ts|tsx)$': 'ts-jest',
+      },
+    }
+  ]
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

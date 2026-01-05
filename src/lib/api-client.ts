@@ -21,8 +21,21 @@ const API_BASE = '/api'
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(errorData.error || `HTTP ${response.status}`)
+    let errorMessage = `HTTP ${response.status}`
+    let errorData: any = {}
+    
+    try {
+      errorData = await response.json()
+      errorMessage = errorData.error || errorData.message || errorMessage
+    } catch {
+      // If response is not JSON, use status text
+      errorMessage = response.statusText || errorMessage
+    }
+    
+    const error = new Error(errorMessage) as ApiError
+    error.status = response.status
+    error.name = 'ApiError'
+    throw error
   }
   
   const data = await response.json()
@@ -215,6 +228,15 @@ export async function withRetry<T>(
       
       // Only retry on network errors, not on 4xx client errors
       if (error instanceof ApiError && error.status && error.status < 500) {
+        break
+      }
+      
+      // Also retry on network/connection errors
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+      if (!errorMessage.includes('network') && 
+          !errorMessage.includes('fetch') && 
+          !errorMessage.includes('timeout') &&
+          !(error instanceof ApiError && (!error.status || error.status >= 500))) {
         break
       }
       

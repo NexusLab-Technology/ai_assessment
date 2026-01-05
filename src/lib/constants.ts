@@ -52,6 +52,12 @@ export const DEFAULT_NAVIGATION: NavigationItem[] = [
     icon: '🤖',
     href: '/ai-assessment',
   },
+  {
+    id: 'company-settings',
+    label: 'Company Settings',
+    icon: '🏢',
+    href: '/company-settings',
+  },
 ];
 
 // User action navigation items (for footer section)

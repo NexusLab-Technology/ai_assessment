@@ -18,17 +18,9 @@ export async function GET(request: NextRequest) {
     const userId = getUserId(request)
     const companies = await CompanyModel.findAll(userId)
     
-    // Get assessment counts for each company
-    const companiesWithCounts = await Promise.all(
-      companies.map(async (company) => ({
-        ...company,
-        assessmentCount: await CompanyModel.getAssessmentCount(company.id, userId)
-      }))
-    )
-    
     return createSuccessResponse({
-      companies: companiesWithCounts,
-      total: companiesWithCounts.length
+      companies,
+      total: companies.length
     })
   } catch (error) {
     return handleApiError(error)
