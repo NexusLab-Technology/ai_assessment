@@ -51,14 +51,32 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
   const createButtonRef = useRef<HTMLButtonElement>(null)
 
   // Initialize filtered companies when companies prop changes
+  // Combined logic for filtering companies based on companies prop and search query
   useEffect(() => {
-    if (companies && Array.isArray(companies)) {
-      const validCompanies = companies.filter(company => company && company.name)
-      setFilteredCompanies(validCompanies)
-    } else {
+    console.log('CompanyDashboard useEffect - companies changed:', companies?.length, companies)
+    
+    if (!companies || !Array.isArray(companies)) {
       setFilteredCompanies([])
+      return
     }
-  }, [companies])
+    
+    // Filter out any undefined or null companies
+    const validCompanies = companies.filter(company => company && company.name)
+    console.log('Valid companies after filter:', validCompanies.length)
+    
+    if (!searchQuery.trim()) {
+      setFilteredCompanies(validCompanies)
+      console.log('Set filtered companies (no search):', validCompanies.length)
+    } else {
+      const query = searchQuery.toLowerCase().trim()
+      const filtered = validCompanies.filter(company =>
+        company.name.toLowerCase().includes(query) ||
+        (company.description && company.description.toLowerCase().includes(query))
+      )
+      setFilteredCompanies(filtered)
+      console.log('Set filtered companies (with search):', filtered.length)
+    }
+  }, [companies, searchQuery])
 
   // Show form when currentFormData is provided
   useEffect(() => {

@@ -74,9 +74,15 @@ const CompanyContainer: React.FC = () => {
       
       if (editingCompany) {
         // Update existing company
-        setCompanies(prev => prev.map(c => 
-          c.id === editingCompany.id ? response.company : c
-        ))
+        console.log('Before update - companies:', companies.length)
+        console.log('Updating company:', editingCompany.id, 'with response:', response.company)
+        setCompanies(prev => {
+          const updated = prev.map(c => 
+            c.id === editingCompany.id ? response.company : c
+          )
+          console.log('After update - companies:', updated.length)
+          return updated
+        })
       } else {
         // Add new company
         setCompanies(prev => [response.company, ...prev])
