@@ -227,20 +227,22 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           setCreateAssessmentError('An unexpected error occurred while creating the assessment.')
         }}
       >
-        {createAssessmentError && (
-          <ErrorMessage
-            title="Failed to Create Assessment"
-            message={createAssessmentError}
-            onDismiss={() => setCreateAssessmentError(null)}
-            className="mb-6"
+        <div className="w-full max-w-none p-4 sm:p-6">
+          {createAssessmentError && (
+            <ErrorMessage
+              title="Failed to Create Assessment"
+              message={createAssessmentError}
+              onDismiss={() => setCreateAssessmentError(null)}
+              className="mb-6"
+            />
+          )}
+          
+          <AssessmentWizard
+            onAssessmentCreate={handleAssessmentCreated}
+            onCancel={handleBackToDashboard}
+            isLoading={isCreatingAssessment}
           />
-        )}
-        
-        <AssessmentWizard
-          onAssessmentCreate={handleAssessmentCreated}
-          onCancel={handleBackToDashboard}
-          isLoading={isCreatingAssessment}
-        />
+        </div>
       </ErrorBoundary>
     )
   }
@@ -253,7 +255,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           setCompleteAssessmentError('An unexpected error occurred during the assessment.')
         }}
       >
-        <div>
+        <div className="w-full max-w-none p-4 sm:p-6">
           <div className="mb-6">
             <button
               onClick={handleBackToDashboard}
@@ -306,7 +308,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           logError(error, 'ReportGenerator')
         }}
       >
-        <div>
+        <div className="w-full max-w-none p-4 sm:p-6">
           <div className="mb-6">
             <button
               onClick={handleBackToDashboard}
@@ -344,47 +346,51 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
         setAssessmentsError('An unexpected error occurred while loading the dashboard.')
       }}
     >
-      {/* Error Messages */}
-      {assessmentsError && (
-        <ErrorMessage
-          title="Failed to Load Assessments"
-          message={assessmentsError}
-          onRetry={handleRetryLoadAssessments}
-          onDismiss={() => setAssessmentsError(null)}
-          className="mb-6"
-        />
-      )}
+      <div className="w-full max-w-none">
+        {/* Error Messages */}
+        {assessmentsError && (
+          <ErrorMessage
+            title="Failed to Load Assessments"
+            message={assessmentsError}
+            onRetry={handleRetryLoadAssessments}
+            onDismiss={() => setAssessmentsError(null)}
+            className="mb-6"
+          />
+        )}
 
-      {deleteAssessmentError && (
-        <ErrorMessage
-          title="Failed to Delete Assessment"
-          message={deleteAssessmentError}
-          onDismiss={() => setDeleteAssessmentError(null)}
-          className="mb-6"
-        />
-      )}
+        {deleteAssessmentError && (
+          <ErrorMessage
+            title="Failed to Delete Assessment"
+            message={deleteAssessmentError}
+            onDismiss={() => setDeleteAssessmentError(null)}
+            className="mb-6"
+          />
+        )}
 
-      {/* Loading State */}
-      {isLoadingAssessments && (
-        <LoadingSpinner 
-          size="lg" 
-          text="Loading assessments..." 
-          className="min-h-[200px]"
-        />
-      )}
+        {/* Loading State */}
+        {isLoadingAssessments && (
+          <LoadingSpinner 
+            size="lg" 
+            text="Loading assessments..." 
+            className="min-h-[200px]"
+          />
+        )}
 
-      {/* Dashboard */}
-      {!isLoadingAssessments && (
-        <AssessmentDashboard
-          company={selectedCompany}
-          assessments={assessments}
-          onCreateAssessment={handleCreateAssessment}
-          onSelectAssessment={handleSelectAssessment}
-          onDeleteAssessment={handleDeleteAssessment}
-          isLoading={false}
-          isDeletingAssessment={isDeletingAssessment}
-        />
-      )}
+        {/* Dashboard */}
+        {!isLoadingAssessments && (
+          <div className="p-4 sm:p-6">
+            <AssessmentDashboard
+              company={selectedCompany}
+              assessments={assessments}
+              onCreateAssessment={handleCreateAssessment}
+              onSelectAssessment={handleSelectAssessment}
+              onDeleteAssessment={handleDeleteAssessment}
+              isLoading={false}
+              isDeletingAssessment={isDeletingAssessment}
+            />
+          </div>
+        )}
+      </div>
     </ErrorBoundary>
   )
 }

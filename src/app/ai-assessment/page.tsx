@@ -99,9 +99,9 @@ export default function AIAssessmentPage() {
   return (
     <RouteGuard>
       <ApplicationShell>
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col max-w-none">
           {/* Header with Company Selector */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">AI Assessment</h1>
@@ -113,7 +113,7 @@ export default function AIAssessmentPage() {
               {/* Compact Company Selector */}
               <div className="flex items-center space-x-4">
                 <label className="text-sm font-medium text-gray-700">Company:</label>
-                <div className="min-w-64 relative">
+                <div className="min-w-64">
                   <CompanySelector
                     companies={companies}
                     selectedCompany={selectedCompany}
@@ -122,18 +122,13 @@ export default function AIAssessmentPage() {
                     compact={true}
                     disabled={isCompanySelectorDisabled}
                   />
-                  {isCompanySelectorDisabled && (
-                    <div className="absolute -bottom-6 left-0 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                      Cannot change company during assessment
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-auto">
             <AssessmentContainer 
               selectedCompany={selectedCompany} 
               onCompanySelectorDisabled={handleCompanySelectorDisabled}
