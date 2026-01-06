@@ -172,16 +172,73 @@ body {
   }
 }
 
+/* FixedQuestionContainer styles */
+@layer components {
+  .fixed-question-container .question-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .fixed-question-container .question-content::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+  
+  .fixed-question-container .question-content::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .fixed-question-container .question-content::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  /* Ensure all content fits properly within container */
+  .fixed-question-container .question-content-wrapper > * {
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+  
+  /* Form elements styling within container */
+  .fixed-question-container .question-content-wrapper input:not([type="radio"]):not([type="checkbox"]),
+  .fixed-question-container .question-content-wrapper textarea,
+  .fixed-question-container .question-content-wrapper select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .fixed-question-container .question-content-wrapper textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+}
+
 /* Responsive breakpoints */
 @media (max-width: 640px) {
   .app-shell-main {
     @apply py-4 px-3;
+  }
+  
+  .fixed-question-container {
+    min-height: 450px !important;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar-expanded {
     width: 100vw;
+  }
+}
+
+@media (min-width: 768px) {
+  .fixed-question-container {
+    min-height: 650px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fixed-question-container {
+    min-height: 700px !important;
   }
 }
 

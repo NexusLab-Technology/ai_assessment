@@ -26,7 +26,8 @@ const customJestConfig = {
         '<rootDir>/src/__tests__/hooks/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/__tests__/types/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/__tests__/validation/**/*.test.{js,jsx,ts,tsx}',
-        '<rootDir>/src/__tests__/integration/**/*.test.{js,jsx,ts,tsx}'
+        '<rootDir>/src/__tests__/integration/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/properties/**/*.test.{js,jsx,ts,tsx}'
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       moduleNameMapper: {

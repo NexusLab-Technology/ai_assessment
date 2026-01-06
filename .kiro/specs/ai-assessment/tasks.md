@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implementation plan สำหรับ AI Assessment module ที่เน้นการพัฒนาแบบ phase-based โดยเริ่มจาก UI/UX foundation ก่อน แล้วค่อยเพิ่ม data persistence และ external API integration ในภายหลัง เพื่อให้สามารถทดสอบ application flow ได้เร็วขึ้น
+Implementation plan สำหรับ AI Assessment module ที่เน้นการพัฒนาแบบ phase-based โดยเริ่มจาก UI/UX foundation ก่อน แล้วค่อยเพิ่ม data persistence และ **External API Gateway integration** ในภายหลัง เพื่อให้สามารถทดสอบ application flow ได้เร็วขึ้น โดยระบบจะไม่เรียก AWS Bedrock โดยตรง แต่จะส่งข้อมูลไปยัง External API Gateway ที่จะจัดการการสร้างรายงานผ่าน Lambda functions และ SQS queue
 
 **ฟีเจอร์ใหม่ที่เพิ่มเข้ามา:**
 - **RAPID Questionnaire Integration**: คำถามใหม่ทั้งหมด 162 ข้อจาก RAPID Assessment Questionnaires
@@ -10,43 +10,44 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
 - **Enhanced Progress Sidebar**: แสดง progress navigation ด้านซ้ายที่คลิกกระโดดได้
 - **Fixed-Size Question Container**: กล่องคำถามขนาดคงที่เพื่อ UI ที่สวยและเสถียร
 - **Response Review System**: ให้ผู้ใช้สามารถดูคำตอบที่กรอกไปแล้วและทบทวนทั้งหมดก่อนส่ง assessment
+- **Asynchronous Report Generation**: ใช้ External API Gateway + Lambda + SQS แทนการเรียก AWS Bedrock โดยตรง พร้อม status tracking และ polling mechanism
 
 ## Tasks
 
 ### Phase 1: Enhanced UI/UX Foundation with RAPID Integration (Week 1-2)
 
-- [ ] 1. Setup RAPID questionnaire data structure and core interfaces
+- [x] 1. Setup RAPID questionnaire data structure and core interfaces
   - Create TypeScript interfaces for RAPID questionnaire structure
   - Parse RAPID_Questionnaires_FINAL.md into structured data
   - Set up component folder structure for enhanced AI Assessment module
   - Configure mock data files with RAPID structure for development
   - _Requirements: 4.1, 14.1, 14.2, 14.3_
 
-- [ ] 1.1 Write property test for RAPID questionnaire structure
+- [x] 1.1 Write property test for RAPID questionnaire structure
   - **Property 1: RAPID questionnaire structure consistency**
   - **Validates: Requirements 4.1, 14.1**
 
-- [ ] 2. Implement CategoryNavigationSidebar component
-  - [ ] 2.1 Create CategoryNavigationSidebar component with RAPID categories
+- [x] 2. Implement CategoryNavigationSidebar component
+  - [x] 2.1 Create CategoryNavigationSidebar component with RAPID categories
     - Display main categories in left sidebar (5 for Exploratory, 6 for Migration)
     - Handle category selection and state management
     - Show visual progress indicators for each category
     - Implement responsive design for mobile devices
     - _Requirements: 12.1, 12.2, 4.2, 4.3_
 
-  - [ ] 2.2 Write property test for category navigation
+  - [x] 2.2 Write property test for category navigation
     - **Property 7: Category navigation sidebar**
     - **Validates: Requirements 12.1**
 
-- [ ] 3. Build FixedQuestionContainer component
-  - [ ] 3.1 Create FixedQuestionContainer with consistent dimensions
+- [x] 3. Build FixedQuestionContainer component
+  - [x] 3.1 Create FixedQuestionContainer with consistent dimensions
     - Maintain fixed container size across all question types
     - Implement proper scrolling when content exceeds container
     - Provide responsive design for different screen sizes
     - Prevent layout shifts during navigation
     - _Requirements: 13.1, 13.2, 13.3_
 
-  - [ ] 3.2 Write property test for fixed container behavior
+  - [x] 3.2 Write property test for fixed container behavior
     - **Property 9: Fixed container dimensions**
     - **Validates: Requirements 13.1, 13.3**
 
@@ -263,56 +264,71 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
   - Test comprehensive RAPID structure validation
   - Ask user for feedback on enhanced features integration
 
-### Phase 4: AWS Bedrock Integration with RAPID Context (Week 6)
+### Phase 4: External API Integration for Asynchronous Report Generation (Week 6)
 
-- [ ] 21. Implement AWS Bedrock integration with RAPID-aware context
-  - [ ] 21.1 Create AWS Bedrock client with RAPID context understanding
-    - Integrate AWS SDK for Bedrock with RAPID questionnaire context
-    - Implement report generation logic that understands category structure
-    - Add AWS credentials management and validation
-    - Create prompts that leverage RAPID category organization
+- [ ] 21. Implement External API Gateway integration for report generation
+  - [ ] 21.1 Create External API client for report generation requests
+    - Implement API client for External API Gateway communication
+    - Create report generation request payload with assessment data
+    - Handle External API authentication and error responses
+    - Add request ID tracking for asynchronous processing
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 21.2 Write integration test for Bedrock with RAPID context
-    - Test report generation with RAPID category structure
-    - Verify AWS credentials validation
-    - Test report generation with both assessment types
+  - [ ] 21.2 Write integration test for External API communication
+    - Test report generation request to External API Gateway
+    - Verify request payload structure and authentication
+    - Test error handling for External API failures
     - _Requirements: 6.1, 6.2, 6.4_
 
-- [ ] 22. Create HTML report templates with category-based insights
-  - [ ] 22.1 Build category-aware report templates
-    - Create HTML report templates that organize insights by RAPID categories
-    - Implement report generation that highlights category-specific findings
-    - Add proper styling and structure for category-based reports
-    - Store generated reports with category metadata
+- [ ] 22. Build AsyncReportGenerator with External API integration
+  - [ ] 22.1 Create AsyncReportGenerator component for External API
+    - Implement report generation through External API Gateway calls
+    - Add request status tracking and display
+    - Handle asynchronous report completion workflow
+    - Provide retry functionality for failed External API requests
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [ ] 22.2 Write test for category-based report generation
-    - Test report generation with various category completion states
-    - Verify report structure includes all RAPID categories
-    - Test report storage and retrieval
-    - _Requirements: 7.3, 7.4, 7.5_
+  - [ ] 22.2 Write test for asynchronous report generation
+    - Test External API report generation workflow
+    - Verify status tracking through database queries
+    - Test retry functionality for failed requests
+    - _Requirements: 7.1, 7.2, 7.5, 7.7_
 
-- [ ] 23. Test with different Bedrock models using RAPID structure
-  - [ ] 23.1 Test multiple Bedrock models with RAPID data
-    - Test report generation with different Bedrock models
-    - Compare report quality across different models
-    - Optimize prompts for RAPID category structure
-    - Handle model-specific response formats
-    - _Requirements: 6.3, 7.1, 7.2_
+- [ ] 23. Implement ReportStatusTracker with database polling
+  - [ ] 23.1 Build ReportStatusTracker with MongoDB status queries
+    - Implement periodic querying of MongoDB for report status updates
+    - Display request history and current status from database records
+    - Handle different status states (PENDING, PROCESSING, COMPLETED, FAILED)
+    - Add automatic refresh and manual refresh capabilities from database
+    - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [ ] 23.2 Write model comparison tests
-    - Test report generation consistency across models
-    - Verify report quality with RAPID structure
-    - Test error handling for different models
-    - _Requirements: 6.3, 7.1_
+  - [ ] 23.2 Write test for database status tracking
+    - Test database querying mechanism with various status records
+    - Verify status update handling and display from MongoDB
+    - Test automatic and manual refresh functionality
+    - _Requirements: 7.2, 7.3, 7.6_
 
-- [ ] 24. Checkpoint - AWS Bedrock Integration Testing
-  - Test AWS Bedrock integration with RAPID context
-  - Verify category-based report generation
-  - Test multiple Bedrock models with RAPID structure
-  - Ensure report templates work with category organization
-  - Ask user for feedback on Bedrock integration with RAPID context
+- [ ] 24. Add comprehensive error handling for External API integration
+  - [ ] 24.1 Implement External API error handling and recovery
+    - Handle External API Gateway timeouts and failures
+    - Implement exponential backoff for polling requests
+    - Add user-friendly error messages for External API issues
+    - Provide fallback mechanisms when External API is unavailable
+    - _Requirements: 7.5, 7.7_
+
+  - [ ] 24.2 Write error handling tests for External API
+    - Test External API timeout and failure scenarios
+    - Verify error message display and recovery mechanisms
+    - Test retry logic and exponential backoff
+    - _Requirements: 7.5, 7.7_
+
+- [ ] 25. Checkpoint - External API Integration Testing
+  - Test complete External API Gateway integration workflow
+  - Verify asynchronous report generation through External API
+  - Test status tracking through database queries instead of API polling
+  - Ensure error handling provides good user experience
+  - Test retry functionality for failed External API requests
+  - Ask user for feedback on External API integration
 
 ## Notes
 
@@ -335,7 +351,7 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
 - ✅ Integration tests are required for end-to-end workflows
 - ✅ Comprehensive testing approach ensures high quality delivery
 
-**Total Tasks:** 24 main tasks with comprehensive testing coverage
+**Total Tasks:** 25 main tasks with comprehensive testing coverage
 **Total Properties:** 12 correctness properties covering all RAPID features
 **Implementation Timeline:** 6 weeks with 4 phases of development
 

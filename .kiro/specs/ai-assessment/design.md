@@ -4,7 +4,7 @@
 
 AI Assessment module เป็นระบบประเมินความพร้อม GenAI ที่ออกแบบให้รองรับการทำงานแบบ multi-company และ multi-assessment โดยเน้นการพัฒนาแบบ phase-based development (UI ก่อน แล้วค่อย data persistence) เพื่อให้สามารถทดสอบ application flow ได้เร็วขึ้น
 
-ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (5 categories) สำหรับการพัฒนา AI ใหม่ และ Migration Path (6 categories) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ External API Gateway + Lambda + SQS architecture สำหรับการสร้างรายงานแบบ asynchronous
+ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (5 categories) สำหรับการพัฒนา AI ใหม่ และ Migration Path (6 categories) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ **External API Gateway + Lambda + SQS architecture** สำหรับการสร้างรายงานแบบ asynchronous โดยระบบจะไม่เรียก AWS Bedrock โดยตรง แต่จะส่งข้อมูลไปยัง External API Gateway ที่จะจัดการการสร้างรายงานผ่าน Lambda functions และ SQS queue
 
 **ฟีเจอร์ใหม่ที่เพิ่มเข้ามา:**
 - **RAPID Questionnaire Integration**: คำถามใหม่ทั้งหมด 162 ข้อจาก RAPID Assessment Questionnaires
@@ -12,7 +12,7 @@ AI Assessment module เป็นระบบประเมินความ�
 - **Enhanced Progress Sidebar**: แสดง progress navigation ด้านซ้ายที่คลิกกระโดดได้
 - **Fixed-Size Question Container**: กล่องคำถามขนาดคงที่เพื่อ UI ที่สวยและเสถียร
 - **Response Review System**: ให้ผู้ใช้สามารถดูคำตอบที่กรอกไปแล้วและทบทวนทั้งหมดก่อนส่ง assessment
-- **Asynchronous Report Generation**: ใช้ External API + Lambda + SQS แทนการเรียก AWS Bedrock โดยตรง
+- **Asynchronous Report Generation**: ใช้ External API Gateway + Lambda + SQS แทนการเรียก AWS Bedrock โดยตรง พร้อม status tracking และ polling mechanism
 
 **RAPID Questionnaire Structure:**
 - **Exploratory Path**: 5 main categories with 110 total questions
@@ -52,9 +52,10 @@ graph TB
     
     subgraph "External Services"
         MongoDB[(MongoDB Database)]
-        APIGateway[API Gateway]
-        Lambda[Lambda Functions]
-        SQS[SQS Queue]
+        ExternalAPIGateway[External API Gateway]
+        Lambda1[Lambda: Create Report Record]
+        SQSQueue[SQS Queue]
+        Lambda2[Lambda: Generate Report]
         Bedrock[AWS Bedrock]
     end
     
@@ -72,14 +73,14 @@ graph TB
     
     CompanyAPI --> MongoDB
     AssessmentAPI --> MongoDB
-    ReportAPI --> ExternalAPI
+    ReportAPI --> ExternalAPIGateway
     
-    ExternalAPI --> APIGateway
-    APIGateway --> Lambda
-    Lambda --> MongoDB
-    Lambda --> SQS
-    SQS --> Lambda
-    Lambda --> Bedrock
+    ExternalAPIGateway --> Lambda1
+    Lambda1 --> MongoDB
+    Lambda1 --> SQSQueue
+    SQSQueue --> Lambda2
+    Lambda2 --> Bedrock
+    Lambda2 --> MongoDB
 ```
 
 ### Component Architecture
@@ -385,14 +386,17 @@ interface ReportGenerationRequest {
   requestedAt: Date
   completedAt?: Date
   errorMessage?: string
+  externalRequestId: string
+  retryCount: number
 }
 ```
 
 **Responsibilities:**
-- Initiate report generation through external API
-- Display request status and progress
+- Send report generation requests to External API Gateway
+- Track request status through polling mechanism
 - Handle asynchronous report completion
 - Provide retry functionality for failed requests
+- Display request progress and estimated completion time
 
 #### 8. ReportStatusTracker Component
 ```typescript
@@ -401,14 +405,24 @@ interface ReportStatusTrackerProps {
   onRefreshStatus: () => void
   onViewReport: (reportId: string) => void
   onRetryGeneration: (requestId: string) => void
+  pollingInterval?: number
+}
+
+interface ReportStatusUpdate {
+  requestId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  progress?: number
+  estimatedCompletionTime?: Date
+  errorDetails?: string
 }
 ```
 
 **Responsibilities:**
-- Track multiple report generation requests
-- Poll for status updates periodically
-- Display request history and current status
+- Track multiple report generation requests from MongoDB_Database
+- Query database periodically for status updates instead of external API calls
+- Display request history and current status from database records
 - Handle error states and retry mechanisms
+- Manage automatic status refresh from database queries
 
 ### Data Models
 
@@ -627,15 +641,52 @@ interface ExternalReportAPI {
     assessmentId: string
     companyId: string
     responses: AssessmentResponses
-    assessmentType: string
-  }): Promise<{ requestId: string }>
+    assessmentType: 'EXPLORATORY' | 'MIGRATION'
+    companyName: string
+  }): Promise<{ 
+    requestId: string
+    status: 'PENDING'
+    estimatedCompletionTime: Date
+  }>
   
   // GET /external/reports/status/{requestId}
   getStatus(requestId: string): Promise<{
+    requestId: string
     status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
-    result?: string
-    error?: string
+    progress?: number
+    estimatedCompletionTime?: Date
+    result?: {
+      reportId: string
+      htmlContent: string
+    }
+    error?: {
+      code: string
+      message: string
+      retryable: boolean
+    }
   }>
+  
+  // POST /external/reports/retry/{requestId}
+  retryGeneration(requestId: string): Promise<{
+    requestId: string
+    status: 'PENDING'
+    retryCount: number
+  }>
+}
+
+// Internal API for status tracking from database
+interface ReportTrackingAPI {
+  // GET /api/reports/requests?assessmentId=xxx
+  getRequests(assessmentId: string): Promise<ReportGenerationRequest[]>
+  
+  // GET /api/reports/status?requestIds=xxx,yyy
+  getStatusUpdates(requestIds: string[]): Promise<ReportStatusUpdate[]>
+  
+  // GET /api/reports/[reportId]
+  getReport(reportId: string): Promise<AssessmentReport>
+  
+  // POST /api/reports/retry/[requestId]
+  retryGeneration(requestId: string): Promise<ReportGenerationRequest>
 }
 ```
 

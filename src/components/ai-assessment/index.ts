@@ -13,6 +13,11 @@ export { default as AsyncReportGenerator } from './AsyncReportGenerator'
 export { default as ReportStatusTracker } from './ReportStatusTracker'
 // export { default as ReportGenerator } from './ReportGenerator' // TODO: Implement in Phase 3
 
+// New RAPID Integration Components
+export { default as CategoryNavigationSidebar } from './CategoryNavigationSidebar'
+export { default as FixedQuestionContainer } from './FixedQuestionContainer'
+export { default as RAPIDQuestionnaireLoader } from './RAPIDQuestionnaireLoader'
+
 // Re-export types for convenience
 export type {
   Company,
@@ -31,3 +36,15 @@ export type {
   ReportGenerationRequest,
   ReportStatusTrackerProps
 } from '../../types/assessment'
+
+// Re-export RAPID types
+export type {
+  RAPIDQuestion,
+  RAPIDCategory,
+  RAPIDSubcategory,
+  RAPIDQuestionnaireStructure,
+  AssessmentResponses as RAPIDAssessmentResponses,
+  CategoryCompletionStatus,
+  AssessmentType,
+  CompletionStatus
+} from '../../types/rapid-questionnaire'

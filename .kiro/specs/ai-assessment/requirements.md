@@ -13,7 +13,10 @@ AI Assessment module เป็นส่วนหนึ่งของ applicatio
 - **Migration_Path**: เส้นทางสำหรับการ migrate AI ที่มีอยู่
 - **Assessment_Report**: รายงานผลการประเมินที่สร้างด้วย AI
 - **MongoDB_Database**: ฐานข้อมูล MongoDB สำหรับเก็บข้อมูล
-- **AWS_Bedrock**: บริการ AI ของ AWS สำหรับสร้างรายงาน
+- **External_API_Gateway**: External API Gateway service that receives report generation requests
+- **Lambda_Function**: AWS Lambda functions that process report generation requests
+- **SQS_Queue**: Amazon SQS queue for asynchronous report processing
+- **Report_Request**: A request record for report generation with tracking status
 - **Sub_Sidebar**: แถบเมนูย่อยที่แสดงชื่อ "AI Assessment"
 - **Company_Settings**: ระบบจัดการข้อมูล Company
 
@@ -79,30 +82,34 @@ AI Assessment module เป็นส่วนหนึ่งของ applicatio
 4. THE MongoDB_Database SHALL store assessment data with proper indexing for company-based and user-based queries
 5. THE AI_Assessment_System SHALL associate each assessment with a company ID for proper data organization
 
-### Requirement 6: AWS Bedrock Integration
+### Requirement 6: External API Integration for Report Generation
 
-**User Story:** As an administrator, I want to configure AWS Bedrock access using AWS credentials, so that the system can generate AI-powered assessment reports.
-
-#### Acceptance Criteria
-
-1. THE AI_Assessment_System SHALL accept AWS Access Key ID and Secret Access Key for Bedrock authentication
-2. WHEN AWS credentials are provided, THE AI_Assessment_System SHALL validate connectivity to AWS_Bedrock service
-3. WHEN generating reports, THE AI_Assessment_System SHALL use AWS_Bedrock to analyze assessment responses and create insights
-4. IF AWS credentials are invalid or missing, THE AI_Assessment_System SHALL display appropriate error messages and disable report generation
-
-### Requirement 7: HTML Report Generation and Storage
-
-**User Story:** As a user, I want to generate comprehensive assessment reports, so that I can review and share my AI readiness evaluation results.
+**User Story:** As a user, I want the system to generate reports through an external API service, so that report generation doesn't block the user interface and can be processed asynchronously.
 
 #### Acceptance Criteria
 
-1. WHEN a user completes an assessment, THE AI_Assessment_System SHALL enable report generation functionality
-2. WHEN generating a report, THE AI_Assessment_System SHALL use AWS_Bedrock to analyze responses and create structured insights
-3. THE AI_Assessment_System SHALL format the generated content as HTML with proper styling and structure
-4. THE AI_Assessment_System SHALL store the HTML Assessment_Report directly in MongoDB_Database
-5. WHEN a report is generated, THE AI_Assessment_System SHALL create a unique report ID and timestamp
-6. THE AI_Assessment_System SHALL allow users to view generated reports in a formatted display
-7. THE AI_Assessment_System SHALL associate reports with both assessment ID and company ID
+1. WHEN a user completes an assessment, THE AI_Assessment_System SHALL call an external API Gateway to initiate report generation
+2. THE AI_Assessment_System SHALL send assessment data to the external API Gateway endpoint
+3. WHEN the external API receives the request, THE External_API_Gateway SHALL create a report record and push the request to an SQS queue
+4. THE AI_Assessment_System SHALL receive a request ID from the external API for tracking purposes
+5. THE AI_Assessment_System SHALL NOT directly invoke AWS Bedrock services
+3. WHEN the external API processes the request, THE Lambda_Function SHALL create and update report records in MongoDB_Database with current status
+6. WHEN the Lambda_Function processes the request, it SHALL pull from SQS and generate the report using AWS Bedrock
+7. THE AI_Assessment_System SHALL provide status tracking by querying report records from MongoDB_Database
+
+### Requirement 7: Asynchronous Report Generation and Status Tracking
+
+**User Story:** As a user, I want to track the status of my report generation requests and receive notifications when reports are ready, so that I can access my assessment results when they're completed.
+
+#### Acceptance Criteria
+
+1. WHEN a user requests report generation, THE AI_Assessment_System SHALL display the request status as "PENDING"
+2. THE AI_Assessment_System SHALL check report generation status by querying the MongoDB_Database directly
+3. WHEN a report is being processed, THE AI_Assessment_System SHALL display status as "PROCESSING" with estimated completion time
+4. WHEN a report generation is completed, THE AI_Assessment_System SHALL display status as "COMPLETED" and enable report viewing
+5. WHEN a report generation fails, THE AI_Assessment_System SHALL display status as "FAILED" with error details and retry option
+6. THE AI_Assessment_System SHALL maintain a history of all report generation requests for each assessment
+7. THE AI_Assessment_System SHALL allow users to retry failed report generation requests
 
 ### Requirement 8: Assessment Dashboard and Management
 
