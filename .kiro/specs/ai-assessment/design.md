@@ -4,12 +4,27 @@
 
 AI Assessment module เป็นระบบประเมินความพร้อม GenAI ที่ออกแบบให้รองรับการทำงานแบบ multi-company และ multi-assessment โดยเน้นการพัฒนาแบบ phase-based development (UI ก่อน แล้วค่อย data persistence) เพื่อให้สามารถทดสอบ application flow ได้เร็วขึ้น
 
-ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (7 ขั้นตอน) สำหรับการพัฒนา AI ใหม่ และ Migration Path (8 ขั้นตอน) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ External API Gateway + Lambda + SQS architecture สำหรับการสร้างรายงานแบบ asynchronous
+ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (5 categories) สำหรับการพัฒนา AI ใหม่ และ Migration Path (6 categories) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ External API Gateway + Lambda + SQS architecture สำหรับการสร้างรายงานแบบ asynchronous
 
 **ฟีเจอร์ใหม่ที่เพิ่มเข้ามา:**
+- **RAPID Questionnaire Integration**: คำถามใหม่ทั้งหมด 162 ข้อจาก RAPID Assessment Questionnaires
+- **Category-Based Navigation**: จัดระเบียบคำถามตาม categories และ subcategories
+- **Enhanced Progress Sidebar**: แสดง progress navigation ด้านซ้ายที่คลิกกระโดดได้
+- **Fixed-Size Question Container**: กล่องคำถามขนาดคงที่เพื่อ UI ที่สวยและเสถียร
 - **Response Review System**: ให้ผู้ใช้สามารถดูคำตอบที่กรอกไปแล้วและทบทวนทั้งหมดก่อนส่ง assessment
-- **Enhanced Progress Visualization**: แสดงสถานะความคืบหน้าแบบ visual และให้คลิกไปยัง step ต่างๆ ได้
 - **Asynchronous Report Generation**: ใช้ External API + Lambda + SQS แทนการเรียก AWS Bedrock โดยตรง
+
+**RAPID Questionnaire Structure:**
+- **Exploratory Path**: 5 main categories with 110 total questions
+  - Use Case Discovery: 48 questions (5 subcategories)
+  - Data Readiness: 25 questions (4 subcategories) 
+  - Compliance & Integration: 27 questions (5 subcategories)
+  - Model Evaluation: Guided process
+  - Business Value & ROI: 10 questions (1 category)
+
+- **Migration Path**: 6 main categories with 162 total questions
+  - All Exploratory categories plus:
+  - Current System Assessment: 52 questions (8 subcategories)
 
 ## Architecture
 
@@ -21,6 +36,8 @@ graph TB
         UI[React Components]
         State[State Management]
         Router[Next.js Router]
+        CategoryNav[Category Navigation Sidebar]
+        FixedQuestionContainer[Fixed-Size Question Container]
         ReviewSystem[Response Review System]
         ProgressTracker[Enhanced Progress Tracker]
     end
@@ -28,6 +45,7 @@ graph TB
     subgraph "API Layer"
         CompanyAPI[Company API Routes]
         AssessmentAPI[Assessment API Routes]
+        QuestionnaireAPI[RAPID Questionnaire API]
         ReportAPI[Report Status API]
         ExternalAPI[External Report API]
     end
@@ -44,8 +62,11 @@ graph TB
     State --> Router
     Router --> CompanyAPI
     Router --> AssessmentAPI
+    Router --> QuestionnaireAPI
     Router --> ReportAPI
     
+    CategoryNav --> AssessmentAPI
+    FixedQuestionContainer --> QuestionnaireAPI
     ReviewSystem --> AssessmentAPI
     ProgressTracker --> AssessmentAPI
     
@@ -80,10 +101,13 @@ graph TB
     subgraph "Assessment Components"
         AssessmentDashboard[Assessment Dashboard]
         AssessmentWizard[Assessment Wizard]
+        CategoryNavigationSidebar[Category Navigation Sidebar]
+        FixedQuestionContainer[Fixed-Size Question Container]
         QuestionStep[Question Step]
         EnhancedProgressTracker[Enhanced Progress Tracker]
         ResponseReviewModal[Response Review Modal]
         StepNavigator[Step Navigator]
+        RAPIDQuestionnaireLoader[RAPID Questionnaire Loader]
     end
     
     subgraph "Report Components"
@@ -98,10 +122,13 @@ graph TB
     CompanySelector --> CompanyDashboard
     CompanyDashboard --> AssessmentDashboard
     AssessmentDashboard --> AssessmentWizard
+    AssessmentWizard --> CategoryNavigationSidebar
+    AssessmentWizard --> FixedQuestionContainer
     AssessmentWizard --> QuestionStep
     AssessmentWizard --> EnhancedProgressTracker
     AssessmentWizard --> ResponseReviewModal
     AssessmentWizard --> StepNavigator
+    AssessmentWizard --> RAPIDQuestionnaireLoader
     AssessmentWizard --> AsyncReportGenerator
     AsyncReportGenerator --> ReportStatusTracker
     ReportStatusTracker --> ReportViewer
@@ -132,7 +159,85 @@ interface SubSidebarItem {
 - Handle active state highlighting
 - Responsive collapse on mobile devices
 
-#### 2. CompanySelector Component
+#### 2. CategoryNavigationSidebar Component
+```typescript
+interface CategoryNavigationSidebarProps {
+  categories: AssessmentCategory[]
+  currentCategory: string
+  onCategorySelect: (categoryId: string) => void
+  completionStatus: CategoryCompletionStatus[]
+}
+
+interface AssessmentCategory {
+  id: string
+  title: string
+  questionCount: number
+  completionPercentage: number
+  status: 'not_started' | 'partial' | 'completed'
+}
+
+interface CategoryCompletionStatus {
+  categoryId: string
+  completionPercentage: number
+  status: 'not_started' | 'partial' | 'completed'
+}
+```
+
+**Responsibilities:**
+- Display main categories in left sidebar
+- Show visual progress indicators for each category
+- Handle clickable navigation to categories
+- Highlight current active category
+
+#### 3. FixedQuestionContainer Component
+```typescript
+interface FixedQuestionContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+```
+
+**Responsibilities:**
+- Maintain consistent container dimensions
+- Implement scrolling when content exceeds container size
+- Provide responsive design for different screen sizes
+
+#### 4. RAPIDQuestionnaireLoader Component
+```typescript
+interface RAPIDQuestionnaireLoaderProps {
+  assessmentType: 'EXPLORATORY' | 'MIGRATION'
+  onQuestionsLoaded: (questions: RAPIDQuestionStructure) => void
+}
+
+interface RAPIDQuestionStructure {
+  totalQuestions: number
+  categories: RAPIDCategory[]
+}
+
+interface RAPIDCategory {
+  id: string
+  title: string
+  questionCount: number
+  questions: RAPIDQuestion[]
+}
+
+interface RAPIDQuestion {
+  id: string
+  number: string
+  text: string
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox'
+  required: boolean
+  options?: string[]
+  category: string
+}
+```
+
+**Responsibilities:**
+- Load RAPID questionnaire structure from data source
+- Organize questions by categories
+- Handle different structures for Exploratory vs Migration paths
+
+#### 5. CompanySelector Component
 ```typescript
 interface CompanySelectorProps {
   companies: Company[]
@@ -155,7 +260,7 @@ interface Company {
 - Handle company selection
 - Redirect to Company Settings if no companies exist
 
-#### 3. AssessmentDashboard Component
+#### 6. AssessmentDashboard Component
 ```typescript
 interface AssessmentDashboardProps {
   company: Company
@@ -171,8 +276,10 @@ interface Assessment {
   companyId: string
   type: 'EXPLORATORY' | 'MIGRATION'
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED'
-  currentStep: number
-  totalSteps: number
+  currentCategory: string
+  currentSubcategory?: string
+  totalCategories: number
+  completionPercentage: number
   createdAt: Date
   updatedAt: Date
   completedAt?: Date
@@ -184,91 +291,70 @@ interface Assessment {
 - Show assessment status and progress
 - Provide CRUD operations for assessments
 
-#### 4. AssessmentWizard Component
+#### 7. AssessmentWizard Component
 ```typescript
 interface AssessmentWizardProps {
   assessment: Assessment
-  questions: QuestionSection[]
+  rapidQuestions: RAPIDQuestionStructure
   responses: AssessmentResponses
-  onResponseChange: (stepId: string, responses: any) => void
-  onStepChange: (step: number) => void
+  onResponseChange: (categoryId: string, responses: any) => void
+  onCategoryChange: (categoryId: string) => void
   onComplete: () => void
-  onShowReview: () => void
 }
 
 interface QuestionSection {
   id: string
   title: string
-  description: string
-  questions: Question[]
-  stepNumber: number
+  questions: RAPIDQuestion[]
+  categoryId: string
   completionStatus: 'not_started' | 'partial' | 'completed'
 }
-
-interface Question {
-  id: string
-  type: 'text' | 'textarea' | 'select' | 'multiselect' | 'radio' | 'checkbox' | 'number'
-  label: string
-  description?: string
-  required: boolean
-  options?: QuestionOption[]
-  validation?: ValidationRules
-}
 ```
 
 **Responsibilities:**
-- Manage multi-step questionnaire flow
+- Manage category-based questionnaire flow
 - Handle form validation and error display
 - Auto-save responses every 30 seconds
-- Display enhanced progress indicator with clickable steps
-- Provide response review functionality
+- Coordinate with CategoryNavigationSidebar and FixedQuestionContainer
 
-#### 5. EnhancedProgressTracker Component
+#### 8. EnhancedProgressTracker Component
 ```typescript
 interface EnhancedProgressTrackerProps {
-  currentStep: number
-  totalSteps: number
-  stepStatuses: StepStatus[]
-  onStepClick: (stepNumber: number) => void
-  allowNavigation: boolean
-}
-
-interface StepStatus {
-  stepNumber: number
-  status: 'not_started' | 'partial' | 'completed' | 'current'
-  hasResponses: boolean
-  requiredFieldsCount: number
-  filledFieldsCount: number
+  categories: AssessmentCategory[]
+  currentCategory: string
+  categoryStatuses: CategoryCompletionStatus[]
+  onCategoryClick: (categoryId: string) => void
 }
 ```
 
 **Responsibilities:**
-- Display visual progress with different states for each step
-- Allow direct navigation to any step by clicking
-- Show completion indicators for steps with responses
-- Highlight current step and partial completion status
+- Display visual progress for each category
+- Allow direct navigation to categories by clicking
+- Show completion indicators and progress percentages
+- Highlight current category
 
-#### 6. ResponseReviewModal Component
+#### 9. ResponseReviewModal Component
 ```typescript
 interface ResponseReviewModalProps {
   isOpen: boolean
   assessment: Assessment
   responses: AssessmentResponses
-  questions: QuestionSection[]
+  rapidQuestions: RAPIDQuestionStructure
   onClose: () => void
-  onEditResponse: (stepNumber: number, questionId: string) => void
+  onEditResponse: (categoryId: string, questionId: string) => void
   onComplete: () => void
 }
 
 interface ReviewSummary {
-  stepNumber: number
-  stepTitle: string
+  categoryId: string
+  categoryTitle: string
   questions: ReviewQuestion[]
   completionPercentage: number
 }
 
 interface ReviewQuestion {
   id: string
+  number: string
   label: string
   answer: any
   required: boolean
@@ -277,8 +363,7 @@ interface ReviewQuestion {
 ```
 
 **Responsibilities:**
-- Display comprehensive review of all questions and answers
-- Organize responses by step with clear visual hierarchy
+- Display comprehensive review of all questions and answers by categories
 - Highlight unanswered required questions
 - Allow direct navigation to specific questions for editing
 - Provide final completion validation
@@ -350,28 +435,51 @@ interface AssessmentDocument {
   userId: string
   type: 'EXPLORATORY' | 'MIGRATION'
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED'
-  currentStep: number
-  totalSteps: number
+  currentCategory: string
+  totalCategories: number
   responses: {
-    [stepId: string]: {
+    [categoryId: string]: {
       [questionId: string]: any
     }
   }
-  stepStatuses: {
-    [stepNumber: number]: {
+  categoryStatuses: {
+    [categoryId: string]: {
       status: 'not_started' | 'partial' | 'completed'
+      completionPercentage: number
       lastModified: Date
-      requiredFieldsCount: number
-      filledFieldsCount: number
     }
   }
+  rapidQuestionnaireVersion: string
   createdAt: Date
   updatedAt: Date
   completedAt?: Date
 }
 ```
 
-##### Report Generation Requests Collection
+##### RAPID Questionnaires Collection
+```typescript
+interface RAPIDQuestionnaireDocument {
+  _id: ObjectId
+  version: string
+  assessmentType: 'EXPLORATORY' | 'MIGRATION'
+  totalQuestions: number
+  categories: {
+    id: string
+    title: string
+    questionCount: number
+    questions: {
+      id: string
+      number: string
+      text: string
+      type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox'
+      required: boolean
+      options?: string[]
+    }[]
+  }[]
+  createdAt: Date
+  updatedAt: Date
+}
+```
 ```typescript
 interface ReportRequestDocument {
   _id: ObjectId
@@ -446,13 +554,12 @@ interface CreateAssessmentRequest {
 
 // PUT /api/assessments/[id]/responses
 interface SaveResponsesRequest {
-  stepId: string
+  categoryId: string
   responses: { [questionId: string]: any }
-  currentStep: number
-  stepStatus: {
+  currentCategory: string
+  categoryStatus: {
     status: 'not_started' | 'partial' | 'completed'
-    requiredFieldsCount: number
-    filledFieldsCount: number
+    completionPercentage: number
   }
 }
 
@@ -465,6 +572,23 @@ interface GetAssessmentReviewResponse {
     totalFilled: number
     isComplete: boolean
   }
+}
+```
+
+#### RAPID Questionnaire APIs
+```typescript
+// GET /api/questionnaires/rapid?type=EXPLORATORY|MIGRATION
+interface GetRAPIDQuestionnaireResponse {
+  questionnaire: RAPIDQuestionStructure
+  version: string
+  totalQuestions: number
+  categories: RAPIDCategory[]
+}
+
+// GET /api/questionnaires/rapid/category/[categoryId]
+interface GetCategoryQuestionsResponse {
+  category: RAPIDCategory
+  questions: RAPIDQuestion[]
 }
 ```
 
@@ -517,142 +641,102 @@ interface ExternalReportAPI {
 
 ## Phase-Based Development Strategy
 
-### Phase 1: UI/UX Foundation (Week 1-2)
-**Goal:** Create complete UI flow with mock data for rapid testing
+### Phase 1: Enhanced UI/UX Foundation with RAPID Integration (Week 1-2)
+**Goal:** Create complete UI flow with RAPID questionnaire structure and enhanced navigation
 
 **Components to Build:**
-- SubSidebar with navigation
-- CompanySelector with mock companies
-- AssessmentDashboard with mock assessments
-- AssessmentWizard with all question types
-- ProgressTracker and navigation
-- ReportViewer with sample HTML content
+- CategoryNavigationSidebar with RAPID structure
+- FixedQuestionContainer with responsive design
+- RAPIDQuestionnaireLoader with complete question set
+- AssessmentWizard with category-based navigation
+- EnhancedProgressTracker with category visualization
 
-**Mock Data Strategy:**
-- Use static JSON files for companies and assessments
-- Implement localStorage for temporary data persistence
-- Create sample questionnaire structure
-- Generate sample HTML reports
+**Implementation Strategy:**
+- Parse and structure RAPID questions by categories (5 for Exploratory, 6 for Migration)
+- Implement category navigation with visual progress indicators
+- Build fixed-size question containers for consistent UI
+- Use localStorage for temporary data persistence during development
 
-**Benefits:**
-- Rapid prototyping and user testing
-- Early feedback on UX flow
-- Component isolation and testing
-- Visual validation of responsive design
-
-### Phase 2: Data Integration (Week 3-4)
-**Goal:** Replace mock data with MongoDB integration
+### Phase 2: Data Integration with Category Structure (Week 3-4)
+**Goal:** Replace mock data with MongoDB integration supporting category-based structure
 
 **Implementation Steps:**
-- Set up MongoDB connection and schemas
-- Implement API routes for CRUD operations
-- Replace localStorage with API calls
-- Add proper error handling and loading states
-- Implement auto-save functionality
+- Set up MongoDB schemas for category-based responses
+- Implement API routes for CRUD operations with category support
+- Replace localStorage with API calls supporting category navigation
+- Implement auto-save functionality for category-based responses
+- Store RAPID questionnaire structure in MongoDB
 
-### Phase 3: AWS Bedrock Integration (Week 5)
-**Goal:** Add AI-powered report generation
-
-**Implementation Steps:**
-- Integrate AWS SDK for Bedrock
-- Implement report generation logic
-- Add AWS credentials management
-- Create HTML report templates
-- Test with different Bedrock models
-
-### Phase 4: Polish and Optimization (Week 6)
-**Goal:** Performance optimization and final touches
+### Phase 3: Enhanced Features Integration (Week 5)
+**Goal:** Complete integration of all enhanced features
 
 **Implementation Steps:**
-- Add caching strategies
-- Optimize database queries
-- Implement proper error boundaries
-- Add comprehensive validation
-- Performance testing and optimization
+- Finalize CategoryNavigationSidebar with real data
+- Complete FixedQuestionContainer responsive behavior
+- Integrate RAPIDQuestionnaireLoader with database
+- Test enhanced progress tracking with category completion
+- Add comprehensive validation for RAPID structure
+
+### Phase 4: AWS Bedrock Integration with RAPID Context (Week 6)
+**Goal:** Add AI-powered report generation with RAPID-aware context
+
+**Implementation Steps:**
+- Integrate AWS SDK for Bedrock with RAPID context
+- Implement report generation logic understanding category structure
+- Create HTML report templates with category-based insights
+- Test with different Bedrock models using RAPID structure
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Property 1: Sub-sidebar active state consistency
-*For any* assessment-related page navigation, the sub-sidebar should highlight the "AI Assessment" menu item when the user is on any assessment page
-**Validates: Requirements 1.3**
+### Property 1: RAPID questionnaire structure consistency
+*For any* assessment, the displayed questionnaire structure should match the RAPID format with proper categorization
+**Validates: Requirements 4.1, 14.1**
 
-### Property 2: Company-based assessment filtering
-*For any* company selection, all displayed assessments should belong only to the selected company and no assessments from other companies should appear
-**Validates: Requirements 2.2**
+### Property 2: Exploratory path category structure
+*For any* exploratory assessment, the system should organize questions into exactly 5 main categories with correct question counts
+**Validates: Requirements 4.2, 14.2**
 
-### Property 3: Assessment creation with company association
-*For any* valid assessment creation request with company selection, the created assessment should be properly associated with the selected company and contain all required fields (name, company ID, path type)
-**Validates: Requirements 2.4, 2.5, 3.5**
+### Property 3: Migration path category structure  
+*For any* migration assessment, the system should organize questions into exactly 6 main categories including all exploratory categories plus Current System Assessment
+**Validates: Requirements 4.3, 14.3**
 
-### Property 4: Company name display consistency
-*For any* assessment interface, the displayed company name in the header should match the company associated with the current assessment
-**Validates: Requirements 2.6**
+### Property 4: Response preservation during navigation
+*For any* assessment with saved responses, navigating between categories should preserve all previously entered responses
+**Validates: Requirements 4.4, 12.5**
 
-### Property 5: Step progression and validation
-*For any* assessment step with required fields, progression to the next step should only be enabled when all required fields are valid and complete
-**Validates: Requirements 4.2, 4.4**
+### Property 5: Category progression validation
+*For any* category with required fields, progression should only be enabled when all required fields are complete
+**Validates: Requirements 4.5**
 
-### Property 6: Progress indicator accuracy
-*For any* assessment step navigation, the progress indicator should accurately reflect the current step number and total steps for the assessment type
-**Validates: Requirements 4.1**
+### Property 6: Assessment completion detection
+*For any* assessment where all categories are completed, the system should display a "Complete Assessment" button
+**Validates: Requirements 4.6**
 
-### Property 7: Response preservation during navigation
-*For any* step navigation within an assessment, previously entered responses should be preserved and restored when returning to that step
-**Validates: Requirements 4.3**
+### Property 7: Category navigation sidebar
+*For any* assessment, the progress navigation should display a left sidebar with clickable category headers
+**Validates: Requirements 12.1**
 
-### Property 8: Assessment state persistence
-*For any* assessment that is saved and later restored, all responses and the current step position should be identical to when it was last saved
-**Validates: Requirements 5.3**
+### Property 8: Visual completion indicators
+*For any* category with saved responses, the system should display appropriate visual indicators showing completion status
+**Validates: Requirements 12.2**
 
-### Property 9: Navigation-triggered save
-*For any* step navigation event, the current responses should be immediately saved to the database before navigation occurs
-**Validates: Requirements 5.2**
+### Property 9: Fixed container dimensions
+*For any* question type or content length, the question display container should maintain fixed dimensions preventing layout shifts
+**Validates: Requirements 13.1, 13.3**
 
-### Property 10: Assessment-company relationship integrity
-*For any* created assessment, it should be associated with exactly one company ID and this relationship should be maintained throughout the assessment lifecycle
-**Validates: Requirements 5.5**
+### Property 10: Container scrolling behavior
+*For any* question content that exceeds the fixed container dimensions, the system should implement proper scrolling within the container
+**Validates: Requirements 13.2**
 
-### Property 11: AWS credentials validation and error handling
-*For any* invalid or missing AWS credentials, the system should display appropriate error messages and disable report generation functionality
-**Validates: Requirements 6.4**
+### Property 11: Complete question information display
+*For any* RAPID question, the system should display the complete question text and formatting as specified in the RAPID questionnaire
+**Validates: Requirements 14.4**
 
-### Property 12: Report generation availability
-*For any* completed assessment, report generation functionality should be enabled and available to the user
-**Validates: Requirements 7.1**
-
-### Property 13: HTML report structure and storage
-*For any* generated report, it should be formatted as valid HTML with proper structure and stored in MongoDB with unique ID, timestamp, and proper associations
-**Validates: Requirements 7.3, 7.4, 7.5, 7.7**
-
-### Property 15: Step navigation with response preservation
-*For any* assessment step navigation (via step indicators, review modal, or direct navigation), the current step's responses should be preserved before navigation and the target step should display its previously saved responses correctly
-**Validates: Requirements 11.2, 11.5, 12.4, 12.5**
-
-### Property 16: Visual progress indicators consistency
-*For any* assessment step, the progress tracker should display the correct visual state (not started, partial, completed, current) based on the step's response data and completion status
-**Validates: Requirements 11.1, 12.1, 12.2, 12.3**
-
-### Property 17: Response review completeness
-*For any* assessment with responses, the review summary should display all questions and answers organized by step, with unanswered required questions highlighted
-**Validates: Requirements 11.4, 11.6**
-
-### Property 18: Assessment completion validation
-*For any* assessment, the complete button should only be enabled when all required fields across all steps are filled, as verified through the review process
-**Validates: Requirements 11.7**
-
-### Property 19: Asynchronous report generation workflow
-*For any* valid assessment, initiating report generation should call the external API, receive a request ID, display progress status, and handle the complete workflow including polling and completion
-**Validates: Requirements 6.1, 6.2, 6.6, 7.1, 7.2, 7.3**
-
-### Property 20: Report generation error handling
-*For any* failed report generation request, the system should display appropriate error messages, provide retry options, and maintain error details in the request history
-**Validates: Requirements 6.7, 7.5**
-
-### Property 21: Report data persistence and associations
-*For any* generated report, it should be stored in MongoDB with proper associations to both assessment ID and company ID, and be accessible through the status history
-**Validates: Requirements 7.4, 7.6, 7.7**
+### Property 12: Original numbering preservation
+*For any* RAPID question, the system should preserve the original question numbering from the RAPID questionnaire source
+**Validates: Requirements 14.6**
 
 ## Error Handling
 

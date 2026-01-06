@@ -54,17 +54,18 @@ AI Assessment module เป็นส่วนหนึ่งของ applicatio
 4. WHEN a user selects "Migrate Existing AI", THE AI_Assessment_System SHALL initialize a Migration_Path assessment with 8 steps
 5. THE AI_Assessment_System SHALL store the assessment name, company ID, and selected path type in the Assessment record
 
-### Requirement 4: Multi-Step Questionnaire Flow
+### Requirement 4: Category-Based Questionnaire Flow with Enhanced Navigation
 
-**User Story:** As a user, I want to complete assessment questionnaires step by step, so that I can provide comprehensive information about my AI readiness.
+**User Story:** As a user, I want to complete assessment questionnaires organized by categories with enhanced navigation, so that I can efficiently provide comprehensive information about my AI readiness.
 
 #### Acceptance Criteria
 
-1. WHEN a user is in an assessment, THE AI_Assessment_System SHALL display a progress indicator showing current step and total steps
-2. WHEN a user completes a step, THE AI_Assessment_System SHALL enable navigation to the next step
-3. WHEN a user navigates between steps, THE AI_Assessment_System SHALL preserve previously entered responses
-4. THE AI_Assessment_System SHALL validate required fields before allowing step progression
-5. WHEN a user is on the final step, THE AI_Assessment_System SHALL display a "Complete Assessment" button instead of "Next"
+1. WHEN a user is in an assessment, THE AI_Assessment_System SHALL display the updated RAPID questionnaire structure with proper categorization
+2. FOR Exploratory Path, THE AI_Assessment_System SHALL organize questions into 5 main categories: Use Case Discovery (48 questions), Data Readiness (25 questions), Compliance & Integration (27 questions), Model Evaluation (guided process), and Business Value & ROI (10 questions)
+3. FOR Migration Path, THE AI_Assessment_System SHALL organize questions into 6 main categories: Use Case Discovery (same as exploratory), Current System Assessment (52 questions), Data Readiness (25 questions), Compliance & Integration (27 questions), Model Evaluation (guided process), and Business Value & ROI (10 questions)
+4. WHEN a user navigates between categories or questions, THE AI_Assessment_System SHALL preserve previously entered responses
+5. THE AI_Assessment_System SHALL validate required fields before allowing category or step progression
+6. WHEN a user completes all categories, THE AI_Assessment_System SHALL display a "Complete Assessment" button
 
 ### Requirement 5: Assessment Data Management
 
@@ -169,14 +170,43 @@ AI Assessment module เป็นส่วนหนึ่งของ applicatio
 6. WHEN in the review summary, THE AI_Assessment_System SHALL highlight any required questions that remain unanswered
 7. WHEN a user completes the review, THE AI_Assessment_System SHALL return to the final step with the complete assessment button enabled only if all required fields are filled
 
-### Requirement 12: Assessment Progress Visualization
+### Requirement 12: Enhanced Category-Based Progress Navigation
 
-**User Story:** As a user, I want to see visual indicators of my progress and completed sections, so that I can easily track what I've finished and what still needs attention.
+**User Story:** As a user, I want to see visual indicators of my progress by category and navigate between categories easily, so that I can efficiently track and complete different sections of my assessment.
 
 #### Acceptance Criteria
 
-1. WHEN displaying the progress tracker, THE AI_Assessment_System SHALL show different visual states for steps: not started, in progress (partially filled), completed (all required fields filled), and current step
-2. WHEN a step has saved responses, THE AI_Assessment_System SHALL display a visual indicator (such as a checkmark or filled circle) to show completion status
-3. WHEN a step has partial responses, THE AI_Assessment_System SHALL display a different visual indicator (such as a half-filled circle) to show partial completion
-4. THE AI_Assessment_System SHALL allow users to click on any step indicator to navigate directly to that step
-5. WHEN navigating via step indicators, THE AI_Assessment_System SHALL preserve the current step's responses before navigation
+1. WHEN displaying the progress navigation, THE AI_Assessment_System SHALL show a left sidebar with main category headers and subcategories that can be clicked to jump between sections
+2. WHEN a category has saved responses, THE AI_Assessment_System SHALL display visual indicators (checkmarks, progress bars, or completion percentages) to show completion status
+3. WHEN a category has partial responses, THE AI_Assessment_System SHALL display different visual indicators to show partial completion with specific progress percentages
+4. THE AI_Assessment_System SHALL allow users to click on any category or subcategory to navigate directly to that section
+5. WHEN navigating via category navigation, THE AI_Assessment_System SHALL preserve the current section's responses before navigation
+6. THE AI_Assessment_System SHALL highlight the current active category and subcategory in the navigation sidebar
+7. WHEN on mobile devices, THE AI_Assessment_System SHALL provide a collapsible category navigation that doesn't interfere with the main content area
+
+### Requirement 13: Fixed-Size Question Display Interface
+
+**User Story:** As a user, I want the question display area to have a consistent and fixed size, so that the interface remains visually stable and professional throughout my assessment.
+
+#### Acceptance Criteria
+
+1. WHEN displaying questions in the main content area, THE AI_Assessment_System SHALL maintain a fixed-size container for question content that doesn't change based on question length or type
+2. THE AI_Assessment_System SHALL implement proper scrolling within the question container when content exceeds the fixed dimensions
+3. WHEN switching between questions or categories, THE AI_Assessment_System SHALL maintain the same container dimensions to prevent layout shifts
+4. THE AI_Assessment_System SHALL ensure the fixed-size question container is responsive and adapts appropriately to different screen sizes while maintaining proportional stability
+5. THE AI_Assessment_System SHALL provide adequate padding and spacing within the fixed container to ensure readability and visual appeal
+6. WHEN displaying different question types (text, dropdown, checkbox, etc.), THE AI_Assessment_System SHALL ensure all elements fit properly within the fixed container dimensions
+
+### Requirement 14: RAPID Questionnaire Integration
+
+**User Story:** As a user, I want to answer the complete RAPID questionnaire with all updated questions and categories, so that I can provide comprehensive AI readiness assessment information.
+
+#### Acceptance Criteria
+
+1. THE AI_Assessment_System SHALL implement the complete RAPID questionnaire structure with 162 total questions organized by categories
+2. FOR Exploratory Path, THE AI_Assessment_System SHALL include: Use Case Discovery (48 questions in 5 subcategories), Data Readiness (25 questions in 4 subcategories), Compliance & Integration (27 questions in 5 subcategories), Model Evaluation (guided process), and Business Value & ROI (10 questions)
+3. FOR Migration Path, THE AI_Assessment_System SHALL include all Exploratory categories plus Current System Assessment (52 questions in 8 subcategories)
+4. WHEN displaying questions, THE AI_Assessment_System SHALL show the complete question text, descriptions, and any specific formatting from the RAPID questionnaire
+5. THE AI_Assessment_System SHALL organize questions within each category by their defined subcategories for better navigation
+6. THE AI_Assessment_System SHALL preserve the original question numbering and structure from the RAPID questionnaire
+7. WHEN a user completes a category, THE AI_Assessment_System SHALL calculate and display completion statistics matching the RAPID structure
