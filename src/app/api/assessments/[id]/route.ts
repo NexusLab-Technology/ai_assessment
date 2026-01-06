@@ -1,154 +1,258 @@
-import { NextRequest } from 'next/server'
-import { AssessmentModel } from '../../../../lib/models/Assessment'
-import { 
-  createSuccessResponse, 
-  createErrorResponse, 
-  handleApiError, 
-  getUserId,
-  parseRequestBody,
-  validateRequiredFields,
-  isValidObjectId
-} from '../../../../lib/api-utils'
+import { NextRequest, NextResponse } from 'next/server'
+import { ObjectId } from 'mongodb'
+import { getCollection } from '@/lib/mongodb'
+import { AssessmentDocument, COLLECTIONS } from '@/lib/models/assessment'
 
-/**
- * GET /api/assessments/[id]
- * Get a specific assessment by ID
- */
+// GET /api/assessments/[id] - Get specific assessment
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
     
-    // Validate ObjectId format
-    if (!isValidObjectId(id)) {
-      return createErrorResponse('Invalid assessment ID format', 400)
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid assessment ID'
+        },
+        { status: 400 }
+      )
     }
     
-    const assessment = await AssessmentModel.findById(id, userId)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    const assessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id)
+    })
     
     if (!assessment) {
-      return createErrorResponse('Assessment not found', 404)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Assessment not found'
+        },
+        { status: 404 }
+      )
     }
     
-    return createSuccessResponse(assessment)
+    // Transform ObjectIds to strings
+    const transformedAssessment = {
+      ...assessment,
+      _id: assessment._id?.toString(),
+      companyId: assessment.companyId?.toString(),
+      id: assessment._id?.toString()
+    }
+    
+    return NextResponse.json({
+      success: true,
+      assessment: transformedAssessment
+    })
+    
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error fetching assessment:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 
-/**
- * PUT /api/assessments/[id]
- * Update an assessment
- */
+// PUT /api/assessments/[id] - Update assessment with step status tracking
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
-    const body = await parseRequestBody(request)
+    const body = await request.json()
     
-    // Validate ObjectId format
-    if (!isValidObjectId(id)) {
-      return createErrorResponse('Invalid assessment ID format', 400)
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid assessment ID'
+        },
+        { status: 400 }
+      )
     }
+    
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
     
     // Check if assessment exists
-    const existingAssessment = await AssessmentModel.findById(id, userId)
+    const existingAssessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id)
+    })
+    
     if (!existingAssessment) {
-      return createErrorResponse('Assessment not found', 404)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Assessment not found'
+        },
+        { status: 404 }
+      )
     }
     
-    // Validate fields if provided
-    const updateData: any = {}
-    
-    if (body.name !== undefined) {
-      if (typeof body.name !== 'string' || body.name.trim().length === 0) {
-        return createErrorResponse('Assessment name must be a non-empty string', 400)
-      }
-      if (body.name.length > 100) {
-        return createErrorResponse('Assessment name must be 100 characters or less', 400)
-      }
-      updateData.name = body.name.trim()
+    const now = new Date()
+    const updateData: Partial<AssessmentDocument> = {
+      updatedAt: now
     }
     
-    if (body.status !== undefined) {
-      if (!['DRAFT', 'IN_PROGRESS', 'COMPLETED'].includes(body.status)) {
-        return createErrorResponse('Invalid status. Must be DRAFT, IN_PROGRESS, or COMPLETED', 400)
-      }
-      updateData.status = body.status
-    }
-    
-    if (body.currentStep !== undefined) {
-      if (typeof body.currentStep !== 'number' || body.currentStep < 1) {
-        return createErrorResponse('Current step must be a positive number', 400)
-      }
-      if (body.currentStep > existingAssessment.totalSteps) {
-        return createErrorResponse(`Current step cannot exceed total steps (${existingAssessment.totalSteps})`, 400)
-      }
-      updateData.currentStep = body.currentStep
-    }
-    
-    if (body.responses !== undefined) {
-      if (typeof body.responses !== 'object') {
-        return createErrorResponse('Responses must be an object', 400)
-      }
+    // Handle different update types
+    if (body.responses) {
       updateData.responses = body.responses
     }
     
-    // Update assessment
-    const updatedAssessment = await AssessmentModel.update(id, userId, updateData)
-    
-    if (!updatedAssessment) {
-      return createErrorResponse('Failed to update assessment', 500)
+    if (body.currentStep !== undefined) {
+      updateData.currentStep = body.currentStep
     }
     
-    return createSuccessResponse(updatedAssessment, 'Assessment updated successfully')
+    if (body.status) {
+      updateData.status = body.status
+      if (body.status === 'COMPLETED') {
+        updateData.completedAt = now
+      }
+    }
+    
+    if (body.stepStatuses) {
+      updateData.stepStatuses = body.stepStatuses
+    }
+    
+    // Update step status if provided
+    if (body.stepNumber && body.stepStatus) {
+      const stepStatuses = existingAssessment.stepStatuses || {}
+      stepStatuses[body.stepNumber] = {
+        ...stepStatuses[body.stepNumber],
+        status: body.stepStatus.status,
+        lastModified: now,
+        requiredFieldsCount: body.stepStatus.requiredFieldsCount || 0,
+        filledFieldsCount: body.stepStatus.filledFieldsCount || 0
+      }
+      updateData.stepStatuses = stepStatuses
+    }
+    
+    // Perform update
+    const result = await assessmentsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    )
+    
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Assessment not found'
+        },
+        { status: 404 }
+      )
+    }
+    
+    // Get updated assessment
+    const updatedAssessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id)
+    })
+    
+    const transformedAssessment = {
+      ...updatedAssessment,
+      _id: updatedAssessment?._id?.toString(),
+      companyId: updatedAssessment?.companyId?.toString(),
+      id: updatedAssessment?._id?.toString()
+    }
+    
+    return NextResponse.json({
+      success: true,
+      assessment: transformedAssessment
+    })
+    
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error updating assessment:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 
-/**
- * DELETE /api/assessments/[id]
- * Delete an assessment
- */
+// DELETE /api/assessments/[id] - Delete assessment
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
     
-    // Validate ObjectId format
-    if (!isValidObjectId(id)) {
-      return createErrorResponse('Invalid assessment ID format', 400)
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid assessment ID'
+        },
+        { status: 400 }
+      )
     }
     
-    // Check if assessment exists
-    const existingAssessment = await AssessmentModel.findById(id, userId)
-    if (!existingAssessment) {
-      return createErrorResponse('Assessment not found', 404)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    
+    // Check if assessment exists and is deletable (only DRAFT status)
+    const assessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id)
+    })
+    
+    if (!assessment) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Assessment not found'
+        },
+        { status: 404 }
+      )
     }
     
-    // Only allow deletion of DRAFT assessments
-    if (existingAssessment.status !== 'DRAFT') {
-      return createErrorResponse('Only draft assessments can be deleted', 400)
+    if (assessment.status !== 'DRAFT') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Only draft assessments can be deleted'
+        },
+        { status: 400 }
+      )
     }
     
-    const deleted = await AssessmentModel.delete(id, userId)
+    // Delete assessment
+    const result = await assessmentsCollection.deleteOne({
+      _id: new ObjectId(id)
+    })
     
-    if (!deleted) {
-      return createErrorResponse('Failed to delete assessment', 500)
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to delete assessment'
+        },
+        { status: 500 }
+      )
     }
     
-    return createSuccessResponse(null, 'Assessment deleted successfully')
+    return NextResponse.json({
+      success: true,
+      message: 'Assessment deleted successfully'
+    })
+    
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error deleting assessment:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }

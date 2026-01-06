@@ -154,7 +154,7 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
     - **Validates: Requirements 11.7**
     - **PBT Status: ✅ PASSED (50 iterations)**
 
-- [ ] 11. Create Asynchronous Report Generation UI
+- [x] 11. Create Asynchronous Report Generation UI
   - [x] 11.1 Build AsyncReportGenerator component
     - Create report generation request interface
     - Display "Report Generation in Progress" status
@@ -185,7 +185,7 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
 
 ### Phase 2: Data Integration (Week 3-4)
 
-- [-] 13. Setup MongoDB connection and schemas
+- [x] 13. Setup MongoDB connection and schemas
   - [x] 13.1 Configure MongoDB connection and environment variables
     - Set up MongoDB connection string and database configuration
     - Create database schemas for Assessments, Companies, Reports, and Report Requests

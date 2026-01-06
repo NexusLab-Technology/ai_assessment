@@ -1,80 +1,137 @@
-import { NextRequest } from 'next/server'
-import { AssessmentModel } from '../../../lib/models/Assessment'
-import { CompanyModel } from '../../../lib/models/Company'
-import { 
-  createSuccessResponse, 
-  createErrorResponse, 
-  handleApiError, 
-  getUserId,
-  parseRequestBody,
-  validateRequiredFields
-} from '../../../lib/api-utils'
+import { NextRequest, NextResponse } from 'next/server'
+import { ObjectId } from 'mongodb'
+import { getCollection } from '@/lib/mongodb'
+import { AssessmentDocument, COLLECTIONS } from '@/lib/models/assessment'
 
-/**
- * GET /api/assessments
- * Get all assessments for the authenticated user, optionally filtered by company
- */
+// GET /api/assessments - Get assessments with optional company filtering
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const { searchParams } = new URL(request.url)
     const companyId = searchParams.get('companyId')
+    const userId = searchParams.get('userId') || 'default-user' // TODO: Get from auth
     
-    const assessments = await AssessmentModel.findAll(userId, companyId || undefined)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
     
-    return createSuccessResponse({
-      assessments,
-      total: assessments.length
+    // Build query
+    const query: any = { userId }
+    if (companyId) {
+      query.companyId = new ObjectId(companyId)
+    }
+    
+    // Get assessments sorted by updatedAt descending
+    const assessments = await assessmentsCollection
+      .find(query)
+      .sort({ updatedAt: -1 })
+      .toArray()
+    
+    // Transform ObjectIds to strings for JSON serialization
+    const transformedAssessments = assessments.map(assessment => ({
+      ...assessment,
+      _id: assessment._id?.toString(),
+      companyId: assessment.companyId?.toString(),
+      id: assessment._id?.toString() // Add id field for frontend compatibility
+    }))
+    
+    return NextResponse.json({
+      success: true,
+      assessments: transformedAssessments
     })
+    
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error fetching assessments:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 
-/**
- * POST /api/assessments
- * Create a new assessment
- */
+// POST /api/assessments - Create new assessment
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request)
-    const body = await parseRequestBody(request)
+    const body = await request.json()
+    const { name, companyId, type } = body
     
     // Validate required fields
-    const validation = validateRequiredFields(body, ['name', 'companyId', 'type'])
-    if (!validation.isValid) {
-      return createErrorResponse(
-        `Missing required fields: ${validation.missingFields.join(', ')}`,
-        400
+    if (!name || !companyId || !type) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing required fields: name, companyId, type'
+        },
+        { status: 400 }
       )
     }
     
-    // Validate assessment type
-    if (!['EXPLORATORY', 'MIGRATION'].includes(body.type)) {
-      return createErrorResponse('Assessment type must be EXPLORATORY or MIGRATION', 400)
+    // Validate type
+    if (!['EXPLORATORY', 'MIGRATION'].includes(type)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid assessment type. Must be EXPLORATORY or MIGRATION'
+        },
+        { status: 400 }
+      )
     }
     
-    // Validate name length
-    if (body.name.length > 100) {
-      return createErrorResponse('Assessment name must be 100 characters or less', 400)
+    const userId = 'default-user' // TODO: Get from auth
+    const now = new Date()
+    
+    // Determine total steps based on type
+    const totalSteps = type === 'EXPLORATORY' ? 7 : 8
+    
+    // Create assessment document
+    const assessmentDoc: AssessmentDocument = {
+      name,
+      companyId: new ObjectId(companyId),
+      userId,
+      type,
+      status: 'DRAFT',
+      currentStep: 1,
+      totalSteps,
+      responses: {},
+      stepStatuses: {},
+      createdAt: now,
+      updatedAt: now
     }
     
-    // Verify company exists and belongs to user
-    const company = await CompanyModel.findById(body.companyId, userId)
-    if (!company) {
-      return createErrorResponse('Company not found', 404)
+    // Initialize step statuses
+    for (let i = 1; i <= totalSteps; i++) {
+      assessmentDoc.stepStatuses[i] = {
+        status: 'not_started',
+        lastModified: now,
+        requiredFieldsCount: 0,
+        filledFieldsCount: 0
+      }
     }
     
-    // Create assessment
-    const assessment = await AssessmentModel.create({
-      name: body.name.trim(),
-      companyId: body.companyId,
-      type: body.type,
-      userId
-    })
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    const result = await assessmentsCollection.insertOne(assessmentDoc)
     
-    return createSuccessResponse(assessment, 'Assessment created successfully')
+    // Return created assessment
+    const createdAssessment = {
+      ...assessmentDoc,
+      _id: result.insertedId.toString(),
+      companyId: companyId,
+      id: result.insertedId.toString()
+    }
+    
+    return NextResponse.json({
+      success: true,
+      assessment: createdAssessment
+    }, { status: 201 })
+    
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error creating assessment:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
