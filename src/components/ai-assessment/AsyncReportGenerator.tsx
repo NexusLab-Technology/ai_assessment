@@ -64,7 +64,7 @@ export default function AsyncReportGenerator({
       try {
         const response = await fetch(`/api/reports/status/${requestId}`)
         
-        if (!response.ok) {
+        if (!response || !response.ok) {
           throw new Error('Failed to check report status')
         }
 
