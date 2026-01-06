@@ -51,6 +51,29 @@ export async function POST(
     if (typeof body.currentStep !== 'number' || body.currentStep < 1) {
       return createErrorResponse('currentStep must be a positive number', 400)
     }
+
+    // Validate step status if provided
+    if (body.stepStatus) {
+      if (typeof body.stepStatus !== 'object' || body.stepStatus === null) {
+        return createErrorResponse('stepStatus must be an object', 400)
+      }
+      
+      const validStatuses = ['not_started', 'partial', 'completed']
+      if (!validStatuses.includes(body.stepStatus.status)) {
+        return createErrorResponse(
+          `stepStatus.status must be one of: ${validStatuses.join(', ')}`,
+          400
+        )
+      }
+      
+      if (typeof body.stepStatus.requiredFieldsCount !== 'number' || body.stepStatus.requiredFieldsCount < 0) {
+        return createErrorResponse('stepStatus.requiredFieldsCount must be a non-negative number', 400)
+      }
+      
+      if (typeof body.stepStatus.filledFieldsCount !== 'number' || body.stepStatus.filledFieldsCount < 0) {
+        return createErrorResponse('stepStatus.filledFieldsCount must be a non-negative number', 400)
+      }
+    }
     
     const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
     
@@ -88,6 +111,18 @@ export async function POST(
     // Update status to IN_PROGRESS if it's still DRAFT
     if (existingAssessment.status === 'DRAFT') {
       updateData.status = 'IN_PROGRESS'
+    }
+
+    // Update step status if provided
+    if (body.stepStatus && body.stepNumber) {
+      const stepStatuses = existingAssessment.stepStatuses || {}
+      stepStatuses[body.stepNumber] = {
+        status: body.stepStatus.status,
+        lastModified: now,
+        requiredFieldsCount: body.stepStatus.requiredFieldsCount,
+        filledFieldsCount: body.stepStatus.filledFieldsCount
+      }
+      updateData.stepStatuses = stepStatuses
     }
     
     const updateResult = await assessmentsCollection.updateOne(

@@ -203,17 +203,18 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
     - **Property 8: Assessment state persistence**
     - **Validates: Requirements 5.3**
 
-- [ ] 14. Implement enhanced auto-save functionality
-  - [ ] 14.1 Replace localStorage with API calls including step status tracking
+- [x] 14. Implement enhanced auto-save functionality
+  - [x] 14.1 Replace localStorage with API calls including step status tracking
     - Implement auto-save every 30 seconds (background process)
     - Add immediate save on step navigation with step status updates
     - Track step completion status (not_started, partial, completed)
     - Handle network errors and retry logic
     - _Requirements: 5.1, 5.2, 5.3, 12.1_
 
-  - [ ] 14.2 Write property test for navigation-triggered save
+  - [x] 14.2 Write property test for navigation-triggered save
     - **Property 9: Navigation-triggered save**
     - **Validates: Requirements 5.2**
+    - **PBT Status: ✅ PASSED (5 iterations)**
 
 - [ ] 15. Add response review API endpoints
   - [ ] 15.1 Implement assessment review API

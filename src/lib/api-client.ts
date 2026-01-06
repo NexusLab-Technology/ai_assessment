@@ -144,6 +144,33 @@ export const assessmentApi = {
     return handleResponse(response)
   },
 
+  async saveResponsesWithStatus(
+    id: string, 
+    stepId: string, 
+    responses: { [questionId: string]: any }, 
+    currentStep: number,
+    stepStatus: {
+      status: 'not_started' | 'partial' | 'completed'
+      requiredFieldsCount: number
+      filledFieldsCount: number
+    }
+  ): Promise<Assessment> {
+    const requestData = {
+      stepId,
+      responses,
+      currentStep,
+      stepNumber: currentStep,
+      stepStatus
+    }
+
+    const response = await fetch(`${API_BASE}/assessments/${id}/responses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
+    })
+    return handleResponse(response)
+  },
+
   async getResponses(id: string): Promise<{
     assessmentId: string
     responses: AssessmentResponses

@@ -47,7 +47,7 @@ export function useAutoSave(
     setHasUnsavedChanges(responsesChanged || stepChanged)
   }, [responses, currentStep])
 
-  // Save function with retry logic
+  // Save function with retry logic and step status tracking
   const saveNow = useCallback(async () => {
     if (!hasUnsavedChanges) return
 
@@ -58,13 +58,17 @@ export function useAutoSave(
       const currentStepId = `step-${currentStep}`
       const currentStepResponses = responses[currentStepId] || {}
 
+      // Calculate step completion status
+      const stepStatus = calculateStepStatus(currentStepResponses, currentStep)
+
       // Use retry logic for network resilience
       await withRetry(async () => {
-        await assessmentApi.saveResponses(
+        await assessmentApi.saveResponsesWithStatus(
           assessmentId,
           currentStepId,
           currentStepResponses,
-          currentStep
+          currentStep,
+          stepStatus
         )
       }, 3, 1000)
 
@@ -89,6 +93,38 @@ export function useAutoSave(
       setTimeout(() => setSaveStatus('idle'), 3000)
     }
   }, [assessmentId, responses, currentStep, hasUnsavedChanges, onSaveSuccess, onSaveError])
+
+  // Helper function to calculate step completion status
+  const calculateStepStatus = useCallback((stepResponses: { [questionId: string]: any }, stepNumber: number) => {
+    // This would need to be enhanced with actual question metadata
+    // For now, we'll use a simple heuristic based on response presence
+    const responseKeys = Object.keys(stepResponses)
+    const filledResponses = responseKeys.filter(key => {
+      const value = stepResponses[key]
+      return value !== null && value !== undefined && value !== '' && 
+             (!Array.isArray(value) || value.length > 0)
+    })
+
+    // Estimate required fields (this should come from question metadata)
+    const estimatedRequiredFields = Math.max(1, Math.floor(responseKeys.length * 0.7))
+    const requiredFieldsCount = responseKeys.length > 0 ? estimatedRequiredFields : 1
+    const filledFieldsCount = filledResponses.length
+
+    let status: 'not_started' | 'partial' | 'completed'
+    if (filledFieldsCount === 0) {
+      status = 'not_started'
+    } else if (filledFieldsCount >= requiredFieldsCount) {
+      status = 'completed'
+    } else {
+      status = 'partial'
+    }
+
+    return {
+      status,
+      requiredFieldsCount,
+      filledFieldsCount
+    }
+  }, [])
 
   // Auto-save timer
   useEffect(() => {
