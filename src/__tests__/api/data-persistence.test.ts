@@ -5,7 +5,7 @@
  */
 
 import fc from 'fast-check'
-import { AssessmentModel } from '../../lib/models/Assessment'
+import { AssessmentDocument } from '../../lib/models/assessment'
 import { CompanyModel } from '../../lib/models/Company'
 import { ReportModel } from '../../lib/models/Report'
 import { getDatabase } from '../../lib/mongodb'

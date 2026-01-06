@@ -33,7 +33,7 @@ export async function initializeDatabase() {
     const assessmentsCollection = db.collection(COLLECTIONS.ASSESSMENTS)
     for (const index of ASSESSMENT_INDEXES) {
       try {
-        await assessmentsCollection.createIndex(index.key, { 
+        await assessmentsCollection.createIndex(index.key as any, { 
           name: index.name,
           background: true 
         })
@@ -59,7 +59,7 @@ export async function initializeDatabase() {
           options.sparse = index.sparse
         }
         
-        await reportRequestsCollection.createIndex(index.key, options)
+        await reportRequestsCollection.createIndex(index.key as any, options)
         console.log(`✅ Created index: ${COLLECTIONS.REPORT_REQUESTS}.${index.name}`)
       } catch (error: any) {
         if (error.code === 85) { // Index already exists
@@ -82,7 +82,7 @@ export async function initializeDatabase() {
           options.unique = index.unique
         }
         
-        await reportsCollection.createIndex(index.key, options)
+        await reportsCollection.createIndex(index.key as any, options)
         console.log(`✅ Created index: ${COLLECTIONS.REPORTS}.${index.name}`)
       } catch (error: any) {
         if (error.code === 85) { // Index already exists
@@ -105,7 +105,7 @@ export async function initializeDatabase() {
           options.unique = index.unique
         }
         
-        await companiesCollection.createIndex(index.key, options)
+        await companiesCollection.createIndex(index.key as any, options)
         console.log(`✅ Created index: ${COLLECTIONS.COMPANIES}.${index.name}`)
       } catch (error: any) {
         if (error.code === 85) { // Index already exists

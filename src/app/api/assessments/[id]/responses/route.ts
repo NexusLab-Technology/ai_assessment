@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server'
-import { AssessmentModel } from '../../../../../lib/models/Assessment'
+import { ObjectId } from 'mongodb'
+import { getCollection } from '../../../../../lib/mongodb'
+import { AssessmentDocument, COLLECTIONS } from '../../../../../lib/models/assessment'
 import { 
   createSuccessResponse, 
   createErrorResponse, 
@@ -50,8 +52,14 @@ export async function POST(
       return createErrorResponse('currentStep must be a positive number', 400)
     }
     
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    
     // Check if assessment exists
-    const existingAssessment = await AssessmentModel.findById(id, userId)
+    const existingAssessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id),
+      userId
+    })
+    
     if (!existingAssessment) {
       return createErrorResponse('Assessment not found', 404)
     }
@@ -70,17 +78,32 @@ export async function POST(
     }
     
     // Save responses
-    const updatedAssessment = await AssessmentModel.saveResponses(
-      id,
-      userId,
-      body.stepId.trim(),
-      body.responses,
-      body.currentStep
+    const now = new Date()
+    const updateData: Partial<AssessmentDocument> = {
+      [`responses.${body.stepId.trim()}`]: body.responses,
+      currentStep: body.currentStep,
+      updatedAt: now
+    }
+    
+    // Update status to IN_PROGRESS if it's still DRAFT
+    if (existingAssessment.status === 'DRAFT') {
+      updateData.status = 'IN_PROGRESS'
+    }
+    
+    const updateResult = await assessmentsCollection.updateOne(
+      { _id: new ObjectId(id), userId },
+      { $set: updateData }
     )
     
-    if (!updatedAssessment) {
-      return createErrorResponse('Failed to save responses', 500)
+    if (updateResult.matchedCount === 0) {
+      return createErrorResponse('Assessment not found', 404)
     }
+    
+    // Get updated assessment
+    const updatedAssessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id),
+      userId
+    })
     
     return createSuccessResponse(updatedAssessment, 'Responses saved successfully')
   } catch (error) {
@@ -105,29 +128,22 @@ export async function GET(
       return createErrorResponse('Invalid assessment ID format', 400)
     }
     
-    const assessment = await AssessmentModel.findById(id, userId)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    const assessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(id),
+      userId
+    })
     
     if (!assessment) {
       return createErrorResponse('Assessment not found', 404)
     }
     
-    // Get the full assessment document to access responses
-    const collection = await AssessmentModel.getCollection()
-    const document = await collection.findOne({ 
-      _id: new (require('mongodb').ObjectId)(id), 
-      userId 
-    })
-    
-    if (!document) {
-      return createErrorResponse('Assessment not found', 404)
-    }
-    
     return createSuccessResponse({
       assessmentId: id,
-      responses: document.responses || {},
-      currentStep: document.currentStep,
-      totalSteps: document.totalSteps,
-      status: document.status
+      responses: assessment.responses || {},
+      currentStep: assessment.currentStep,
+      totalSteps: assessment.totalSteps,
+      status: assessment.status
     })
   } catch (error) {
     return handleApiError(error)

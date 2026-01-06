@@ -5,17 +5,17 @@
  * Run with: npx ts-node src/scripts/test-db-connection.ts
  */
 
-import { checkDatabaseConnection, initializeDatabase } from '../lib/db-init.js'
+import { checkDatabaseHealth, initializeDatabase } from '../lib/db-init.js'
 
 async function testConnection() {
   console.log('Testing MongoDB connection...')
   
   try {
     // Test basic connection
-    const isConnected = await checkDatabaseConnection()
+    const health = await checkDatabaseHealth()
     
-    if (!isConnected) {
-      console.error('❌ Database connection failed')
+    if (!health.connected) {
+      console.error('❌ Database connection failed:', health.error)
       process.exit(1)
     }
     

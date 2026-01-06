@@ -1,4 +1,7 @@
 import { NextRequest } from 'next/server'
+import { ObjectId } from 'mongodb'
+import { getCollection } from '../../../../lib/mongodb'
+import { COLLECTIONS } from '../../../../lib/models/assessment'
 import { CompanyModel } from '../../../../lib/models/Company'
 import { 
   createSuccessResponse, 
@@ -101,22 +104,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
     
     // Get assessment count for confirmation message
-    const assessmentCount = await CompanyModel.getAssessmentCount(id, userId)
-    
-    // Import AssessmentModel for cascade deletion
-    const { AssessmentModel } = await import('../../../../lib/models/Assessment')
-    
-    // Get all assessments for this company
-    const assessments = await AssessmentModel.getByCompany(id, userId)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    const assessmentCount = await assessmentsCollection.countDocuments({
+      companyId: new ObjectId(id),
+      userId
+    })
     
     // Delete all associated assessments first
-    let deletedAssessments = 0
-    for (const assessment of assessments) {
-      const deleted = await AssessmentModel.delete(assessment.id, userId)
-      if (deleted) {
-        deletedAssessments++
-      }
-    }
+    const deleteResult = await assessmentsCollection.deleteMany({
+      companyId: new ObjectId(id),
+      userId
+    })
+    
+    const deletedAssessments = deleteResult.deletedCount
     
     // Now delete the company
     const deleted = await CompanyModel.delete(id, userId)

@@ -23,7 +23,7 @@ jest.mock('../../lib/mongodb', () => ({
 }))
 
 // Import models after mocking
-import { AssessmentModel } from '../../lib/models/Assessment'
+import { AssessmentDocument } from '../../lib/models/assessment'
 import { CompanyModel } from '../../lib/models/Company'
 
 describe('Assessment State Persistence - Property Tests', () => {

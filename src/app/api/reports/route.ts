@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
+import { ObjectId } from 'mongodb'
+import { getCollection } from '../../../lib/mongodb'
+import { COLLECTIONS } from '../../../lib/models/assessment'
 import { ReportModel } from '../../../lib/models/Report'
-import { AssessmentModel } from '../../../lib/models/Assessment'
 import { 
   createSuccessResponse, 
   createErrorResponse, 
@@ -50,7 +52,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Verify assessment exists and belongs to user
-    const assessment = await AssessmentModel.findById(body.assessmentId, userId)
+    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
+    const assessment = await assessmentsCollection.findOne({
+      _id: new ObjectId(body.assessmentId),
+      userId
+    })
+    
     if (!assessment) {
       return createErrorResponse('Assessment not found', 404)
     }
@@ -73,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Create report
     const report = await ReportModel.create({
       assessmentId: body.assessmentId,
-      companyId: assessment.companyId,
+      companyId: assessment.companyId.toString(),
       htmlContent: mockHtmlContent,
       metadata: {
         assessmentType: assessment.type,

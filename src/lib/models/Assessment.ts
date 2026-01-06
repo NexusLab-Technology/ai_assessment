@@ -83,27 +83,27 @@ export const COLLECTIONS = {
 
 // Indexes for performance
 export const ASSESSMENT_INDEXES = [
-  { key: { companyId: 1, userId: 1 }, name: 'companyId_userId' },
-  { key: { userId: 1, status: 1 }, name: 'userId_status' },
-  { key: { createdAt: -1 }, name: 'createdAt_desc' },
-  { key: { updatedAt: -1 }, name: 'updatedAt_desc' }
+  { key: { companyId: 1, userId: 1 } as const, name: 'companyId_userId' },
+  { key: { userId: 1, status: 1 } as const, name: 'userId_status' },
+  { key: { createdAt: -1 } as const, name: 'createdAt_desc' },
+  { key: { updatedAt: -1 } as const, name: 'updatedAt_desc' }
 ]
 
 export const REPORT_REQUEST_INDEXES = [
-  { key: { assessmentId: 1 }, name: 'assessmentId' },
-  { key: { userId: 1, status: 1 }, name: 'userId_status' },
-  { key: { requestedAt: -1 }, name: 'requestedAt_desc' },
-  { key: { externalRequestId: 1 }, name: 'externalRequestId', sparse: true }
+  { key: { assessmentId: 1 } as const, name: 'assessmentId' },
+  { key: { userId: 1, status: 1 } as const, name: 'userId_status' },
+  { key: { requestedAt: -1 } as const, name: 'requestedAt_desc' },
+  { key: { externalRequestId: 1 } as const, name: 'externalRequestId', sparse: true }
 ]
 
 export const REPORT_INDEXES = [
-  { key: { assessmentId: 1 }, name: 'assessmentId', unique: true },
-  { key: { companyId: 1, userId: 1 }, name: 'companyId_userId' },
-  { key: { generatedAt: -1 }, name: 'generatedAt_desc' }
+  { key: { assessmentId: 1 } as const, name: 'assessmentId', unique: true },
+  { key: { companyId: 1, userId: 1 } as const, name: 'companyId_userId' },
+  { key: { generatedAt: -1 } as const, name: 'generatedAt_desc' }
 ]
 
 export const COMPANY_INDEXES = [
-  { key: { userId: 1 }, name: 'userId' },
-  { key: { name: 1, userId: 1 }, name: 'name_userId', unique: true },
-  { key: { createdAt: -1 }, name: 'createdAt_desc' }
+  { key: { userId: 1 } as const, name: 'userId' },
+  { key: { name: 1, userId: 1 } as const, name: 'name_userId', unique: true },
+  { key: { createdAt: -1 } as const, name: 'createdAt_desc' }
 ]
