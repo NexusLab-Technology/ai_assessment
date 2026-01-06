@@ -6,6 +6,8 @@ export { default as AssessmentDashboard } from './AssessmentDashboard'
 export { default as AssessmentWizard } from './AssessmentWizard'
 export { default as QuestionStep } from './QuestionStep'
 export { default as ProgressTracker } from './ProgressTracker'
+export { default as EnhancedProgressTracker } from './EnhancedProgressTracker'
+export { default as ResponseReviewModal } from './ResponseReviewModal'
 export { default as ReportViewer } from './ReportViewer'
 // export { default as ReportGenerator } from './ReportGenerator' // TODO: Implement in Phase 3
 
@@ -17,5 +19,10 @@ export type {
   QuestionSection,
   AssessmentResponses,
   AssessmentReport,
-  AWSCredentials
+  AWSCredentials,
+  EnhancedProgressTrackerProps,
+  StepStatus,
+  ResponseReviewModalProps,
+  ReviewSummary,
+  ReviewQuestion
 } from '../../types/assessment'

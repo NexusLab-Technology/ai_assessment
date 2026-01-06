@@ -6,13 +6,15 @@ import {
   ArrowRightIcon,
   CheckIcon,
   ExclamationTriangleIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import { Assessment, QuestionSection, AssessmentResponses } from '../../types/assessment'
 import { assessmentApi } from '../../lib/api-client'
 import { useAutoSave } from '../../hooks/useAutoSave'
 import QuestionStep from './QuestionStep'
 import ProgressTracker from './ProgressTracker'
+import ResponseReviewModal from './ResponseReviewModal'
 
 interface QuestionnaireFlowProps {
   assessment: Assessment
@@ -43,6 +45,7 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingResponses, setIsLoadingResponses] = useState(true)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   // Auto-save hook with API integration
   const { saveStatus, lastSaved, saveNow, hasUnsavedChanges } = useAutoSave(
@@ -181,33 +184,88 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
 
   const validateCurrentStep = (): boolean => {
     const currentSection = getCurrentSection()
-    if (!currentSection) return false
+    if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
+      return false
+    }
 
+    const currentQuestion = currentSection.questions[currentQuestionIndex]
     const sectionResponses = responses[currentSection.id] || {}
-    
-    // Check all required questions are answered and valid
-    for (const question of currentSection.questions) {
-      const response = sectionResponses[question.id]
-      const validation = stepValidation[question.id]
+    const response = sectionResponses[currentQuestion.id]
+    const validation = stepValidation[currentQuestion.id]
 
-      // Check if required question is answered
-      if (question.required) {
-        if (response === null || response === undefined || response === '') {
-          return false
-        }
-        // For array responses (multiselect, checkbox)
-        if (Array.isArray(response) && response.length === 0) {
-          return false
-        }
+    // If question is not required and no response, it's valid
+    if (!currentQuestion.required && (response === null || response === undefined || response === '')) {
+      return true
+    }
+
+    // Check if required question is answered
+    if (currentQuestion.required) {
+      if (response === null || response === undefined || response === '') {
+        return false
       }
-
-      // Check if validation failed
-      if (validation && !validation.isValid) {
+      // For array responses (multiselect, checkbox)
+      if (Array.isArray(response) && response.length === 0) {
         return false
       }
     }
 
+    // Check if validation failed (only if validation exists)
+    if (validation && !validation.isValid) {
+      return false
+    }
+
     return true
+  }
+
+  const validateAllRequiredQuestions = (): boolean => {
+    // Check all required questions across all sections are answered
+    for (const section of sections) {
+      const sectionResponses = responses[section.id] || {}
+      
+      for (const question of section.questions) {
+        if (question.required) {
+          const response = sectionResponses[question.id]
+          
+          if (response === null || response === undefined || response === '') {
+            return false
+          }
+          
+          // For array responses (multiselect, checkbox)
+          if (Array.isArray(response) && response.length === 0) {
+            return false
+          }
+        }
+      }
+    }
+    
+    return true
+  }
+
+  const handleShowReview = () => {
+    setShowReviewModal(true)
+  }
+
+  const handleCloseReview = () => {
+    setShowReviewModal(false)
+  }
+
+  const handleEditFromReview = (stepNumber: number, questionId: string) => {
+    // Find the section and question
+    const targetSection = sections.find(s => s.stepNumber === stepNumber)
+    if (!targetSection) return
+    
+    const questionIndex = targetSection.questions.findIndex(q => q.id === questionId)
+    if (questionIndex === -1) return
+    
+    // Navigate to the specific question
+    setCurrentStep(stepNumber)
+    setCurrentQuestionIndex(questionIndex)
+    setShowReviewModal(false)
+  }
+
+  const handleCompleteFromReview = async () => {
+    setShowReviewModal(false)
+    await handleComplete()
   }
 
   const handleNext = async () => {
@@ -448,28 +506,48 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
 
                 {/* Next/Complete Button */}
                 {isLastQuestion ? (
-                  <button
-                    type="button"
-                    onClick={handleComplete}
-                    disabled={!canProceed || isLoading}
-                    className={`inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md ${
-                      canProceed && !isLoading
-                        ? 'text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
-                        : 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                    }`}
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Completing...
-                      </>
-                    ) : (
-                      <>
-                        <CheckIcon className="-ml-1 mr-2 h-5 w-5" />
-                        Complete Assessment
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    {/* Review All Responses Button */}
+                    <button
+                      type="button"
+                      onClick={handleShowReview}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <DocumentTextIcon className="-ml-1 mr-2 h-5 w-5" />
+                      Review All Responses
+                    </button>
+                    
+                    {/* Complete Assessment Button */}
+                    <button
+                      type="button"
+                      onClick={handleComplete}
+                      disabled={!canProceed || isLoading || !validateAllRequiredQuestions()}
+                      className={`inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md ${
+                        canProceed && !isLoading && validateAllRequiredQuestions()
+                          ? 'text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+                          : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                      }`}
+                      title={
+                        !canProceed 
+                          ? 'Please answer the current question to continue'
+                          : !validateAllRequiredQuestions()
+                          ? 'Please complete all required questions before submitting'
+                          : 'Complete your assessment'
+                      }
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                          Completing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckIcon className="-ml-1 mr-2 h-5 w-5" />
+                          Complete Assessment
+                        </>
+                      )}
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="button"
@@ -491,6 +569,17 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Response Review Modal */}
+      <ResponseReviewModal
+        isOpen={showReviewModal}
+        assessment={assessment}
+        responses={responses}
+        questions={sections}
+        onClose={handleCloseReview}
+        onEditResponse={handleEditFromReview}
+        onComplete={handleCompleteFromReview}
+      />
     </div>
   )
 }

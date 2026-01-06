@@ -123,6 +123,48 @@ export interface AssessmentWizardProps {
   onResponseChange: (stepId: string, responses: any) => void
   onStepChange: (step: number) => void
   onComplete: () => void
+  onShowReview?: () => void
+}
+
+export interface EnhancedProgressTrackerProps {
+  currentStep: number
+  totalSteps: number
+  stepStatuses: StepStatus[]
+  onStepClick: (stepNumber: number) => void
+  allowNavigation: boolean
+}
+
+export interface StepStatus {
+  stepNumber: number
+  status: 'not_started' | 'partial' | 'completed' | 'current'
+  hasResponses: boolean
+  requiredFieldsCount: number
+  filledFieldsCount: number
+}
+
+export interface ResponseReviewModalProps {
+  isOpen: boolean
+  assessment: Assessment
+  responses: AssessmentResponses
+  questions: QuestionSection[]
+  onClose: () => void
+  onEditResponse: (stepNumber: number, questionId: string) => void
+  onComplete: () => void
+}
+
+export interface ReviewSummary {
+  stepNumber: number
+  stepTitle: string
+  questions: ReviewQuestion[]
+  completionPercentage: number
+}
+
+export interface ReviewQuestion {
+  id: string
+  label: string
+  answer: any
+  required: boolean
+  isEmpty: boolean
 }
 
 export interface AssessmentCreationWizardProps {
