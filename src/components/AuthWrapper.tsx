@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ConfigManager } from '@/lib/config';
 
 interface AuthWrapperProps {
   children: React.ReactNode;

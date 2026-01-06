@@ -27,12 +27,10 @@ describe('Property 9: Navigation-triggered save', () => {
       id: 'test-assessment',
       name: 'Test Assessment',
       companyId: 'test-company',
-      type: 'EXPLORATORY',
-      status: 'IN_PROGRESS',
+      type: 'EXPLORATORY' as const,
+      status: 'IN_PROGRESS' as const,
       currentStep: 1,
       totalSteps: 7,
-      responses: {},
-      stepStatuses: {},
       createdAt: new Date(),
       updatedAt: new Date()
     })

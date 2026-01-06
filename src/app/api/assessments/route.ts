@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import { getCollection } from '@/lib/mongodb'
-import { AssessmentDocument, COLLECTIONS } from '@/lib/models/assessment'
+import { AssessmentDocument, COLLECTIONS } from '../../../lib/models/assessment'
 
 // GET /api/assessments - Get assessments with optional company filtering
 export async function GET(request: NextRequest) {

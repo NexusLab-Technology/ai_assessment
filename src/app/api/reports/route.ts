@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { ObjectId } from 'mongodb'
-import { getCollection } from '../../../lib/mongodb'
-import { COLLECTIONS } from '../../../lib/models/assessment'
+import { getCollection } from '@/lib/mongodb'
+import { COLLECTIONS } from '@/lib/models/assessment'
 import { ReportModel } from '../../../lib/models/Report'
 import { 
   createSuccessResponse, 

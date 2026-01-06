@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ApplicationShellProps, NavigationItem } from '@/types';
+import { ApplicationShellProps } from '@/types';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConfigManager } from '@/lib/config';

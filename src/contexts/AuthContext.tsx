@@ -18,7 +18,6 @@ import {
   authHookRegistry, 
   externalAuthIntegration 
 } from '@/lib/AuthProviderRegistry';
-import { useExternalAuth } from '@/hooks/useExternalAuth';
 
 /**
  * Authentication Context
@@ -201,11 +200,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ...session,
         expiresAt: new Date(session.expiresAt),
         createdAt: new Date(session.createdAt),
-      };
-      
-      const userWithDates = {
-        ...user,
-        lastLogin: new Date(user.lastLogin),
       };
       
       // Check if session is expired

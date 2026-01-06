@@ -9,7 +9,6 @@ import {
   handleApiError, 
   getUserId,
   parseRequestBody,
-  validateRequiredFields,
   isValidObjectId
 } from '../../../../lib/api-utils'
 

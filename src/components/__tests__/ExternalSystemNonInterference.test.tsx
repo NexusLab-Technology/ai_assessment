@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import * as fc from 'fast-check';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { 
@@ -28,11 +28,6 @@ jest.mock('@/lib/config', () => ({
 }));
 
 const mockConfigManager = ConfigManager as jest.Mocked<typeof ConfigManager>;
-
-// Mock console methods to capture hook outputs
-const originalConsoleLog = console.log;
-const originalConsoleError = console.error;
-const originalConsoleDebug = console.debug;
 
 describe('External System Non-Interference', () => {
   let consoleLogSpy: jest.SpyInstance;
@@ -220,7 +215,7 @@ describe('External System Non-Interference', () => {
             // Property assertions
             if (!authEnabled) {
               // When auth is disabled, external systems should not be affected
-              for (const [systemId, state] of externalSystemStates) {
+              for (const [, state] of externalSystemStates) {
                 expect(state.authenticated).toBe(true);
                 expect(state.sessionValid).toBe(true);
               }

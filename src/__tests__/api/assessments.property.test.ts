@@ -8,7 +8,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import fc from 'fast-check'
 import { ObjectId } from 'mongodb'
 import { getCollection } from '@/lib/mongodb'
-import { AssessmentDocument, COLLECTIONS } from '@/lib/models/assessment'
+import { COLLECTIONS } from '../../lib/models/assessment'
 import { initializeDatabase } from '@/lib/db-init'
 
 // Test data generators
@@ -28,7 +28,7 @@ const stepStatusObjectArb = fc.record({
 
 const assessmentDocumentArb = fc.record({
   name: assessmentNameArb,
-  companyId: fc.string().map(s => new ObjectId()),
+  companyId: fc.string().map(() => new ObjectId()),
   userId: userIdArb,
   type: assessmentTypeArb,
   status: assessmentStatusArb,

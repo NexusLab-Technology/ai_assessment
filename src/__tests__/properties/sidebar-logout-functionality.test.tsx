@@ -26,9 +26,6 @@ jest.mock('@/lib/config', () => ({
   },
 }));
 
-// Get the mocked ConfigManager for test manipulation
-const { ConfigManager: mockConfigManager } = jest.requireMock('@/lib/config');
-
 // Mock localStorage
 const mockLocalStorage = {
   getItem: jest.fn(),

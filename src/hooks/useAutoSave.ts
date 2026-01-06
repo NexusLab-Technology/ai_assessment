@@ -59,7 +59,7 @@ export function useAutoSave(
       const currentStepResponses = responses[currentStepId] || {}
 
       // Calculate step completion status
-      const stepStatus = calculateStepStatus(currentStepResponses, currentStep)
+      const stepStatus = calculateStepStatus(currentStepResponses)
 
       // Use retry logic for network resilience
       await withRetry(async () => {
@@ -95,7 +95,7 @@ export function useAutoSave(
   }, [assessmentId, responses, currentStep, hasUnsavedChanges, onSaveSuccess, onSaveError])
 
   // Helper function to calculate step completion status
-  const calculateStepStatus = useCallback((stepResponses: { [questionId: string]: any }, stepNumber: number) => {
+  const calculateStepStatus = useCallback((stepResponses: { [questionId: string]: any }) => {
     // This would need to be enhanced with actual question metadata
     // For now, we'll use a simple heuristic based on response presence
     const responseKeys = Object.keys(stepResponses)

@@ -5,7 +5,6 @@
 
 import { render, screen, cleanup } from '@testing-library/react';
 import { Sidebar } from '@/components/Sidebar';
-import { NavigationItem } from '@/types';
 import { DEFAULT_NAVIGATION } from '@/lib/constants';
 import fc from 'fast-check';
 
@@ -197,7 +196,7 @@ describe('Sidebar Navigation Properties', () => {
       fc.assert(
         fc.property(
           fc.boolean(), // isCollapsed
-          (isCollapsed) => {
+          (_isCollapsed) => {
             // Verify DEFAULT_NAVIGATION structure (only Home in main nav)
             expect(DEFAULT_NAVIGATION).toEqual([
               {

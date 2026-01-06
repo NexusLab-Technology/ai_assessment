@@ -5,7 +5,6 @@
 
 import { render, screen, cleanup } from '@testing-library/react';
 import SettingsPage from '@/app/settings/page';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { User } from '@/types';
 import fc from 'fast-check';
 
@@ -201,7 +200,7 @@ describe('Profile Data Display Properties', () => {
       fc.assert(
         fc.property(
           fc.constant(null), // Always test with null user
-          (user) => {
+          (_user) => {
             cleanup(); // Clean up before each property run
 
             // Mock useAuth to return null user

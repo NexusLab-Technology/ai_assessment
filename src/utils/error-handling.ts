@@ -197,7 +197,6 @@ export function categorizeError(error: unknown): ErrorCategory {
  */
 export function logError(error: unknown, context?: string) {
   const category = categorizeError(error)
-  const message = getErrorMessage(error)
   
   const logData = {
     error: error instanceof Error ? error.message : String(error),

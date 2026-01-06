@@ -1,9 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import * as fc from 'fast-check';
 import { ApplicationShell } from '../ApplicationShell';
 import { RouteGuard } from '../RouteGuard';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { ConfigManager } from '@/lib/config';
 
 // Mock next/navigation
@@ -38,9 +37,6 @@ const mockConfigManager = ConfigManager as jest.Mocked<typeof ConfigManager>;
  * Test Component that simulates SSR behavior
  */
 function SSRTestComponent({ 
-  authEnabled, 
-  isAuthenticated, 
-  loading,
   children 
 }: { 
   authEnabled: boolean;
@@ -234,7 +230,7 @@ describe('SSR Authentication Consistency', () => {
 
             // All renders should produce identical results
             const firstRenderHTML = renders[0].container.innerHTML;
-            renders.forEach((renderResult, index) => {
+            renders.forEach((renderResult) => {
               expect(renderResult.container.innerHTML).toBe(firstRenderHTML);
               
               // All should show content when not loading
@@ -400,7 +396,7 @@ describe('SSR Authentication Consistency', () => {
 
             // All renders should be identical (no hydration mismatch)
             const baselineHTML = renders[0].container.innerHTML;
-            renders.forEach((renderResult, index) => {
+            renders.forEach((renderResult) => {
               expect(renderResult.container.innerHTML).toBe(baselineHTML);
               
               // Should consistently show or hide sidebar based on config

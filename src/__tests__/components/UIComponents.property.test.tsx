@@ -117,8 +117,13 @@ describe('UI Components Property Tests', () => {
     const assessmentArb = fc.record({
       id: fc.integer({ min: 1, max: 1000 }).map((n: number) => `assessment-${n}`),
       name: fc.string({ minLength: 1, maxLength: 50 }),
-      status: fc.constantFrom('DRAFT', 'IN_PROGRESS', 'COMPLETED'),
-      type: fc.constantFrom('EXPLORATORY', 'MIGRATION')
+      companyId: fc.string({ minLength: 1 }),
+      status: fc.constantFrom('DRAFT' as const, 'IN_PROGRESS' as const, 'COMPLETED' as const),
+      type: fc.constantFrom('EXPLORATORY' as const, 'MIGRATION' as const),
+      currentStep: fc.integer({ min: 1, max: 8 }),
+      totalSteps: fc.integer({ min: 7, max: 8 }),
+      createdAt: fc.date(),
+      updatedAt: fc.date()
     })
 
     fc.assert(
@@ -202,7 +207,7 @@ describe('UI Components Property Tests', () => {
         fc.array(fc.record({
           id: fc.string({ minLength: 1 }),
           label: fc.string({ minLength: 1 }),
-          type: fc.constantFrom('text', 'textarea', 'select', 'multiselect', 'radio', 'checkbox', 'number'),
+          type: fc.constantFrom('text' as const, 'textarea' as const, 'select' as const, 'multiselect' as const, 'radio' as const, 'checkbox' as const, 'number' as const),
           required: fc.boolean()
         }), { minLength: 1, maxLength: 10 }),
         fc.dictionary(
@@ -280,9 +285,9 @@ describe('UI Components Property Tests', () => {
           session.questions.forEach((originalQuestion: Question) => {
             const displayPair = displayData.questionAnswerPairs.find((p: any) => p.questionId === originalQuestion.id)
             expect(displayPair).toBeDefined()
-            expect(displayPair.question.id).toBe(originalQuestion.id)
-            expect(displayPair.question.label).toBe(originalQuestion.label)
-            expect(displayPair.question.type).toBe(originalQuestion.type)
+            expect(displayPair?.question.id).toBe(originalQuestion.id)
+            expect(displayPair?.question.label).toBe(originalQuestion.label)
+            expect(displayPair?.question.type).toBe(originalQuestion.type)
           })
         }
       ),

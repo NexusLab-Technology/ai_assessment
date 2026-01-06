@@ -242,7 +242,7 @@ describe('Default Landing Page Properties', () => {
       fc.assert(
         fc.property(
           fc.boolean(), // irrelevant parameter to make it a property test
-          (irrelevant) => {
+          (_irrelevant) => {
             // Clear environment variables
             delete process.env.DEFAULT_ROUTE;
             delete process.env.NEXT_PUBLIC_DEFAULT_ROUTE;

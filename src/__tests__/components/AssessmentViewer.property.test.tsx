@@ -4,7 +4,7 @@
  */
 
 import * as fc from 'fast-check'
-import { Assessment, AssessmentResponses, QuestionSection } from '@/types/assessment'
+import { Assessment, AssessmentResponses } from '@/types/assessment'
 
 describe('AssessmentViewer Property Tests', () => {
   /**
@@ -39,37 +39,11 @@ describe('AssessmentViewer Property Tests', () => {
       )
     )
 
-    const questionArb = fc.record({
-      id: fc.string({ minLength: 1 }),
-      type: fc.constantFrom('text' as const, 'textarea' as const, 'select' as const, 'multiselect' as const, 'radio' as const, 'checkbox' as const, 'number' as const),
-      label: fc.string({ minLength: 1 }),
-      description: fc.option(fc.string(), { nil: undefined }),
-      required: fc.boolean(),
-      options: fc.option(fc.array(fc.record({
-        value: fc.string(),
-        label: fc.string()
-      })), { nil: undefined }),
-      validation: fc.option(fc.record({
-        required: fc.option(fc.boolean(), { nil: undefined }),
-        minLength: fc.option(fc.integer({ min: 0 }), { nil: undefined }),
-        maxLength: fc.option(fc.integer({ min: 1 }), { nil: undefined })
-      }), { nil: undefined })
-    })
-
-    const sectionArb = fc.record({
-      id: fc.string({ minLength: 1 }),
-      title: fc.string({ minLength: 1 }),
-      description: fc.string({ minLength: 1 }),
-      questions: fc.array(questionArb, { minLength: 1, maxLength: 5 }),
-      stepNumber: fc.integer({ min: 1, max: 10 })
-    })
-
     fc.assert(
       fc.property(
         assessmentArb,
         responsesArb,
-        fc.array(sectionArb, { minLength: 1, maxLength: 5 }),
-        (assessment: Assessment, responses: AssessmentResponses, sections: QuestionSection[]) => {
+        (_assessment: Assessment, responses: AssessmentResponses) => {
           // Test the read-only nature of the viewer
           // In a real implementation, this would verify that:
           // 1. No form inputs are editable

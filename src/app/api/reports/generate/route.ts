@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
 import { getDatabase } from '../../../../lib/mongodb'
 import { createSuccessResponse, createErrorResponse } from '../../../../lib/api-utils'

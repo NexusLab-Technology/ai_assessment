@@ -9,7 +9,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import * as fc from 'fast-check'
 import AssessmentDashboard from '../../components/ai-assessment/AssessmentDashboard'
 import { Assessment, Company } from '../../types/assessment'
-import { assessmentGenerator, companyGenerator } from '../helpers/generators'
+import { assessmentGenerator } from '../helpers/generators'
 
 describe('AssessmentDashboard Component', () => {
   const mockOnCreateAssessment = jest.fn()

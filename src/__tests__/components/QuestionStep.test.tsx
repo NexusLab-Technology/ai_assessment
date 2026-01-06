@@ -1,34 +1,8 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import * as fc from 'fast-check'
 import QuestionStep from '../../components/ai-assessment/QuestionStep'
-import { Question, QuestionOption } from '../../types/assessment'
-
-// Mock data generators
-const questionOptionArb = fc.record({
-  value: fc.string({ minLength: 1 }),
-  label: fc.string({ minLength: 1, maxLength: 50 })
-})
-
-const validationRulesArb = fc.record({
-  required: fc.boolean(),
-  minLength: fc.option(fc.integer({ min: 1, max: 100 })),
-  maxLength: fc.option(fc.integer({ min: 1, max: 1000 })),
-  min: fc.option(fc.integer({ min: 0, max: 100 })),
-  max: fc.option(fc.integer({ min: 1, max: 1000 })),
-  pattern: fc.option(fc.string())
-}, { requiredKeys: [] })
-
-const questionArb = fc.record({
-  id: fc.string({ minLength: 1 }),
-  type: fc.constantFrom('text', 'textarea', 'select', 'multiselect', 'radio', 'checkbox', 'number'),
-  label: fc.string({ minLength: 1, maxLength: 100 }),
-  description: fc.option(fc.string({ maxLength: 200 })),
-  required: fc.boolean(),
-  options: fc.option(fc.array(questionOptionArb, { minLength: 1, maxLength: 5 })),
-  validation: fc.option(validationRulesArb)
-})
+import { Question } from '../../types/assessment'
 
 describe('QuestionStep Component', () => {
   const mockOnChange = jest.fn()

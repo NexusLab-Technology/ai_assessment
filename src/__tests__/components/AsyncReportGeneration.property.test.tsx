@@ -41,8 +41,8 @@ describe('Property 19: Asynchronous report generation workflow', () => {
       id: 'test-assessment-123',
       name: 'Test Assessment',
       companyId: 'test-company-456',
-      type: 'EXPLORATORY',
-      status: 'COMPLETED',
+      type: 'EXPLORATORY' as const,
+      status: 'COMPLETED' as const,
       currentStep: 7,
       totalSteps: 7,
       createdAt: new Date(),
@@ -181,8 +181,8 @@ describe('Property 19: Asynchronous report generation workflow', () => {
       id: 'test-assessment-error',
       name: 'Error Test',
       companyId: 'test-company',
-      type: 'MIGRATION',
-      status: 'COMPLETED',
+      type: 'MIGRATION' as const,
+      status: 'COMPLETED' as const,
       currentStep: 8,
       totalSteps: 8,
       createdAt: new Date(),
@@ -225,8 +225,8 @@ describe('Property 19: Asynchronous report generation workflow', () => {
       id: 'integrity-test-123',
       name: 'Integrity Test Assessment',
       companyId: 'integrity-company-456',
-      type: 'EXPLORATORY',
-      status: 'COMPLETED',
+      type: 'EXPLORATORY' as const,
+      status: 'COMPLETED' as const,
       currentStep: 7,
       totalSteps: 7,
       createdAt: new Date(),
@@ -346,7 +346,7 @@ describe('Property 19: Asynchronous report generation workflow', () => {
           id: fc.string({ minLength: 10, maxLength: 20 }),
           name: fc.string({ minLength: 5, maxLength: 50 }),
           companyId: fc.string({ minLength: 10, maxLength: 20 }),
-          type: fc.constantFrom('EXPLORATORY', 'MIGRATION')
+          type: fc.constantFrom('EXPLORATORY' as const, 'MIGRATION' as const)
         }),
         fc.dictionary(
           fc.string({ minLength: 1, maxLength: 10 }),
@@ -355,7 +355,7 @@ describe('Property 19: Asynchronous report generation workflow', () => {
         async (assessmentData, responses) => {
           const assessment: Assessment = {
             ...assessmentData,
-            status: 'COMPLETED',
+            status: 'COMPLETED' as const,
             currentStep: assessmentData.type === 'EXPLORATORY' ? 7 : 8,
             totalSteps: assessmentData.type === 'EXPLORATORY' ? 7 : 8,
             createdAt: new Date(),

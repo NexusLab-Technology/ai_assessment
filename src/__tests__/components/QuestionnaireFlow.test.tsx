@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as fc from 'fast-check'
 import QuestionnaireFlow from '../../components/ai-assessment/QuestionnaireFlow'
-import { Assessment, QuestionSection, AssessmentResponses } from '../../types/assessment'
+import { Assessment, QuestionSection } from '../../types/assessment'
 import { questionSectionGenerator } from '../helpers/generators'
 
 // Mock localStorage
@@ -192,8 +192,6 @@ describe('QuestionnaireFlow Component', () => {
     })
 
     it('shows complete button on final section', async () => {
-      const user = userEvent.setup()
-      
       const finalStepAssessment = { ...mockAssessment, currentStep: 3 }
       
       render(

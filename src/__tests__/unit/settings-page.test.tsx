@@ -6,7 +6,6 @@
 
 import { render, screen, cleanup } from '@testing-library/react';
 import SettingsPage from '@/app/settings/page';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { User } from '@/types';
 
 // Mock next/navigation
@@ -300,7 +299,7 @@ describe('Settings Page Component', () => {
     });
 
     it('should have proper semantic structure', () => {
-      const { container } = render(<SettingsPage />);
+      render(<SettingsPage />);
       
       // Check for proper heading structure
       const heading = screen.getByText('Profile Information');

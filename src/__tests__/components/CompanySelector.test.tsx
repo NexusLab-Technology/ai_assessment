@@ -212,7 +212,7 @@ describe('CompanySelector Component', () => {
         (companies: Company[]) => {
           cleanup()
           
-          const { container } = render(
+          render(
             <CompanySelector
               companies={companies}
               selectedCompany={null}

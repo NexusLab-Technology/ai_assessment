@@ -163,13 +163,6 @@ export class ExampleAuthHook implements IAuthHook {
   }
 
   /**
-   * Generate external system ID
-   */
-  private generateExternalId(): string {
-    return `ext_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
    * Sync user with external system
    */
   private async syncUserWithExternalSystem(user: User): Promise<void> {
@@ -195,7 +188,7 @@ export class ExampleAuthHook implements IAuthHook {
   /**
    * Validate session with external system
    */
-  private async validateWithExternalSystem(sessionToken: string): Promise<boolean> {
+  private async validateWithExternalSystem(_sessionToken: string): Promise<boolean> {
     try {
       console.log(`[${this.name}] Validating session with external system`);
       
@@ -218,7 +211,7 @@ export class ExampleAuthHook implements IAuthHook {
   /**
    * Update external system session
    */
-  private async updateExternalSystemSession(user: User, session: Session): Promise<void> {
+  private async updateExternalSystemSession(user: User, _session: Session): Promise<void> {
     try {
       console.log(`[${this.name}] Updating external system session for:`, user.username);
       
@@ -234,7 +227,7 @@ export class ExampleAuthHook implements IAuthHook {
   /**
    * Notify external system of logout
    */
-  private async notifyExternalSystemLogout(user: User, session: Session): Promise<void> {
+  private async notifyExternalSystemLogout(user: User, _session: Session): Promise<void> {
     try {
       console.log(`[${this.name}] Notifying external system of logout:`, user.username);
       

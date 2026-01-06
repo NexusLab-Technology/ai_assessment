@@ -44,7 +44,7 @@ describe('Authentication Properties', () => {
           ),
           // Generate random route paths
           fc.string({ minLength: 1, maxLength: 50 }).map(s => `/${s.replace(/[^a-zA-Z0-9-_]/g, '')}`),
-          (authEnabledValue, routePath) => {
+          (authEnabledValue, _routePath) => {
             // Set up environment
             if (authEnabledValue !== undefined) {
               process.env.AUTH_ENABLED = authEnabledValue;
@@ -216,7 +216,7 @@ describe('Authentication Properties', () => {
           }),
           // Generate intended destinations
           fc.string({ minLength: 1, maxLength: 50 }).map(s => `/${s.replace(/[^a-zA-Z0-9-_]/g, '')}`),
-          (credentials, intendedDestination) => {
+          (credentials, _intendedDestination) => {
             // Mock successful authentication result
             const mockAuthResult = {
               success: true,
@@ -411,7 +411,6 @@ describe('Authentication Properties', () => {
           }),
           (maliciousCredentials) => {
             // Property assertions for malicious input handling
-            const validation = validateLoginCredentials(maliciousCredentials);
             
             // Malicious input should be handled safely
             expect(() => validateLoginCredentials(maliciousCredentials)).not.toThrow();
@@ -475,7 +474,6 @@ describe('Authentication Properties', () => {
             
             if (usernameErrors.length > 1) {
               // Should have consistent username error messages
-              const firstUsernameError = usernameErrors[0].find(e => e.toLowerCase().includes('username'));
               usernameErrors.forEach(errors => {
                 const usernameError = errors.find(e => e.toLowerCase().includes('username'));
                 expect(usernameError).toBeDefined();
@@ -715,7 +713,7 @@ describe('Authentication Properties', () => {
             { minLength: 1, maxLength: 5 }
           ),
           (userDataList) => {
-            userDataList.forEach((userData, index) => {
+            userDataList.forEach((userData) => {
               const token = generateSessionToken();
               const expiresAt = createSessionExpiration(3600000); // 1 hour
               const createdAt = new Date();

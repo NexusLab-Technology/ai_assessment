@@ -51,7 +51,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
 
       {/* Step List - Desktop */}
       <div className="hidden md:block space-y-2">
-        {sections.map((section, index) => {
+        {sections.map((section) => {
           const stepNumber = section.stepNumber
           const isCompleted = validCompletedSteps.includes(stepNumber)
           const isCurrent = currentStep === stepNumber

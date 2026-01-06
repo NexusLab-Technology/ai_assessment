@@ -16,8 +16,7 @@ import Tooltip from './Tooltip'
 const CompanyCard: React.FC<CompanyCardProps> = ({
   company,
   onEdit,
-  onDelete,
-  onViewAssessments
+  onDelete
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const router = useRouter()
@@ -38,10 +37,6 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
   const handleDeleteCancel = () => {
     setShowDeleteConfirm(false)
-  }
-
-  const handleViewAssessments = () => {
-    onViewAssessments(company.id)
   }
 
   const handleStartNewAssessment = () => {

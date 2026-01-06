@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import fc from 'fast-check'
 import CompanyForm from '@/components/company-settings/CompanyForm'
@@ -288,7 +288,7 @@ describe('CompanyForm', () => {
           description: fc.option(fc.string(), { nil: undefined }),
           general: fc.option(fc.string(), { nil: undefined })
         }), { nil: undefined }),
-        async (name: string, description: string | undefined, loading: boolean, errors: FormErrors | undefined) => {
+        async (_name: string, _description: string | undefined, loading: boolean, errors: FormErrors | undefined) => {
           render(
             <CompanyForm 
               {...defaultProps} 

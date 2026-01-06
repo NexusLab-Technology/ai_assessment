@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import * as fc from 'fast-check';
+import { render, screen } from '@testing-library/react';
 import { ApplicationShell, withApplicationShell } from '../ApplicationShell';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ConfigManager } from '@/lib/config';

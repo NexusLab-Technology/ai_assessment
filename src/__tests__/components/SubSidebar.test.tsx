@@ -5,7 +5,7 @@
  */
 
 import React from 'react'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, fireEvent, cleanup } from '@testing-library/react'
 import { usePathname } from 'next/navigation'
 import * as fc from 'fast-check'
 import SubSidebar from '../../components/ai-assessment/SubSidebar'

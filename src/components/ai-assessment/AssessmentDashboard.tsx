@@ -10,7 +10,7 @@ import {
   CheckCircleIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline'
-import { Assessment, Company, AssessmentDashboardProps } from '../../types/assessment'
+import { Assessment, AssessmentDashboardProps } from '../../types/assessment'
 
 const AssessmentDashboard: React.FC<AssessmentDashboardProps> = ({
   company,

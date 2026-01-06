@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getDatabase } from '../../../../lib/mongodb'
 import { createSuccessResponse, createErrorResponse } from '../../../../lib/api-utils'
 import crypto from 'crypto'
 
 // Encryption key - in production, this should be from environment variables
 const ENCRYPTION_KEY = process.env.AWS_CREDENTIALS_ENCRYPTION_KEY || 'default-key-change-in-production-32-chars'
-const ALGORITHM = 'aes-256-gcm'
 
 interface AWSCredentials {
   accessKeyId: string

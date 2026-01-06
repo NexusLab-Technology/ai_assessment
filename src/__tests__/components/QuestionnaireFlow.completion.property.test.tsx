@@ -4,7 +4,7 @@
  */
 
 import * as fc from 'fast-check'
-import { render, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, cleanup, fireEvent } from '@testing-library/react'
 import { Assessment, QuestionSection, Question, AssessmentResponses } from '@/types/assessment'
 import QuestionnaireFlow from '@/components/ai-assessment/QuestionnaireFlow'
 
@@ -164,7 +164,7 @@ describe('QuestionnaireFlow Completion Validation Property Tests', () => {
 
           try {
             // Render the component
-            const { getByText, queryByText, getByRole } = render(
+            const { queryByText } = render(
               <QuestionnaireFlow
                 assessment={assessment}
                 sections={sections}
@@ -388,7 +388,7 @@ describe('QuestionnaireFlow Completion Validation Property Tests', () => {
 
           try {
             // Render the component
-            const { queryByText } = render(
+            render(
               <QuestionnaireFlow
                 assessment={assessment}
                 sections={sections}

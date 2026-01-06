@@ -76,7 +76,7 @@ describe('Performance Optimization Properties', () => {
       { type: 'aggregateAssessments', indexed: true, expectedPerformance: 'medium' }
     ]
     
-    queryTypes.forEach(({ type, indexed, expectedPerformance }) => {
+    queryTypes.forEach(({ indexed, expectedPerformance }) => {
       expect(indexed).toBe(true) // All queries should use indexes
       expect(['fast', 'medium', 'slow']).toContain(expectedPerformance)
       
@@ -127,7 +127,7 @@ describe('Performance Optimization Properties', () => {
       { component: 'CompanyCard', hasCleanup: true }
     ]
     
-    cleanupScenarios.forEach(({ component, hasCleanup }) => {
+    cleanupScenarios.forEach(({ hasCleanup }) => {
       expect(hasCleanup).toBe(true) // All components should clean up properly
       
       // Verify cleanup includes common leak sources
@@ -158,7 +158,7 @@ describe('Performance Optimization Properties', () => {
       { strategy: 'codesplitting', enabled: true, impact: 'medium' }
     ]
     
-    optimizations.forEach(({ strategy, enabled, impact }) => {
+    optimizations.forEach(({ enabled, impact }) => {
       expect(enabled).toBe(true) // All optimizations should be enabled
       expect(['high', 'medium', 'low']).toContain(impact)
       
@@ -239,7 +239,7 @@ describe('Performance Optimization Properties', () => {
     let totalTime = 0
     let cacheHits = 0
 
-    performanceWorkflow.forEach(({ step, expectedTime, cacheHit }) => {
+    performanceWorkflow.forEach(({ expectedTime, cacheHit }) => {
       // Verify step timing
       expect(expectedTime).toBeGreaterThan(0)
       expect(expectedTime).toBeLessThanOrEqual(500)

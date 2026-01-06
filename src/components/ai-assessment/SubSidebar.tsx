@@ -12,7 +12,6 @@ import {
 import { SubSidebarProps, SubSidebarItem } from '../../types/assessment'
 
 const SubSidebar: React.FC<SubSidebarProps> = ({ 
-  activeModule, 
   onModuleChange 
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)

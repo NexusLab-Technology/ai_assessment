@@ -8,6 +8,7 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import AssessmentContainer from '../../components/ai-assessment/AssessmentContainer'
 import { assessmentApi } from '../../lib/api-client'
+import { Assessment } from '@/types/assessment'
 
 // Mock the API client
 jest.mock('../../lib/api-client', () => ({
@@ -22,6 +23,8 @@ jest.mock('../../lib/api-client', () => ({
     saveResponses: jest.fn()
   }
 }))
+
+const mockAssessmentApi = assessmentApi as jest.Mocked<typeof assessmentApi>
 
 // Mock the useAssessmentViewer hook
 jest.mock('../../hooks/useAssessmentViewer', () => ({
@@ -63,16 +66,15 @@ jest.mock('../../hooks/useAssessmentViewer', () => ({
   }))
 }))
 
-const mockAssessmentApi = assessmentApi
-
 describe('Assessment Status UI Integration Tests', () => {
   const mockCompany = {
     id: 'company-1',
     name: 'Test Company',
     industry: 'Technology',
     size: 'MEDIUM',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    assessmentCount: 3
   }
 
   beforeEach(() => {
@@ -80,40 +82,40 @@ describe('Assessment Status UI Integration Tests', () => {
   })
 
   it('should display different icons for different assessment statuses', async () => {
-    const mockAssessments = [
+    const mockAssessments: Assessment[] = [
       {
         id: 'assessment-1',
         name: 'Draft Assessment',
-        type: 'EXPLORATORY',
-        status: 'DRAFT',
+        type: 'EXPLORATORY' as const,
+        status: 'DRAFT' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 1,
         totalSteps: 5
       },
       {
         id: 'assessment-2',
         name: 'In Progress Assessment',
-        type: 'MIGRATION',
-        status: 'IN_PROGRESS',
+        type: 'MIGRATION' as const,
+        status: 'IN_PROGRESS' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 3,
         totalSteps: 5
       },
       {
         id: 'assessment-3',
         name: 'Completed Assessment',
-        type: 'EXPLORATORY',
-        status: 'COMPLETED',
+        type: 'EXPLORATORY' as const,
+        status: 'COMPLETED' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 5,
         totalSteps: 5,
-        completedAt: new Date().toISOString()
+        completedAt: new Date()
       }
     ]
 
@@ -134,29 +136,29 @@ describe('Assessment Status UI Integration Tests', () => {
   })
 
   it('should show edit icon for incomplete assessments and view icon for completed ones', async () => {
-    const mockAssessments = [
+    const mockAssessments: Assessment[] = [
       {
         id: 'assessment-incomplete',
         name: 'Incomplete Assessment',
-        type: 'EXPLORATORY',
-        status: 'IN_PROGRESS',
+        type: 'EXPLORATORY' as const,
+        status: 'IN_PROGRESS' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 2,
         totalSteps: 5
       },
       {
         id: 'assessment-complete',
         name: 'Complete Assessment',
-        type: 'MIGRATION',
-        status: 'COMPLETED',
+        type: 'MIGRATION' as const,
+        status: 'COMPLETED' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 5,
         totalSteps: 5,
-        completedAt: new Date().toISOString()
+        completedAt: new Date()
       }
     ]
 
@@ -178,18 +180,18 @@ describe('Assessment Status UI Integration Tests', () => {
   })
 
   it('should open AssessmentViewer when clicking view button on completed assessment', async () => {
-    const mockAssessments = [
+    const mockAssessments: Assessment[] = [
       {
         id: 'assessment-complete',
         name: 'Complete Assessment',
-        type: 'EXPLORATORY',
-        status: 'COMPLETED',
+        type: 'EXPLORATORY' as const,
+        status: 'COMPLETED' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 3,
         totalSteps: 3,
-        completedAt: new Date().toISOString()
+        completedAt: new Date()
       }
     ]
 
@@ -224,18 +226,18 @@ describe('Assessment Status UI Integration Tests', () => {
       refetch: jest.fn()
     })
 
-    const mockAssessments = [
+    const mockAssessments: Assessment[] = [
       {
         id: 'assessment-complete',
         name: 'Complete Assessment',
-        type: 'EXPLORATORY',
-        status: 'COMPLETED',
+        type: 'EXPLORATORY' as const,
+        status: 'COMPLETED' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 3,
         totalSteps: 3,
-        completedAt: new Date().toISOString()
+        completedAt: new Date()
       }
     ]
 
@@ -270,18 +272,18 @@ describe('Assessment Status UI Integration Tests', () => {
       refetch: jest.fn()
     })
 
-    const mockAssessments = [
+    const mockAssessments: Assessment[] = [
       {
         id: 'assessment-complete',
         name: 'Complete Assessment',
-        type: 'EXPLORATORY',
-        status: 'COMPLETED',
+        type: 'EXPLORATORY' as const,
+        status: 'COMPLETED' as const,
         companyId: 'company-1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         currentStep: 3,
         totalSteps: 3,
-        completedAt: new Date().toISOString()
+        completedAt: new Date()
       }
     ]
 

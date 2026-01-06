@@ -5,7 +5,7 @@ import {
   REPORT_REQUEST_INDEXES,
   REPORT_INDEXES,
   COMPANY_INDEXES
-} from './models/assessment'
+} from '@/lib/models/assessment'
 
 /**
  * Initialize MongoDB database with collections and indexes
@@ -18,7 +18,7 @@ export async function initializeDatabase() {
     
     // Create collections if they don't exist
     const collections = await db.listCollections().toArray()
-    const existingCollectionNames = collections.map(c => c.name)
+    const existingCollectionNames = collections.map(c => (c as any).name as string)
     
     for (const collectionName of Object.values(COLLECTIONS)) {
       if (!existingCollectionNames.includes(collectionName)) {
@@ -144,7 +144,7 @@ export async function checkDatabaseHealth() {
     
     // Check collections
     const collections = await db.listCollections().toArray()
-    const collectionNames = collections.map(c => c.name)
+    const collectionNames = collections.map(c => (c as any).name as string)
     
     const requiredCollections = Object.values(COLLECTIONS)
     const missingCollections = requiredCollections.filter(

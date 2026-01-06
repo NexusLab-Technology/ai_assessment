@@ -224,7 +224,7 @@ describe('Complete Workflow Integration Tests', () => {
       { width: 1440, height: 900, name: 'large', expectedCols: 3 }
     ]
     
-    screenSizes.forEach(({ width, height, name, expectedCols }) => {
+    screenSizes.forEach(({ width, name, expectedCols }) => {
       // Test breakpoint logic
       const isMobile = width < 768
       const isTablet = width >= 768 && width < 1024
@@ -293,7 +293,7 @@ describe('Complete Workflow Integration Tests', () => {
         { type: 'read', data: { ...originalCompany, name: `${originalCompany.name} Updated` } }
       ]
       
-      operations.forEach(({ type, data }) => {
+      operations.forEach(({ data }) => {
         // Verify data structure consistency
         expect(data).toHaveProperty('id')
         expect(data).toHaveProperty('name')

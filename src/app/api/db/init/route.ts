@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { initializeDatabase, checkDatabaseHealth } from '@/lib/db-init'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check database health first
     const health = await checkDatabaseHealth()
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     // Initialize database
     const result = await initializeDatabase()

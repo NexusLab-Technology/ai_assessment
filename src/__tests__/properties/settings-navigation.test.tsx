@@ -3,7 +3,7 @@
  * Feature: sidebar-settings-ui-update, Property 3: Settings navigation behavior
  */
 
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import { ApplicationShell } from '@/components/ApplicationShell';
 import { NavigationItem } from '@/types';
 import fc from 'fast-check';

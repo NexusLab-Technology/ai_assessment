@@ -205,7 +205,7 @@ describe('SSR Middleware Authentication Consistency', () => {
 
             // All results should be consistent
             const firstResult = results[0];
-            results.forEach((result, index) => {
+            results.forEach((result) => {
               expect(typeof result).toBe(typeof firstResult);
             });
 

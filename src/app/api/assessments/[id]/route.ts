@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import { getCollection } from '@/lib/mongodb'
-import { AssessmentDocument, COLLECTIONS } from '@/lib/models/assessment'
+import { AssessmentDocument, COLLECTIONS } from '../../../../lib/models/assessment'
 
 // GET /api/assessments/[id] - Get specific assessment
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -182,7 +182,7 @@ export async function PUT(
 
 // DELETE /api/assessments/[id] - Delete assessment
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

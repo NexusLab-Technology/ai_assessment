@@ -200,7 +200,7 @@ describe('Data Preservation Property Tests', () => {
           
           let currentResponses = JSON.parse(JSON.stringify(originalResponses))
           
-          preservationSteps.forEach(step => {
+          preservationSteps.forEach(() => {
             // Verify data integrity at each step
             expect(typeof currentResponses).toBe('object')
             expect(currentResponses).not.toBeNull()

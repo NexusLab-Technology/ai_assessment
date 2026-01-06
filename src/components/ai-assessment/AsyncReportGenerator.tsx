@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Assessment, AssessmentResponses, ReportGenerationRequest, AsyncReportGeneratorProps } from '@/types/assessment'
+import React, { useState } from 'react'
+import { ReportGenerationRequest, AsyncReportGeneratorProps } from '@/types/assessment'
 
 export default function AsyncReportGenerator({
   assessment,

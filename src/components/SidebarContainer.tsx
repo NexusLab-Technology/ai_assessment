@@ -99,7 +99,6 @@ export function SidebarContainer({
    */
   useEffect(() => {
     const savedState = loadSidebarState();
-    const config = ConfigManager.getAuthConfig();
     
     setSidebarState(prev => ({
       ...prev,

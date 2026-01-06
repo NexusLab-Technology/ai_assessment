@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
 export default function Home() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Get authentication configuration with error handling
   let config;

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   ArrowLeftIcon, 
   ArrowRightIcon,
@@ -148,41 +148,6 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   }
 
   const validateCurrentQuestion = (): boolean => {
-    const currentSection = getCurrentSection()
-    if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
-      return false
-    }
-
-    const currentQuestion = currentSection.questions[currentQuestionIndex]
-    const sectionResponses = responses[currentSection.id] || {}
-    const response = sectionResponses[currentQuestion.id]
-    const validation = stepValidation[currentQuestion.id]
-
-    // If question is not required and no response, it's valid
-    if (!currentQuestion.required && (response === null || response === undefined || response === '')) {
-      return true
-    }
-
-    // Check if required question is answered
-    if (currentQuestion.required) {
-      if (response === null || response === undefined || response === '') {
-        return false
-      }
-      // For array responses (multiselect, checkbox)
-      if (Array.isArray(response) && response.length === 0) {
-        return false
-      }
-    }
-
-    // Check if validation failed (only if validation exists)
-    if (validation && !validation.isValid) {
-      return false
-    }
-
-    return true
-  }
-
-  const validateCurrentStep = (): boolean => {
     const currentSection = getCurrentSection()
     if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
       return false

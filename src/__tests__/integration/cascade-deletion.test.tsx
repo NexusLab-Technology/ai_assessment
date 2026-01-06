@@ -31,7 +31,6 @@ describe('Cascade Deletion Properties', () => {
    */
   test('Property 6: Company deletion cascade', () => {
     for (let i = 0; i < CASCADE_TEST_RUNS; i++) {
-      const companyId = generateObjectId()
       const assessmentCount = generateAssessmentCount()
       
       // Mock the cascade deletion response

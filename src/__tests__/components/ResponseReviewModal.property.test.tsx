@@ -145,7 +145,6 @@ describe('ResponseReviewModal Property Tests', () => {
               // Test response completeness validation
               questions.forEach((section: QuestionSection) => {
                 // Each section should be displayed with its title
-                const sectionTitleText = `Step ${section.stepNumber}: ${section.title}`
                 const sectionElements = container.querySelectorAll('h4')
                 const sectionElement = Array.from(sectionElements).find(el => 
                   el.textContent?.includes(`Step ${section.stepNumber}:`)

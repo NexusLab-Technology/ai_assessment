@@ -7,7 +7,7 @@ import {
   COMPANY_NAME_MAX_LENGTH,
   COMPANY_DESCRIPTION_MAX_LENGTH
 } from '@/utils/company-validation'
-import { CompanyFormData } from '@/types/company'
+import { CompanyFormData, Company } from '@/types/company'
 
 describe('Company Validation', () => {
   describe('validateCompanyName', () => {
@@ -113,10 +113,28 @@ describe('Company Validation', () => {
   })
 
   describe('checkDuplicateCompanyName', () => {
-    const existingCompanies = [
-      { name: 'TechCorp' },
-      { name: 'Digital Solutions' },
-      { name: 'Global Manufacturing' }
+    const existingCompanies: Company[] = [
+      { 
+        id: '1',
+        name: 'TechCorp',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assessmentCount: 0
+      },
+      { 
+        id: '2',
+        name: 'Digital Solutions',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assessmentCount: 0
+      },
+      { 
+        id: '3',
+        name: 'Global Manufacturing',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assessmentCount: 0
+      }
     ]
 
     it('should detect duplicate names (case insensitive)', () => {

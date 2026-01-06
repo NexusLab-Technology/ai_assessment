@@ -5,7 +5,6 @@
 
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { ApplicationShell } from '@/components/ApplicationShell';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { DEFAULT_NAVIGATION } from '@/lib/constants';
 import fc from 'fast-check';
 
@@ -83,7 +82,7 @@ describe('Logout Functionality Properties', () => {
             roles: fc.array(fc.string({ minLength: 1 }), { minLength: 1 }),
             lastLogin: fc.date(),
           }), // user
-          (sidebarCollapsed, user) => {
+          (_sidebarCollapsed, user) => {
             cleanup();
 
             // Setup: Authentication enabled and user authenticated
@@ -129,7 +128,7 @@ describe('Logout Functionality Properties', () => {
         fc.property(
           fc.boolean(), // isAuthenticated
           fc.boolean(), // sidebarCollapsed
-          (isAuthenticated, sidebarCollapsed) => {
+          (isAuthenticated, _sidebarCollapsed) => {
             cleanup();
 
             // Setup: Authentication disabled
@@ -167,7 +166,7 @@ describe('Logout Functionality Properties', () => {
       fc.assert(
         fc.property(
           fc.boolean(), // sidebarCollapsed
-          (sidebarCollapsed) => {
+          (_sidebarCollapsed) => {
             cleanup();
 
             // Setup: Authentication enabled but user not authenticated

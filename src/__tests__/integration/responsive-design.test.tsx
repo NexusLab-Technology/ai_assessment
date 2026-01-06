@@ -168,7 +168,6 @@ describe('Responsive Design Properties', () => {
       
       // Test card sizing on desktop
       const minCardWidth = 300 // Minimum card width for readability
-      const maxCardWidth = 400 // Maximum card width to prevent stretching
       const availableWidth = contentArea / 3 // 3 columns
       
       expect(availableWidth).toBeGreaterThanOrEqual(minCardWidth - 50) // Account for gaps

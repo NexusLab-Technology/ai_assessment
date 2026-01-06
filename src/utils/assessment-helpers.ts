@@ -1,6 +1,6 @@
 // Utility functions for AI Assessment module
 
-import { Assessment, Company, QuestionSection } from '../types/assessment'
+import { Assessment, QuestionSection } from '../types/assessment'
 
 /**
  * Get total steps for assessment type

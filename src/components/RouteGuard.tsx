@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { RouteGuardProps } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { useConditionalAuth } from '@/hooks/useConditionalAuth';
 import { ConfigManager } from '@/lib/config';
 
 /**

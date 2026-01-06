@@ -62,7 +62,7 @@ const ResponseReviewModal: React.FC<ResponseReviewModalProps> = ({
     }
   }, [reviewSummary])
 
-  const formatAnswer = (answer: any, questionType?: string): string => {
+  const formatAnswer = (answer: any): string => {
     if (answer === undefined || answer === null || answer === '') {
       return 'Not answered'
     }

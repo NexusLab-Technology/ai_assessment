@@ -23,7 +23,7 @@ const CompanyContainer: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0)
 
   // Load companies with retry mechanism
-  const loadCompanies = useCallback(async (isRetry: boolean = false) => {
+  const loadCompanies = useCallback(async () => {
     try {
       setLoading(true)
       setError(undefined)
@@ -173,7 +173,7 @@ const CompanyContainer: React.FC = () => {
       if (currentFormData) {
         handleFormSubmit(currentFormData)
       } else {
-        loadCompanies(true)
+        loadCompanies()
       }
     }
   }, [error, currentFormData, handleFormSubmit, loadCompanies])

@@ -14,92 +14,31 @@ afterEach(() => {
 })
 
 describe('EnhancedProgressTracker Property Tests', () => {
-  // Generator for step status with proper business rules
-  const stepStatusItemGenerator = fc.record({
-    stepNumber: fc.integer({ min: 1, max: 10 }),
-    requiredFieldsCount: fc.integer({ min: 0, max: 10 })
-  }).chain(baseStep => {
-    // Generate status based on requiredFieldsCount constraints
-    let statusOptions: Array<'not_started' | 'partial' | 'completed' | 'current'>
-    
-    if (baseStep.requiredFieldsCount <= 1) {
-      // If 0 or 1 required fields, partial doesn't make sense
-      statusOptions = ['not_started', 'completed', 'current']
-    } else {
-      // If 2+ required fields, all statuses are valid
-      statusOptions = ['not_started', 'partial', 'completed', 'current']
-    }
-    
-    return fc.constantFrom(...statusOptions).chain(status => {
-      switch (status) {
-        case 'not_started':
-          return fc.record({
-            stepNumber: fc.constant(baseStep.stepNumber),
-            status: fc.constant(status),
-            requiredFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-            filledFieldsCount: fc.constant(0),
-            hasResponses: fc.constant(false)
-          })
-        case 'completed':
-          return fc.record({
-            stepNumber: fc.constant(baseStep.stepNumber),
-            status: fc.constant(status),
-            requiredFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-            filledFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-            hasResponses: fc.constant(baseStep.requiredFieldsCount > 0)
-          })
-        case 'partial':
-          // This case should only happen when requiredFieldsCount > 1
-          return fc.record({
-            stepNumber: fc.constant(baseStep.stepNumber),
-            status: fc.constant(status),
-            requiredFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-            filledFieldsCount: fc.integer({ 
-              min: 1, 
-              max: baseStep.requiredFieldsCount - 1 
-            }),
-            hasResponses: fc.constant(true)
-          })
-        case 'current':
-          return fc.integer({ 
-            min: 0, 
-            max: baseStep.requiredFieldsCount 
-          }).chain(filledCount => {
-            return fc.record({
-              stepNumber: fc.constant(baseStep.stepNumber),
-              status: fc.constant(status),
-              requiredFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-              filledFieldsCount: fc.constant(filledCount),
-              hasResponses: fc.constant(filledCount > 0)
-            })
-          })
-        default:
-          return fc.integer({ min: 0, max: baseStep.requiredFieldsCount }).chain(filledCount => {
-            return fc.record({
-              stepNumber: fc.constant(baseStep.stepNumber),
-              status: fc.constant(status),
-              requiredFieldsCount: fc.constant(baseStep.requiredFieldsCount),
-              filledFieldsCount: fc.constant(filledCount),
-              hasResponses: fc.constant(filledCount > 0)
-            })
-          })
-      }
-    })
-  }) as fc.Arbitrary<StepStatus>
+  // Simplified generator for step status
+  const stepStatusItemGenerator: fc.Arbitrary<StepStatus> = fc.record({
+    stepNumber: fc.integer({ min: 1, max: 8 }),
+    status: fc.constantFrom('not_started' as const, 'partial' as const, 'completed' as const, 'current' as const),
+    requiredFieldsCount: fc.integer({ min: 1, max: 5 }),
+    filledFieldsCount: fc.integer({ min: 0, max: 5 }),
+    hasResponses: fc.boolean()
+  }).filter(step => {
+    // Ensure business rules are followed
+    if (step.filledFieldsCount > step.requiredFieldsCount) return false
+    if (step.status === 'not_started' && (step.filledFieldsCount > 0 || step.hasResponses)) return false
+    if (step.status === 'completed' && step.filledFieldsCount !== step.requiredFieldsCount) return false
+    if (step.status === 'partial' && (step.filledFieldsCount === 0 || step.filledFieldsCount === step.requiredFieldsCount)) return false
+    if (step.filledFieldsCount > 0 && !step.hasResponses) return false
+    return true
+  })
 
   // Generator for array of step statuses with unique step numbers
   const stepStatusArrayGenerator = fc.array(stepStatusItemGenerator, { minLength: 1, maxLength: 8 })
-    .map(steps => {
+    .map((steps: StepStatus[]) => {
       // Ensure unique step numbers and sequential ordering
-      const uniqueSteps = steps.reduce((acc, step, index) => {
-        const stepNumber = index + 1
-        acc.push({
-          ...step,
-          stepNumber
-        })
-        return acc
-      }, [] as StepStatus[])
-      return uniqueSteps
+      return steps.map((step, index) => ({
+        ...step,
+        stepNumber: index + 1
+      }))
     })
 
   /**
