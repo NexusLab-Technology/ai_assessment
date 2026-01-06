@@ -180,6 +180,31 @@ export interface ReportGeneratorProps {
   onReportGenerated: (report: AssessmentReport) => void
 }
 
+export interface AsyncReportGeneratorProps {
+  assessment: Assessment
+  responses: AssessmentResponses
+  onReportRequested: (requestId: string) => void
+  onReportCompleted: (report: { id: string; htmlContent: string }) => void
+}
+
+export interface ReportGenerationRequest {
+  id: string
+  assessmentId: string
+  companyId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  requestedAt: Date
+  completedAt?: Date
+  errorMessage?: string
+  estimatedCompletionTime?: Date
+}
+
+export interface ReportStatusTrackerProps {
+  requests: ReportGenerationRequest[]
+  onRefreshStatus: () => void
+  onViewReport: (reportId: string) => void
+  onRetryGeneration: (requestId: string) => void
+}
+
 // API Interfaces
 
 export interface GetCompaniesResponse {
@@ -217,6 +242,33 @@ export interface SaveResponsesRequest {
 export interface GenerateReportRequest {
   assessmentId: string
   awsCredentials: AWSCredentials
+}
+
+export interface GenerateAsyncReportRequest {
+  assessmentId: string
+  companyId: string
+  responses: AssessmentResponses
+  assessmentType: string
+}
+
+export interface GenerateAsyncReportResponse {
+  requestId: string
+  status: 'PENDING'
+  estimatedCompletionTime: Date
+}
+
+export interface GetReportStatusResponse {
+  requestId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  completedAt?: Date
+  errorMessage?: string
+  reportId?: string
+  htmlContent?: string
+}
+
+export interface GetReportRequestsResponse {
+  requests: ReportGenerationRequest[]
+  total: number
 }
 
 export interface GetReportResponse {
@@ -257,4 +309,18 @@ export interface ReportDocument {
   htmlContent: string
   generatedAt: Date
   metadata: ReportMetadata
+}
+
+export interface ReportRequestDocument {
+  _id: string
+  assessmentId: string
+  companyId: string
+  userId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  requestedAt: Date
+  processedAt?: Date
+  completedAt?: Date
+  errorMessage?: string
+  retryCount: number
+  externalRequestId?: string
 }

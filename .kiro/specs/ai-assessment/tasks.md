@@ -155,23 +155,24 @@ Implementation plan สำหรับ AI Assessment module ที่เน้�
     - **PBT Status: ✅ PASSED (50 iterations)**
 
 - [ ] 11. Create Asynchronous Report Generation UI
-  - [ ] 11.1 Build AsyncReportGenerator component
+  - [x] 11.1 Build AsyncReportGenerator component
     - Create report generation request interface
     - Display "Report Generation in Progress" status
     - Show request ID and estimated completion time
     - Handle report generation initiation with mock external API
     - _Requirements: 6.1, 6.2, 7.1_
 
-  - [ ] 11.2 Build ReportStatusTracker component
+  - [x] 11.2 Build ReportStatusTracker component
     - Display report generation request history
     - Show current status for each request
     - Implement periodic status polling (mock)
     - Add retry functionality for failed requests
     - _Requirements: 7.2, 7.3, 7.5, 7.6_
 
-  - [ ] 11.3 Write property test for async report workflow
+  - [x] 11.3 Write property test for async report workflow
     - **Property 19: Asynchronous report generation workflow**
     - **Validates: Requirements 6.1, 6.2, 6.6, 7.1, 7.2, 7.3**
+    - **PBT Status: ✅ PASSED (50 iterations)**
 
 - [x] 12. Checkpoint - UI Flow Testing
   - Ensure all components render correctly across screen sizes
