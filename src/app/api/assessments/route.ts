@@ -116,7 +116,9 @@ export async function POST(request: NextRequest) {
       ...assessmentDoc,
       _id: result.insertedId.toString(),
       companyId: companyId,
-      id: result.insertedId.toString()
+      id: result.insertedId.toString(),
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     }
     
     return NextResponse.json({

@@ -89,6 +89,19 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
       setIsCreatingAssessment(true)
       setCreateAssessmentError(null)
       
+      // Clear any existing localStorage data for assessments
+      // This prevents old data from being loaded into new assessments
+      const storageKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('assessment_') && key.endsWith('_responses')
+      )
+      storageKeys.forEach(key => {
+        try {
+          localStorage.removeItem(key)
+        } catch (error) {
+          console.warn('Failed to clear localStorage key:', key, error)
+        }
+      })
+      
       const newAssessment = await assessmentApi.create({
         name,
         companyId: selectedCompany.id,

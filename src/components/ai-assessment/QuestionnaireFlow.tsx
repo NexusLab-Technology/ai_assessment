@@ -69,6 +69,14 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     const loadResponses = async () => {
       try {
         setIsLoadingResponses(true)
+        
+        // Clear previous state first
+        setResponses({})
+        setCompletedSteps([])
+        setCurrentStep(1)
+        setCurrentQuestionIndex(0)
+        setStepValidation({})
+        
         const data = await assessmentApi.getResponses(assessment.id)
         
         setResponses(data.responses || {})
@@ -86,17 +94,30 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
         
       } catch (error) {
         console.error('Failed to load assessment responses:', error)
-        // Fallback to localStorage for offline support
-        try {
-          const storageKey = `assessment_${assessment.id}_responses`
-          const savedData = localStorage.getItem(storageKey)
-          if (savedData) {
-            const { responses: savedResponses, completedSteps: savedCompleted } = JSON.parse(savedData)
-            setResponses(savedResponses || {})
-            setCompletedSteps(savedCompleted || [])
+        // Clear state on error and don't fallback to localStorage for new assessments
+        setResponses({})
+        setCompletedSteps([])
+        setCurrentStep(1)
+        setCurrentQuestionIndex(0)
+        setStepValidation({})
+        
+        // Only fallback to localStorage if this is not a newly created assessment
+        // Check if assessment was created recently (within last 5 minutes)
+        const assessmentAge = Date.now() - new Date(assessment.createdAt).getTime()
+        const isNewAssessment = assessmentAge < 5 * 60 * 1000 // 5 minutes
+        
+        if (!isNewAssessment) {
+          try {
+            const storageKey = `assessment_${assessment.id}_responses`
+            const savedData = localStorage.getItem(storageKey)
+            if (savedData) {
+              const { responses: savedResponses, completedSteps: savedCompleted } = JSON.parse(savedData)
+              setResponses(savedResponses || {})
+              setCompletedSteps(savedCompleted || [])
+            }
+          } catch (localError) {
+            console.error('Failed to load from localStorage:', localError)
           }
-        } catch (localError) {
-          console.error('Failed to load from localStorage:', localError)
         }
       } finally {
         setIsLoadingResponses(false)
@@ -104,6 +125,20 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     }
 
     loadResponses()
+  }, [assessment.id, assessment.createdAt])
+
+  // Cleanup function to clear localStorage when component unmounts or assessment changes
+  useEffect(() => {
+    return () => {
+      // Clear localStorage for this specific assessment when component unmounts
+      // This prevents stale data from being loaded later
+      try {
+        const storageKey = `assessment_${assessment.id}_responses`
+        localStorage.removeItem(storageKey)
+      } catch (error) {
+        console.warn('Failed to clear localStorage on cleanup:', error)
+      }
+    }
   }, [assessment.id])
 
   // Backup to localStorage for offline support

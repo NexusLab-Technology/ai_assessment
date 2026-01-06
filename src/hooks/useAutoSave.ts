@@ -40,6 +40,21 @@ export function useAutoSave(
   const lastSavedStep = useRef<number>(1)
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
 
+  // Reset state when assessment changes
+  useEffect(() => {
+    // Clear previous state when switching to a different assessment
+    lastSavedResponses.current = {}
+    lastSavedStep.current = 1
+    setSaveStatus('idle')
+    setLastSaved(null)
+    setHasUnsavedChanges(false)
+    
+    // Clear any existing auto-save timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+  }, [assessmentId])
+
   // Check if there are unsaved changes
   useEffect(() => {
     const responsesChanged = JSON.stringify(responses) !== JSON.stringify(lastSavedResponses.current)
