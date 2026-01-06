@@ -154,3 +154,29 @@ AI Assessment module เป็นส่วนหนึ่งของ applicatio
 5. THE AI_Assessment_System SHALL support textarea questions for longer text responses
 6. THE AI_Assessment_System SHALL support numeric input questions with validation
 7. WHEN displaying questions, THE AI_Assessment_System SHALL show question descriptions and help text where applicable
+
+### Requirement 11: Response Review and Navigation
+
+**User Story:** As a user, I want to review my previously filled responses and see all my answers before completing the assessment, so that I can verify my information is accurate and complete.
+
+#### Acceptance Criteria
+
+1. WHEN a user is in any assessment step, THE AI_Assessment_System SHALL display a clickable indicator for steps that contain saved responses
+2. WHEN a user clicks on a step with saved responses, THE AI_Assessment_System SHALL navigate to that step and display the previously filled answers
+3. WHEN a user reaches the final step, THE AI_Assessment_System SHALL provide a "Review All Responses" option before the complete button
+4. WHEN a user selects "Review All Responses", THE AI_Assessment_System SHALL display a comprehensive summary of all questions and their corresponding answers organized by step
+5. WHEN viewing the response summary, THE AI_Assessment_System SHALL allow users to click on any question to navigate directly to that step for editing
+6. WHEN in the review summary, THE AI_Assessment_System SHALL highlight any required questions that remain unanswered
+7. WHEN a user completes the review, THE AI_Assessment_System SHALL return to the final step with the complete assessment button enabled only if all required fields are filled
+
+### Requirement 12: Assessment Progress Visualization
+
+**User Story:** As a user, I want to see visual indicators of my progress and completed sections, so that I can easily track what I've finished and what still needs attention.
+
+#### Acceptance Criteria
+
+1. WHEN displaying the progress tracker, THE AI_Assessment_System SHALL show different visual states for steps: not started, in progress (partially filled), completed (all required fields filled), and current step
+2. WHEN a step has saved responses, THE AI_Assessment_System SHALL display a visual indicator (such as a checkmark or filled circle) to show completion status
+3. WHEN a step has partial responses, THE AI_Assessment_System SHALL display a different visual indicator (such as a half-filled circle) to show partial completion
+4. THE AI_Assessment_System SHALL allow users to click on any step indicator to navigate directly to that step
+5. WHEN navigating via step indicators, THE AI_Assessment_System SHALL preserve the current step's responses before navigation

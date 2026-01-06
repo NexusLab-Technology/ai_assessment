@@ -4,7 +4,12 @@
 
 AI Assessment module เป็นระบบประเมินความพร้อม GenAI ที่ออกแบบให้รองรับการทำงานแบบ multi-company และ multi-assessment โดยเน้นการพัฒนาแบบ phase-based development (UI ก่อน แล้วค่อย data persistence) เพื่อให้สามารถทดสอบ application flow ได้เร็วขึ้น
 
-ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (7 ขั้นตอน) สำหรับการพัฒนา AI ใหม่ และ Migration Path (8 ขั้นตอน) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ AWS Bedrock สำหรับการสร้างรายงาน
+ระบบรองรับ 2 เส้นทางหลัก: Exploratory Path (7 ขั้นตอน) สำหรับการพัฒนา AI ใหม่ และ Migration Path (8 ขั้นตอน) สำหรับการ migrate AI ที่มีอยู่ โดยใช้ MongoDB เป็นฐานข้อมูลหลักและ External API Gateway + Lambda + SQS architecture สำหรับการสร้างรายงานแบบ asynchronous
+
+**ฟีเจอร์ใหม่ที่เพิ่มเข้ามา:**
+- **Response Review System**: ให้ผู้ใช้สามารถดูคำตอบที่กรอกไปแล้วและทบทวนทั้งหมดก่อนส่ง assessment
+- **Enhanced Progress Visualization**: แสดงสถานะความคืบหน้าแบบ visual และให้คลิกไปยัง step ต่างๆ ได้
+- **Asynchronous Report Generation**: ใช้ External API + Lambda + SQS แทนการเรียก AWS Bedrock โดยตรง
 
 ## Architecture
 
@@ -16,16 +21,22 @@ graph TB
         UI[React Components]
         State[State Management]
         Router[Next.js Router]
+        ReviewSystem[Response Review System]
+        ProgressTracker[Enhanced Progress Tracker]
     end
     
     subgraph "API Layer"
         CompanyAPI[Company API Routes]
         AssessmentAPI[Assessment API Routes]
-        ReportAPI[Report Generation API]
+        ReportAPI[Report Status API]
+        ExternalAPI[External Report API]
     end
     
     subgraph "External Services"
         MongoDB[(MongoDB Database)]
+        APIGateway[API Gateway]
+        Lambda[Lambda Functions]
+        SQS[SQS Queue]
         Bedrock[AWS Bedrock]
     end
     
@@ -35,10 +46,19 @@ graph TB
     Router --> AssessmentAPI
     Router --> ReportAPI
     
+    ReviewSystem --> AssessmentAPI
+    ProgressTracker --> AssessmentAPI
+    
     CompanyAPI --> MongoDB
     AssessmentAPI --> MongoDB
-    ReportAPI --> MongoDB
-    ReportAPI --> Bedrock
+    ReportAPI --> ExternalAPI
+    
+    ExternalAPI --> APIGateway
+    APIGateway --> Lambda
+    Lambda --> MongoDB
+    Lambda --> SQS
+    SQS --> Lambda
+    Lambda --> Bedrock
 ```
 
 ### Component Architecture
@@ -61,11 +81,14 @@ graph TB
         AssessmentDashboard[Assessment Dashboard]
         AssessmentWizard[Assessment Wizard]
         QuestionStep[Question Step]
-        ProgressTracker[Progress Tracker]
+        EnhancedProgressTracker[Enhanced Progress Tracker]
+        ResponseReviewModal[Response Review Modal]
+        StepNavigator[Step Navigator]
     end
     
     subgraph "Report Components"
-        ReportGenerator[Report Generator]
+        AsyncReportGenerator[Async Report Generator]
+        ReportStatusTracker[Report Status Tracker]
         ReportViewer[Report Viewer]
         ReportList[Report List]
     end
@@ -76,9 +99,12 @@ graph TB
     CompanyDashboard --> AssessmentDashboard
     AssessmentDashboard --> AssessmentWizard
     AssessmentWizard --> QuestionStep
-    AssessmentWizard --> ProgressTracker
-    AssessmentWizard --> ReportGenerator
-    ReportGenerator --> ReportViewer
+    AssessmentWizard --> EnhancedProgressTracker
+    AssessmentWizard --> ResponseReviewModal
+    AssessmentWizard --> StepNavigator
+    AssessmentWizard --> AsyncReportGenerator
+    AsyncReportGenerator --> ReportStatusTracker
+    ReportStatusTracker --> ReportViewer
 ```
 
 ## Components and Interfaces
@@ -167,6 +193,7 @@ interface AssessmentWizardProps {
   onResponseChange: (stepId: string, responses: any) => void
   onStepChange: (step: number) => void
   onComplete: () => void
+  onShowReview: () => void
 }
 
 interface QuestionSection {
@@ -175,6 +202,7 @@ interface QuestionSection {
   description: string
   questions: Question[]
   stepNumber: number
+  completionStatus: 'not_started' | 'partial' | 'completed'
 }
 
 interface Question {
@@ -192,38 +220,110 @@ interface Question {
 - Manage multi-step questionnaire flow
 - Handle form validation and error display
 - Auto-save responses every 30 seconds
-- Display progress indicator
+- Display enhanced progress indicator with clickable steps
+- Provide response review functionality
 
-#### 5. ReportGenerator Component
+#### 5. EnhancedProgressTracker Component
 ```typescript
-interface ReportGeneratorProps {
-  assessment: Assessment
-  responses: AssessmentResponses
-  awsCredentials: AWSCredentials
-  onReportGenerated: (report: AssessmentReport) => void
+interface EnhancedProgressTrackerProps {
+  currentStep: number
+  totalSteps: number
+  stepStatuses: StepStatus[]
+  onStepClick: (stepNumber: number) => void
+  allowNavigation: boolean
 }
 
-interface AssessmentReport {
-  id: string
-  assessmentId: string
-  companyId: string
-  htmlContent: string
-  generatedAt: Date
-  metadata: ReportMetadata
-}
-
-interface AWSCredentials {
-  accessKeyId: string
-  secretAccessKey: string
-  region: string
+interface StepStatus {
+  stepNumber: number
+  status: 'not_started' | 'partial' | 'completed' | 'current'
+  hasResponses: boolean
+  requiredFieldsCount: number
+  filledFieldsCount: number
 }
 ```
 
 **Responsibilities:**
-- Integrate with AWS Bedrock for AI-powered report generation
-- Format generated content as HTML
-- Store reports in MongoDB
-- Handle AWS authentication errors
+- Display visual progress with different states for each step
+- Allow direct navigation to any step by clicking
+- Show completion indicators for steps with responses
+- Highlight current step and partial completion status
+
+#### 6. ResponseReviewModal Component
+```typescript
+interface ResponseReviewModalProps {
+  isOpen: boolean
+  assessment: Assessment
+  responses: AssessmentResponses
+  questions: QuestionSection[]
+  onClose: () => void
+  onEditResponse: (stepNumber: number, questionId: string) => void
+  onComplete: () => void
+}
+
+interface ReviewSummary {
+  stepNumber: number
+  stepTitle: string
+  questions: ReviewQuestion[]
+  completionPercentage: number
+}
+
+interface ReviewQuestion {
+  id: string
+  label: string
+  answer: any
+  required: boolean
+  isEmpty: boolean
+}
+```
+
+**Responsibilities:**
+- Display comprehensive review of all questions and answers
+- Organize responses by step with clear visual hierarchy
+- Highlight unanswered required questions
+- Allow direct navigation to specific questions for editing
+- Provide final completion validation
+
+#### 7. AsyncReportGenerator Component
+```typescript
+interface AsyncReportGeneratorProps {
+  assessment: Assessment
+  responses: AssessmentResponses
+  onReportRequested: (requestId: string) => void
+  onReportCompleted: (report: AssessmentReport) => void
+}
+
+interface ReportGenerationRequest {
+  id: string
+  assessmentId: string
+  companyId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  requestedAt: Date
+  completedAt?: Date
+  errorMessage?: string
+}
+```
+
+**Responsibilities:**
+- Initiate report generation through external API
+- Display request status and progress
+- Handle asynchronous report completion
+- Provide retry functionality for failed requests
+
+#### 8. ReportStatusTracker Component
+```typescript
+interface ReportStatusTrackerProps {
+  requests: ReportGenerationRequest[]
+  onRefreshStatus: () => void
+  onViewReport: (reportId: string) => void
+  onRetryGeneration: (requestId: string) => void
+}
+```
+
+**Responsibilities:**
+- Track multiple report generation requests
+- Poll for status updates periodically
+- Display request history and current status
+- Handle error states and retry mechanisms
 
 ### Data Models
 
@@ -257,9 +357,34 @@ interface AssessmentDocument {
       [questionId: string]: any
     }
   }
+  stepStatuses: {
+    [stepNumber: number]: {
+      status: 'not_started' | 'partial' | 'completed'
+      lastModified: Date
+      requiredFieldsCount: number
+      filledFieldsCount: number
+    }
+  }
   createdAt: Date
   updatedAt: Date
   completedAt?: Date
+}
+```
+
+##### Report Generation Requests Collection
+```typescript
+interface ReportRequestDocument {
+  _id: ObjectId
+  assessmentId: ObjectId
+  companyId: ObjectId
+  userId: string
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  requestedAt: Date
+  processedAt?: Date
+  completedAt?: Date
+  errorMessage?: string
+  retryCount: number
+  externalRequestId?: string
 }
 ```
 
@@ -324,6 +449,22 @@ interface SaveResponsesRequest {
   stepId: string
   responses: { [questionId: string]: any }
   currentStep: number
+  stepStatus: {
+    status: 'not_started' | 'partial' | 'completed'
+    requiredFieldsCount: number
+    filledFieldsCount: number
+  }
+}
+
+// GET /api/assessments/[id]/review
+interface GetAssessmentReviewResponse {
+  assessment: Assessment
+  reviewSummary: ReviewSummary[]
+  completionStatus: {
+    totalRequired: number
+    totalFilled: number
+    isComplete: boolean
+  }
 }
 ```
 
@@ -332,12 +473,45 @@ interface SaveResponsesRequest {
 // POST /api/reports/generate
 interface GenerateReportRequest {
   assessmentId: string
-  awsCredentials: AWSCredentials
 }
 
-// GET /api/reports/[id]
-interface GetReportResponse {
-  report: AssessmentReport
+interface GenerateReportResponse {
+  requestId: string
+  status: 'PENDING'
+  estimatedCompletionTime: Date
+}
+
+// GET /api/reports/status/[requestId]
+interface GetReportStatusResponse {
+  request: ReportGenerationRequest
+  report?: AssessmentReport
+}
+
+// GET /api/reports/requests?assessmentId=xxx
+interface GetReportRequestsResponse {
+  requests: ReportGenerationRequest[]
+  total: number
+}
+```
+
+#### External API Integration
+```typescript
+// External API Gateway Endpoints
+interface ExternalReportAPI {
+  // POST /external/reports/generate
+  generateReport(data: {
+    assessmentId: string
+    companyId: string
+    responses: AssessmentResponses
+    assessmentType: string
+  }): Promise<{ requestId: string }>
+  
+  // GET /external/reports/status/{requestId}
+  getStatus(requestId: string): Promise<{
+    status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+    result?: string
+    error?: string
+  }>
 }
 ```
 
@@ -452,9 +626,33 @@ interface GetReportResponse {
 *For any* generated report, it should be formatted as valid HTML with proper structure and stored in MongoDB with unique ID, timestamp, and proper associations
 **Validates: Requirements 7.3, 7.4, 7.5, 7.7**
 
-### Property 14: Report viewing functionality
-*For any* stored report, users should be able to view the report in a formatted display that renders the HTML content correctly
-**Validates: Requirements 7.6**
+### Property 15: Step navigation with response preservation
+*For any* assessment step navigation (via step indicators, review modal, or direct navigation), the current step's responses should be preserved before navigation and the target step should display its previously saved responses correctly
+**Validates: Requirements 11.2, 11.5, 12.4, 12.5**
+
+### Property 16: Visual progress indicators consistency
+*For any* assessment step, the progress tracker should display the correct visual state (not started, partial, completed, current) based on the step's response data and completion status
+**Validates: Requirements 11.1, 12.1, 12.2, 12.3**
+
+### Property 17: Response review completeness
+*For any* assessment with responses, the review summary should display all questions and answers organized by step, with unanswered required questions highlighted
+**Validates: Requirements 11.4, 11.6**
+
+### Property 18: Assessment completion validation
+*For any* assessment, the complete button should only be enabled when all required fields across all steps are filled, as verified through the review process
+**Validates: Requirements 11.7**
+
+### Property 19: Asynchronous report generation workflow
+*For any* valid assessment, initiating report generation should call the external API, receive a request ID, display progress status, and handle the complete workflow including polling and completion
+**Validates: Requirements 6.1, 6.2, 6.6, 7.1, 7.2, 7.3**
+
+### Property 20: Report generation error handling
+*For any* failed report generation request, the system should display appropriate error messages, provide retry options, and maintain error details in the request history
+**Validates: Requirements 6.7, 7.5**
+
+### Property 21: Report data persistence and associations
+*For any* generated report, it should be stored in MongoDB with proper associations to both assessment ID and company ID, and be accessible through the status history
+**Validates: Requirements 7.4, 7.6, 7.7**
 
 ## Error Handling
 
@@ -512,14 +710,38 @@ The testing strategy combines unit tests for specific examples and edge cases wi
 ### Testing Implementation Guidelines
 - Property tests validate universal behaviors across randomized inputs
 - Unit tests verify specific examples and integration points
-- Mock external dependencies (AWS Bedrock) for consistent testing
+- Mock external dependencies (External API Gateway, Lambda functions) for consistent testing
 - Use test databases for data persistence testing
 - Implement visual regression testing for UI components
+- Test asynchronous workflows with proper timing and state management
 
 ### Test Data Generation Strategy
 - **Companies**: Generate random company names, descriptions, and IDs
 - **Assessments**: Create assessments with various states, steps, and response patterns
 - **Responses**: Generate valid and invalid response data for all question types
+- **Step Statuses**: Create various completion states (not_started, partial, completed)
+- **Report Requests**: Generate report generation requests with different statuses
 - **Reports**: Create sample HTML reports with different structures and content
+- **Review Summaries**: Generate comprehensive review data with various completion patterns
 
-This comprehensive testing approach ensures both the correctness of individual components and the overall system behavior across all possible inputs and states.
+### New Testing Areas for Enhanced Features
+
+#### Response Review System Testing
+- Test review modal with various response patterns
+- Validate navigation from review to specific questions
+- Test completion validation across all steps
+- Verify highlighting of unanswered required questions
+
+#### Enhanced Progress Tracking Testing
+- Test visual indicators for all step states
+- Validate clickable navigation to any step
+- Test response preservation during navigation
+- Verify progress calculation accuracy
+
+#### Asynchronous Report Generation Testing
+- Mock external API Gateway responses
+- Test polling mechanisms and status updates
+- Validate error handling and retry functionality
+- Test report request history and status tracking
+
+This comprehensive testing approach ensures both the correctness of individual components and the overall system behavior across all possible inputs and states, including the new enhanced features for response review, progress visualization, and asynchronous report generation.
