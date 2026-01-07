@@ -1,76 +1,242 @@
-# Project Structure - Configurable Authentication Framework
+# Project Structure - RAPID AI Assessment Platform
 
 ## Overview
-This is a NextJS 14+ project with TypeScript implementing a configurable authentication framework with collapsible sidebar navigation.
+
+The RAPID AI Assessment Platform is a comprehensive Next.js 14+ application built with TypeScript that enables organizations to assess their GenAI readiness through structured questionnaires. The platform supports both exploratory assessments for new AI development and migration assessments for existing AI systems.
 
 ## Current Status
-- ✅ Configurable Authentication Framework - COMPLETED (14/14 tasks)
-- ✅ Sidebar Settings UI Update - COMPLETED (9/9 tasks)
+
+- ✅ **Configurable Authentication Framework** - COMPLETED
+- ✅ **AI Assessment Module with RAPID Integration** - COMPLETED
+- ✅ **Company Settings Module** - COMPLETED
+- ✅ **Assessment Status UI** - COMPLETED
+- ✅ **Sidebar Navigation** - COMPLETED
+
+## Technology Stack
+
+- **Framework**: Next.js 14+ with App Router
+- **Language**: TypeScript
+- **UI Library**: React 18
+- **Styling**: TailwindCSS
+- **Database**: MongoDB
+- **Testing**: Jest + Testing Library + fast-check (Property-based testing)
+- **External Services**: AWS Bedrock (via External API Gateway), MongoDB
 
 ## Project Architecture
 
-### Core Components
-- **Authentication System**: Complete with configurable behavior
-- **Sidebar Navigation**: Collapsible with settings-based navigation
-- **Route Protection**: Client and server-side protection
-- **Settings Page**: Profile information display
+### Core Modules
+
+1. **Authentication System**: Configurable authentication framework with environment-based control
+2. **AI Assessment Module**: RAPID questionnaire-based assessment system with category navigation
+3. **Company Settings Module**: Company management and organization
+4. **Report Generation**: Asynchronous report generation via External API Gateway
 
 ### Directory Structure
+
 ```
-src/
-├── app/                    # NextJS App Router pages
-│   ├── login/             # Login page
-│   ├── settings/          # Settings page (replaces profile)
-│   └── layout.tsx         # Root layout with AuthProvider
-├── components/            # React components
-│   ├── ApplicationShell.tsx  # Main layout with sidebar
-│   ├── LoginPage.tsx      # Login form component
-│   ├── RouteGuard.tsx     # Route protection component
-│   └── Sidebar.tsx        # Collapsible sidebar navigation
-├── contexts/              # React contexts
-│   └── AuthContext.tsx    # Authentication context and provider
-├── hooks/                 # Custom React hooks
-├── interfaces/            # TypeScript interfaces
-├── lib/                   # Utility libraries
-│   ├── AuthProviderRegistry.ts  # External auth integration
-│   ├── config.ts          # Environment configuration
-│   └── constants.ts       # Navigation and app constants
-├── middleware/            # NextJS middleware
-├── providers/             # Additional providers
-├── types/                 # TypeScript type definitions
-└── __tests__/             # Comprehensive test suite
-    ├── integration/       # Integration tests
-    ├── properties/        # Property-based tests
-    └── unit/              # Unit tests
-
-.kiro/specs/               # Feature specifications
-├── configurable-auth-framework/  # Auth framework spec
-└── sidebar-settings-ui-update/   # UI update spec
-
-docs/                      # Documentation
-├── api/                   # API documentation
-├── examples/              # Usage examples
-├── modules/               # Module-specific docs
-└── testing/               # Testing documentation
+ai_assessment/
+├── src/
+│   ├── app/                          # Next.js App Router pages
+│   │   ├── ai-assessment/           # AI Assessment main page
+│   │   ├── ai-assessment-basic/     # Basic assessment demo
+│   │   ├── ai-assessment-simple/    # Simple assessment demo
+│   │   ├── ai-assessment-demo/       # Enhanced assessment demo
+│   │   ├── company-settings/         # Company management page
+│   │   ├── login/                   # Login page
+│   │   ├── settings/                # User settings page
+│   │   ├── profile/                 # User profile page
+│   │   ├── api/                     # API routes
+│   │   │   ├── assessments/        # Assessment CRUD operations
+│   │   │   ├── companies/           # Company CRUD operations
+│   │   │   ├── questionnaires/      # Questionnaire data endpoints
+│   │   │   ├── reports/             # Report generation endpoints
+│   │   │   ├── aws/                 # AWS integration endpoints
+│   │   │   └── db/                  # Database initialization
+│   │   ├── layout.tsx               # Root layout with AuthProvider
+│   │   └── page.tsx                 # Home dashboard
+│   │
+│   ├── components/                  # React components
+│   │   ├── ai-assessment/          # AI Assessment components
+│   │   │   ├── AssessmentContainer.tsx
+│   │   │   ├── AssessmentDashboard.tsx
+│   │   │   ├── AssessmentWizard.tsx
+│   │   │   ├── AssessmentViewer.tsx
+│   │   │   ├── CategoryNavigationSidebar.tsx
+│   │   │   ├── FixedQuestionContainer.tsx
+│   │   │   ├── RAPIDQuestionnaireLoader.tsx
+│   │   │   ├── ResponseReviewModal.tsx
+│   │   │   ├── AsyncReportGenerator.tsx
+│   │   │   └── ReportStatusTracker.tsx
+│   │   ├── company-settings/        # Company Settings components
+│   │   │   ├── CompanyDashboard.tsx
+│   │   │   ├── CompanyForm.tsx
+│   │   │   ├── CompanyCard.tsx
+│   │   │   └── CompanySearch.tsx
+│   │   ├── ApplicationShell.tsx    # Main layout with sidebar
+│   │   ├── AuthWrapper.tsx         # Auth provider wrapper
+│   │   ├── RouteGuard.tsx          # Route protection component
+│   │   ├── Sidebar.tsx             # Main navigation sidebar
+│   │   └── LoginPage.tsx           # Login form component
+│   │
+│   ├── contexts/                   # React contexts
+│   │   └── AuthContext.tsx         # Authentication context
+│   │
+│   ├── hooks/                      # Custom React hooks
+│   │   ├── useAssessmentViewer.ts
+│   │   ├── useAutoSave.ts
+│   │   ├── useConditionalAuth.ts
+│   │   ├── useExternalAuth.ts
+│   │   └── useValidation.ts
+│   │
+│   ├── lib/                        # Utility libraries
+│   │   ├── api-client.ts           # API client utilities
+│   │   ├── api-utils.ts            # API helper functions
+│   │   ├── AuthProviderRegistry.ts # External auth integration
+│   │   ├── config.ts               # Environment configuration
+│   │   ├── constants.ts            # Application constants
+│   │   ├── mongodb.ts              # MongoDB connection
+│   │   ├── models/                 # Data models
+│   │   │   ├── Assessment.ts
+│   │   │   ├── Company.ts
+│   │   │   └── Report.ts
+│   │   ├── services/               # Business logic services
+│   │   │   ├── rapid-questionnaire-service.ts
+│   │   │   └── assessment-service.ts
+│   │   └── validation/             # Validation utilities
+│   │
+│   ├── types/                      # TypeScript type definitions
+│   │   ├── assessment.ts           # Assessment types
+│   │   ├── company.ts              # Company types
+│   │   ├── rapid-questionnaire.ts  # RAPID questionnaire types
+│   │   └── index.ts                # Common types
+│   │
+│   ├── utils/                      # Utility functions
+│   │   ├── assessment-helpers.ts
+│   │   ├── company-validation.ts
+│   │   └── rapid-questionnaire-utils.ts
+│   │
+│   ├── middleware.ts               # Next.js middleware
+│   │
+│   └── __tests__/                  # Test suite
+│       ├── api/                    # API route tests
+│       ├── components/             # Component tests
+│       ├── integration/            # Integration tests
+│       ├── properties/              # Property-based tests
+│       └── unit/                    # Unit tests
+│
+├── .kiro/
+│   └── specs/                      # Feature specifications
+│       ├── ai-assessment/          # AI Assessment specs
+│       ├── company-settings/       # Company Settings specs
+│       └── assessment-status-ui/   # Status UI specs
+│
+├── document/                       # Project documentation
+│   ├── Application-instruction.md
+│   ├── project-structure.md        # This file
+│   ├── requirement/                # Requirements documents
+│   └── doing/                      # Work tracking files
+│
+├── docs/                          # Generated documentation
+│   ├── api/                       # API documentation
+│   ├── architecture/              # Architecture docs
+│   ├── modules/                   # Module documentation
+│   └── testing/                   # Testing documentation
+│
+└── assessment-question/           # RAPID questionnaire data
+    └── RAPID_Questionnaires_FINAL.md
 ```
 
-## Key Features Implemented
-1. **Environment-based Authentication Control**
-2. **Configurable Session Management**
-3. **Route Protection (Client & Server)**
-4. **Collapsible Sidebar Navigation**
-5. **Settings-based UI (Profile → Settings)**
-6. **External System Integration Support**
-7. **Comprehensive Testing (242 tests passing)**
-8. **Complete Documentation**
+## Key Features
 
-## Technology Stack
-- NextJS 14+ with App Router
-- TypeScript
-- React 18
-- TailwindCSS
-- Jest + Testing Library
-- Fast-check (Property-based testing)
+### 1. Authentication System
+- Environment-based authentication control
+- Configurable session management
+- Route protection (client and server-side)
+- External system integration support
+
+### 2. AI Assessment Module
+- **RAPID Questionnaire Integration**: 162 questions organized by categories
+- **Category-Based Navigation**: 5 categories for Exploratory, 6 for Migration
+- **Enhanced Progress Tracking**: Visual progress indicators with clickable navigation
+- **Fixed-Size Question Container**: Consistent UI with proper scrolling
+- **Response Review System**: Comprehensive review before completion
+- **Auto-save Functionality**: Automatic saving every 30 seconds
+- **Asynchronous Report Generation**: External API Gateway integration
+
+### 3. Company Settings Module
+- Company CRUD operations
+- Assessment count tracking
+- Search functionality
+- Integration with AI Assessment module
+
+### 4. Assessment Status UI
+- Status-based icon display (edit/view)
+- Read-only viewer for completed assessments
+- Session-based data organization
+- Chronological session ordering
+
+## Data Models
+
+### MongoDB Collections
+
+1. **companies**: Company information
+2. **assessments**: Assessment data with category-based responses
+3. **rapid_questionnaires**: RAPID questionnaire structure
+4. **reports**: Generated assessment reports
+5. **report_requests**: Asynchronous report generation requests
+
+## API Structure
+
+### Assessment APIs
+- `GET /api/assessments` - List assessments
+- `POST /api/assessments` - Create assessment
+- `GET /api/assessments/[id]` - Get assessment
+- `PUT /api/assessments/[id]` - Update assessment
+- `DELETE /api/assessments/[id]` - Delete assessment
+- `GET /api/assessments/[id]/responses` - Get responses
+- `PUT /api/assessments/[id]/responses` - Save responses
+- `GET /api/assessments/[id]/review` - Get review summary
+
+### Company APIs
+- `GET /api/companies` - List companies
+- `POST /api/companies` - Create company
+- `GET /api/companies/[id]` - Get company
+- `PUT /api/companies/[id]` - Update company
+- `DELETE /api/companies/[id]` - Delete company
+- `GET /api/companies/search` - Search companies
+
+### Questionnaire APIs
+- `GET /api/questionnaires/rapid` - Get RAPID questionnaire
+- `GET /api/questionnaires/rapid/init` - Initialize questionnaires
+
+### Report APIs
+- `GET /api/reports` - List reports
+- `POST /api/reports/generate` - Generate report
+- `GET /api/reports/[id]` - Get report
+
+## Testing Strategy
+
+- **Unit Tests**: Component and function-level testing
+- **Integration Tests**: End-to-end workflow testing
+- **Property-Based Tests**: Universal correctness properties
+- **Test Coverage**: Comprehensive coverage across all modules
+
+## Development Workflow
+
+1. **Phase 1**: UI/UX Foundation with RAPID Integration
+2. **Phase 2**: Data Integration with MongoDB
+3. **Phase 3**: Enhanced Features Integration
+4. **Phase 4**: External API Integration for Report Generation
+
+## Environment Configuration
+
+Key environment variables:
+- `MONGODB_URI`: MongoDB connection string
+- `MONGODB_DB`: Database name
+- `AUTH_ENABLED`: Enable/disable authentication
+- `SESSION_TIMEOUT`: Session timeout in milliseconds
+- `EXTERNAL_API_GATEWAY_URL`: External API Gateway endpoint
 
 ## Current State
-All major features are implemented and tested. The project is ready for production use with comprehensive authentication and navigation systems.
+
+All major features are implemented and tested. The platform is ready for production use with comprehensive assessment capabilities, company management, and asynchronous report generation.
