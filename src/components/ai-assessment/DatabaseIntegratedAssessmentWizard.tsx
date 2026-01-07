@@ -30,7 +30,7 @@ import {
   AssessmentType
 } from '../../types/rapid-questionnaire';
 import EnhancedRAPIDQuestionnaireLoader from './EnhancedRAPIDQuestionnaireLoader';
-import CategoryNavigationSidebar from './CategoryNavigationSidebar';
+import EnhancedCategoryNavigationWithSubcategories from './EnhancedCategoryNavigationWithSubcategories';
 import FixedQuestionContainer from './FixedQuestionContainer';
 import QuestionStep from './RAPIDQuestionStep';
 import ResponseReviewModal from './ResponseReviewModal';
@@ -81,6 +81,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
   // Assessment state
   const [responses, setResponses] = useState<AssessmentResponses>(initialResponses);
   const [currentCategory, setCurrentCategory] = useState<string>('');
+  const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<QuestionValidation>({});
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -155,8 +156,21 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
   // Handle category selection
   const handleCategorySelect = useCallback((categoryId: string) => {
     setCurrentCategory(categoryId);
+    // Auto-select first subcategory when category changes
+    const category = questionnaire?.categories.find(cat => cat.id === categoryId);
+    if (category && category.subcategories.length > 0) {
+      setCurrentSubcategory(category.subcategories[0].id);
+    }
     onCategoryChange?.(categoryId);
     setValidationErrors({}); // Clear validation errors when switching categories
+  }, [questionnaire, onCategoryChange]);
+
+  // Handle subcategory selection
+  const handleSubcategorySelect = useCallback((categoryId: string, subcategoryId: string) => {
+    setCurrentCategory(categoryId);
+    setCurrentSubcategory(subcategoryId);
+    onCategoryChange?.(categoryId);
+    setValidationErrors({}); // Clear validation errors when switching subcategories
   }, [onCategoryChange]);
 
   // Handle response changes
@@ -282,6 +296,13 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
     if (questionnaire && !currentCategory && questionnaire.categories.length > 0) {
       const initialCategory = assessment?.currentCategory || questionnaire.categories[0].id;
       setCurrentCategory(initialCategory);
+      
+      // Set initial subcategory
+      const category = questionnaire.categories.find(cat => cat.id === initialCategory);
+      if (category && category.subcategories.length > 0) {
+        setCurrentSubcategory(category.subcategories[0].id);
+      }
+      
       onCategoryChange?.(initialCategory);
     }
   }, [questionnaire, currentCategory, assessment?.currentCategory, onCategoryChange]);
@@ -378,10 +399,12 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
         <div className="flex h-full">
           {/* Sidebar */}
           <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50">
-            <CategoryNavigationSidebar
+            <EnhancedCategoryNavigationWithSubcategories
               categories={questionnaire.categories}
               currentCategory={currentCategory}
+              currentSubcategory={currentSubcategory}
               onCategorySelect={handleCategorySelect}
+              onSubcategorySelect={handleSubcategorySelect}
               completionStatus={getCompletionStatuses()}
             />
           </div>
@@ -393,11 +416,26 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {questionnaire.categories.find(cat => cat.id === currentCategory)?.title || 'Loading...'}
+                    {(() => {
+                      const category = questionnaire.categories.find(cat => cat.id === currentCategory);
+                      const subcategory = category?.subcategories.find(sub => sub.id === currentSubcategory);
+                      return subcategory?.title || category?.title || 'Loading...';
+                    })()}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    {validAssessmentType === 'EXPLORATORY' ? 'Exploratory' : 'Migration'} Assessment
-                    {assessment?.name && ` • ${assessment.name}`}
+                    {(() => {
+                      const category = questionnaire.categories.find(cat => cat.id === currentCategory);
+                      const subcategory = category?.subcategories.find(sub => sub.id === currentSubcategory);
+                      return (
+                        <>
+                          {category?.title}
+                          {subcategory && category?.title !== subcategory.title && ` • ${subcategory.title}`}
+                          {' • '}
+                          {validAssessmentType === 'EXPLORATORY' ? 'Exploratory' : 'Migration'} Assessment
+                          {assessment?.name && ` • ${assessment.name}`}
+                        </>
+                      );
+                    })()}
                   </p>
                 </div>
                 
@@ -448,14 +486,129 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
             {/* Question Container */}
             <div className="flex-1 overflow-auto">
               <FixedQuestionContainer>
-                {questionnaire.categories.find(cat => cat.id === currentCategory) && (
-                  <QuestionStep
-                    category={questionnaire.categories.find(cat => cat.id === currentCategory)!}
-                    responses={responses[currentCategory] || {}}
-                    onResponseChange={handleResponseChange}
-                    validationErrors={validationErrors}
-                  />
-                )}
+                {(() => {
+                  const category = questionnaire.categories.find(cat => cat.id === currentCategory);
+                  const subcategory = category?.subcategories.find(sub => sub.id === currentSubcategory);
+                  
+                  if (subcategory) {
+                    return (
+                      <div className="p-6">
+                        <div className="mb-6">
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            {subcategory.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            {subcategory.questionCount} questions in this section
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-6">
+                          {subcategory.questions.map((question, index) => (
+                            <div key={question.id} className="border-b border-gray-200 pb-6 last:border-b-0">
+                              <div className="flex items-start space-x-3">
+                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <span className="text-sm font-medium text-blue-600">
+                                    {index + 1}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <h4 className="text-sm font-medium text-gray-900">
+                                      {question.number}
+                                    </h4>
+                                    {question.required && (
+                                      <span className="text-red-500 text-sm">*</span>
+                                    )}
+                                  </div>
+                                  
+                                  <p className="text-sm text-gray-700 mb-3">
+                                    {question.text}
+                                  </p>
+                                  
+                                  {question.description && (
+                                    <p className="text-xs text-gray-500 mb-3">
+                                      {question.description}
+                                    </p>
+                                  )}
+                                  
+                                  {/* Question Input */}
+                                  <div className="space-y-2">
+                                    {question.type === 'text' && (
+                                      <input
+                                        type="text"
+                                        value={responses[currentCategory]?.[question.id] || ''}
+                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Enter your answer..."
+                                      />
+                                    )}
+                                    
+                                    {question.type === 'textarea' && (
+                                      <textarea
+                                        value={responses[currentCategory]?.[question.id] || ''}
+                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Enter your detailed answer..."
+                                      />
+                                    )}
+                                    
+                                    {question.type === 'select' && question.options && (
+                                      <select
+                                        value={responses[currentCategory]?.[question.id] || ''}
+                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">Select an option...</option>
+                                        {question.options.map((option) => (
+                                          <option key={option} value={option}>
+                                            {option}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    )}
+                                    
+                                    {question.type === 'radio' && question.options && (
+                                      <div className="space-y-2">
+                                        {question.options.map((option) => (
+                                          <label key={option} className="flex items-center">
+                                            <input
+                                              type="radio"
+                                              name={question.id}
+                                              value={option}
+                                              checked={responses[currentCategory]?.[question.id] === option}
+                                              onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700">{option}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Validation Error */}
+                                  {validationErrors[question.id] && !validationErrors[question.id].isValid && (
+                                    <p className="mt-2 text-sm text-red-600">
+                                      {validationErrors[question.id].error}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="p-6">
+                      <p className="text-gray-500">Please select a subcategory to view questions.</p>
+                    </div>
+                  );
+                })()}
               </FixedQuestionContainer>
             </div>
           </div>
