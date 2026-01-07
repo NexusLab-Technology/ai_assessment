@@ -6,8 +6,8 @@ import {
   CheckCircleIcon, 
   ExclamationTriangleIcon 
 } from '@heroicons/react/24/outline'
-import LoadingSpinner from './LoadingSpinner'
-import ErrorMessage from './ErrorMessage'
+import { LoadingSpinner } from './LoadingSpinner'
+import { ErrorMessage } from './ErrorMessage'
 import { Assessment, Company } from '../../types/assessment'
 import { getErrorMessage, logError } from '../../utils/error-handling'
 

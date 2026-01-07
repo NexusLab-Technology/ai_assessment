@@ -1,64 +1,71 @@
-import { NextRequest } from 'next/server'
-import { CompanyModel } from '../../../lib/models/Company'
-import { 
-  createSuccessResponse, 
-  createErrorResponse, 
-  handleApiError, 
-  getUserId,
-  parseRequestBody,
-  validateRequiredFields
-} from '../../../lib/api-utils'
+import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * GET /api/companies
- * Get all companies for the authenticated user
- */
+// Mock companies data for demo
+const mockCompanies = [
+  {
+    id: 'demo-company-1',
+    name: 'Test Company',
+    description: 'Demo company for testing AI Assessment',
+    createdAt: new Date().toISOString(),
+    assessmentCount: 0
+  },
+  {
+    id: 'demo-company-2', 
+    name: 'Sample Corp',
+    description: 'Another demo company',
+    createdAt: new Date().toISOString(),
+    assessmentCount: 2
+  }
+]
+
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request)
-    const companies = await CompanyModel.findAll(userId)
-    
-    return createSuccessResponse({
-      companies,
-      total: companies.length
+    return NextResponse.json({
+      success: true,
+      data: {
+        companies: mockCompanies
+      }
     })
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error in GET /api/companies:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to fetch companies',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 
-/**
- * POST /api/companies
- * Create a new company
- */
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request)
-    const body = await parseRequestBody(request)
+    const body = await request.json()
     
-    // Validate required fields
-    const validation = validateRequiredFields(body, ['name'])
-    if (!validation.isValid) {
-      return createErrorResponse(
-        `Missing required fields: ${validation.missingFields.join(', ')}`,
-        400
-      )
+    const newCompany = {
+      id: `demo-company-${Date.now()}`,
+      name: body.name,
+      description: body.description || '',
+      createdAt: new Date().toISOString(),
+      assessmentCount: 0
     }
     
-    // Validate name length
-    if (body.name.length > 100) {
-      return createErrorResponse('Company name must be 100 characters or less', 400)
-    }
+    mockCompanies.push(newCompany)
     
-    // Create company
-    const company = await CompanyModel.create({
-      name: body.name.trim(),
-      description: body.description?.trim(),
-      userId
+    return NextResponse.json({
+      success: true,
+      data: newCompany
     })
-    
-    return createSuccessResponse(company, 'Company created successfully')
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error in POST /api/companies:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to create company',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }

@@ -1,209 +1,205 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { AssessmentResponses } from '../types/assessment'
-import { assessmentApi, withRetry } from '../lib/api-client'
+/**
+ * React Hook for Enhanced Auto-Save Functionality
+ * Provides auto-save capabilities with category-based response management
+ */
+
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { AutoSaveService, createAutoSaveService } from '@/lib/services/auto-save-service'
+import { AssessmentResponses } from '@/types/rapid-questionnaire'
 
 interface UseAutoSaveOptions {
   assessmentId: string
-  autoSaveInterval?: number // in milliseconds, default 30 seconds
-  onSaveSuccess?: () => void
-  onSaveError?: (error: Error) => void
+  intervalMs?: number
+  maxRetries?: number
+  retryDelayMs?: number
+  enabled?: boolean
+}
+
+interface AutoSaveStatus {
+  status: 'idle' | 'saving' | 'saved' | 'error' | 'retrying'
+  lastSaved: Date | null
+  hasUnsavedChanges: boolean
+  error: string | null
 }
 
 interface UseAutoSaveReturn {
-  saveStatus: 'idle' | 'saving' | 'saved' | 'error'
-  lastSaved: Date | null
-  saveNow: () => Promise<void>
-  hasUnsavedChanges: boolean
+  // Status
+  status: AutoSaveStatus
+  
+  // Actions
+  updateCategoryResponses: (categoryId: string, responses: { [questionId: string]: any }) => void
+  saveNow: () => Promise<{ success: boolean; error?: string }>
+  saveOnNavigation: (categoryId: string, responses: { [questionId: string]: any }) => Promise<{ success: boolean; error?: string }>
+  
+  // Utility
+  getCategoryCompletionStatus: (categoryId: string, totalQuestions: number) => {
+    status: 'not_started' | 'partial' | 'completed'
+    completionPercentage: number
+    answeredQuestions: number
+  }
+  
+  // Control
+  start: () => void
+  stop: () => void
 }
 
-/**
- * Custom hook for auto-saving assessment responses to the server
- * Replaces localStorage with API calls and provides retry logic
- */
-export function useAutoSave(
-  responses: AssessmentResponses,
-  currentStep: number,
-  options: UseAutoSaveOptions
-): UseAutoSaveReturn {
+export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
   const {
     assessmentId,
-    autoSaveInterval = 30000, // 30 seconds
-    onSaveSuccess,
-    onSaveError
+    intervalMs = 30000,
+    maxRetries = 3,
+    retryDelayMs = 1000,
+    enabled = true
   } = options
 
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  
-  const lastSavedResponses = useRef<AssessmentResponses>({})
-  const lastSavedStep = useRef<number>(1)
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+  const serviceRef = useRef<AutoSaveService | null>(null)
+  const [status, setStatus] = useState<AutoSaveStatus>({
+    status: 'idle',
+    lastSaved: null,
+    hasUnsavedChanges: false,
+    error: null
+  })
 
-  // Reset state when assessment changes
+  // Initialize auto-save service
   useEffect(() => {
-    // Clear previous state when switching to a different assessment
-    lastSavedResponses.current = {}
-    lastSavedStep.current = 1
-    setSaveStatus('idle')
-    setLastSaved(null)
-    setHasUnsavedChanges(false)
-    
-    // Clear any existing auto-save timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current)
-    }
-  }, [assessmentId])
+    if (!assessmentId) return
 
-  // Check if there are unsaved changes
-  useEffect(() => {
-    const responsesChanged = JSON.stringify(responses) !== JSON.stringify(lastSavedResponses.current)
-    const stepChanged = currentStep !== lastSavedStep.current
-    setHasUnsavedChanges(responsesChanged || stepChanged)
-  }, [responses, currentStep])
-
-  // Save function with retry logic and step status tracking
-  const saveNow = useCallback(async () => {
-    if (!hasUnsavedChanges) return
-
-    setSaveStatus('saving')
-    
-    try {
-      // Find the current step section to save
-      const currentStepId = `step-${currentStep}`
-      const currentStepResponses = responses[currentStepId] || {}
-
-      // Calculate step completion status
-      const stepStatus = calculateStepStatus(currentStepResponses)
-
-      // Use retry logic for network resilience
-      await withRetry(async () => {
-        await assessmentApi.saveResponsesWithStatus(
-          assessmentId,
-          currentStepId,
-          currentStepResponses,
-          currentStep,
-          stepStatus
-        )
-      }, 3, 1000)
-
-      // Update tracking variables
-      lastSavedResponses.current = { ...responses }
-      lastSavedStep.current = currentStep
-      setLastSaved(new Date())
-      setHasUnsavedChanges(false)
-      setSaveStatus('saved')
-      
-      onSaveSuccess?.()
-      
-      // Reset status after 2 seconds
-      setTimeout(() => setSaveStatus('idle'), 2000)
-      
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-      setSaveStatus('error')
-      onSaveError?.(error as Error)
-      
-      // Reset status after 3 seconds
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    }
-  }, [assessmentId, responses, currentStep, hasUnsavedChanges, onSaveSuccess, onSaveError])
-
-  // Helper function to calculate step completion status
-  const calculateStepStatus = useCallback((stepResponses: { [questionId: string]: any }) => {
-    // This would need to be enhanced with actual question metadata
-    // For now, we'll use a simple heuristic based on response presence
-    const responseKeys = Object.keys(stepResponses)
-    const filledResponses = responseKeys.filter(key => {
-      const value = stepResponses[key]
-      return value !== null && value !== undefined && value !== '' && 
-             (!Array.isArray(value) || value.length > 0)
+    serviceRef.current = createAutoSaveService(assessmentId, {
+      intervalMs,
+      maxRetries,
+      retryDelayMs
     })
 
-    // Estimate required fields (this should come from question metadata)
-    const estimatedRequiredFields = Math.max(1, Math.floor(responseKeys.length * 0.7))
-    const requiredFieldsCount = responseKeys.length > 0 ? estimatedRequiredFields : 1
-    const filledFieldsCount = filledResponses.length
+    // Subscribe to status changes
+    const unsubscribe = serviceRef.current.onStatusChange((newStatus, error) => {
+      const serviceStatus = serviceRef.current?.getStatus()
+      if (serviceStatus) {
+        setStatus({
+          status: newStatus,
+          lastSaved: serviceStatus.lastSaved,
+          hasUnsavedChanges: serviceStatus.hasUnsavedChanges,
+          error: error || serviceStatus.error
+        })
+      }
+    })
 
-    let status: 'not_started' | 'partial' | 'completed'
-    if (filledFieldsCount === 0) {
-      status = 'not_started'
-    } else if (filledFieldsCount >= requiredFieldsCount) {
-      status = 'completed'
-    } else {
-      status = 'partial'
+    // Start auto-save if enabled
+    if (enabled) {
+      serviceRef.current.start()
     }
 
-    return {
-      status,
-      requiredFieldsCount,
-      filledFieldsCount
+    return () => {
+      unsubscribe()
+      serviceRef.current?.destroy()
+      serviceRef.current = null
     }
+  }, [assessmentId, intervalMs, maxRetries, retryDelayMs, enabled])
+
+  // Update category responses
+  const updateCategoryResponses = useCallback((categoryId: string, responses: { [questionId: string]: any }) => {
+    serviceRef.current?.updateCategoryResponses(categoryId, responses)
   }, [])
 
-  // Auto-save timer
-  useEffect(() => {
-    if (!hasUnsavedChanges) return
-
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current)
+  // Save now
+  const saveNow = useCallback(async () => {
+    if (!serviceRef.current) {
+      return { success: false, error: 'Auto-save service not initialized' }
     }
+    return await serviceRef.current.saveNow()
+  }, [])
 
-    // Set new timeout for auto-save
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      if (hasUnsavedChanges && saveStatus !== 'saving') {
-        saveNow()
-      }
-    }, autoSaveInterval)
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
-      }
+  // Save on navigation
+  const saveOnNavigation = useCallback(async (categoryId: string, responses: { [questionId: string]: any }) => {
+    if (!serviceRef.current) {
+      return { success: false, error: 'Auto-save service not initialized' }
     }
-  }, [hasUnsavedChanges, saveStatus, autoSaveInterval, saveNow])
+    return await serviceRef.current.saveOnNavigation(categoryId, responses)
+  }, [])
 
-  // Save on page unload
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        event.preventDefault()
-        event.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
-        
-        // Attempt to save synchronously (limited browser support)
-        if (navigator.sendBeacon) {
-          const currentStepId = `step-${currentStep}`
-          const currentStepResponses = responses[currentStepId] || {}
-          
-          const data = JSON.stringify({
-            stepId: currentStepId,
-            responses: currentStepResponses,
-            currentStep
-          })
-          
-          navigator.sendBeacon(`/api/assessments/${assessmentId}/responses`, data)
-        }
+  // Get category completion status
+  const getCategoryCompletionStatus = useCallback((categoryId: string, totalQuestions: number) => {
+    if (!serviceRef.current) {
+      return {
+        status: 'not_started' as const,
+        completionPercentage: 0,
+        answeredQuestions: 0
       }
     }
+    return serviceRef.current.getCategoryCompletionStatus(categoryId, totalQuestions)
+  }, [])
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [hasUnsavedChanges, assessmentId, responses, currentStep])
+  // Start auto-save
+  const start = useCallback(() => {
+    serviceRef.current?.start()
+  }, [])
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
-      }
-    }
+  // Stop auto-save
+  const stop = useCallback(() => {
+    serviceRef.current?.stop()
   }, [])
 
   return {
-    saveStatus,
-    lastSaved,
+    status,
+    updateCategoryResponses,
     saveNow,
-    hasUnsavedChanges
+    saveOnNavigation,
+    getCategoryCompletionStatus,
+    start,
+    stop
+  }
+}
+
+/**
+ * Hook for auto-save status display
+ */
+export function useAutoSaveStatus(autoSaveStatus: AutoSaveStatus) {
+  const getStatusDisplay = useCallback(() => {
+    switch (autoSaveStatus.status) {
+      case 'saving':
+        return {
+          text: 'Saving...',
+          color: 'text-blue-600',
+          icon: '💾'
+        }
+      case 'saved':
+        return {
+          text: autoSaveStatus.lastSaved 
+            ? `Saved at ${autoSaveStatus.lastSaved.toLocaleTimeString()}`
+            : 'Saved',
+          color: 'text-green-600',
+          icon: '✅'
+        }
+      case 'error':
+        return {
+          text: autoSaveStatus.error || 'Save failed',
+          color: 'text-red-600',
+          icon: '❌'
+        }
+      case 'retrying':
+        return {
+          text: 'Retrying...',
+          color: 'text-yellow-600',
+          icon: '🔄'
+        }
+      default:
+        return autoSaveStatus.hasUnsavedChanges
+          ? {
+              text: 'Unsaved changes',
+              color: 'text-gray-600',
+              icon: '📝'
+            }
+          : {
+              text: 'All changes saved',
+              color: 'text-gray-500',
+              icon: '💾'
+            }
+    }
+  }, [autoSaveStatus])
+
+  return {
+    display: getStatusDisplay(),
+    hasUnsavedChanges: autoSaveStatus.hasUnsavedChanges,
+    isError: autoSaveStatus.status === 'error',
+    isSaving: autoSaveStatus.status === 'saving' || autoSaveStatus.status === 'retrying'
   }
 }

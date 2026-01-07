@@ -9,8 +9,8 @@ import {
   AssessmentType 
 } from '@/types/rapid-questionnaire';
 import { getRAPIDQuestionnaire } from '@/data/rapid-questionnaire-complete';
-import LoadingSpinner from './LoadingSpinner';
-import ErrorMessage from './ErrorMessage';
+import { LoadingSpinner } from './LoadingSpinner';
+import { ErrorMessage } from './ErrorMessage';
 
 interface RAPIDQuestionnaireLoaderProps {
   assessmentType: AssessmentType;
@@ -129,7 +129,10 @@ export const RAPIDQuestionnaireLoader: React.FC<RAPIDQuestionnaireLoaderProps> =
             <div>
               <span className="font-medium text-blue-800">Last Updated:</span>
               <span className="ml-2 text-blue-600">
-                {questionnaire.lastUpdated.toLocaleDateString()}
+                {questionnaire.lastUpdated 
+                  ? new Date(questionnaire.lastUpdated).toLocaleDateString()
+                  : 'Unknown'
+                }
               </span>
             </div>
           </div>

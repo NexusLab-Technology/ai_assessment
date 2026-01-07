@@ -1,186 +1,216 @@
-import { NextRequest } from 'next/server'
-import { ObjectId } from 'mongodb'
-import { getCollection } from '../../../../../lib/mongodb'
-import { AssessmentDocument, COLLECTIONS } from '../../../../../lib/models/assessment'
-import { 
-  createSuccessResponse, 
-  createErrorResponse, 
-  handleApiError, 
-  getUserId,
-  parseRequestBody,
-  validateRequiredFields,
-  isValidObjectId
-} from '../../../../../lib/api-utils'
-
 /**
- * POST /api/assessments/[id]/responses
- * Save responses for a specific step in an assessment
+ * Assessment Responses API Route
+ * PUT /api/assessments/[id]/responses - Update category-based responses
+ * GET /api/assessments/[id]/responses - Get assessment responses
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const userId = getUserId(request)
-    const { id } = params
-    const body = await parseRequestBody(request)
-    
-    // Validate ObjectId format
-    if (!isValidObjectId(id)) {
-      return createErrorResponse('Invalid assessment ID format', 400)
-    }
-    
-    // Validate required fields
-    const validation = validateRequiredFields(body, ['stepId', 'responses', 'currentStep'])
-    if (!validation.isValid) {
-      return createErrorResponse(
-        `Missing required fields: ${validation.missingFields.join(', ')}`,
-        400
-      )
-    }
-    
-    // Validate field types
-    if (typeof body.stepId !== 'string' || body.stepId.trim().length === 0) {
-      return createErrorResponse('stepId must be a non-empty string', 400)
-    }
-    
-    if (typeof body.responses !== 'object' || body.responses === null) {
-      return createErrorResponse('responses must be an object', 400)
-    }
-    
-    if (typeof body.currentStep !== 'number' || body.currentStep < 1) {
-      return createErrorResponse('currentStep must be a positive number', 400)
-    }
 
-    // Validate step status if provided
-    if (body.stepStatus) {
-      if (typeof body.stepStatus !== 'object' || body.stepStatus === null) {
-        return createErrorResponse('stepStatus must be an object', 400)
-      }
-      
-      const validStatuses = ['not_started', 'partial', 'completed']
-      if (!validStatuses.includes(body.stepStatus.status)) {
-        return createErrorResponse(
-          `stepStatus.status must be one of: ${validStatuses.join(', ')}`,
-          400
-        )
-      }
-      
-      if (typeof body.stepStatus.requiredFieldsCount !== 'number' || body.stepStatus.requiredFieldsCount < 0) {
-        return createErrorResponse('stepStatus.requiredFieldsCount must be a non-negative number', 400)
-      }
-      
-      if (typeof body.stepStatus.filledFieldsCount !== 'number' || body.stepStatus.filledFieldsCount < 0) {
-        return createErrorResponse('stepStatus.filledFieldsCount must be a non-negative number', 400)
-      }
-    }
-    
-    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
-    
-    // Check if assessment exists
-    const existingAssessment = await assessmentsCollection.findOne({
-      _id: new ObjectId(id),
-      userId
-    })
-    
-    if (!existingAssessment) {
-      return createErrorResponse('Assessment not found', 404)
-    }
-    
-    // Validate current step doesn't exceed total steps
-    if (body.currentStep > existingAssessment.totalSteps) {
-      return createErrorResponse(
-        `Current step cannot exceed total steps (${existingAssessment.totalSteps})`, 
-        400
-      )
-    }
-    
-    // Don't allow saving responses for completed assessments
-    if (existingAssessment.status === 'COMPLETED') {
-      return createErrorResponse('Cannot save responses for completed assessments', 400)
-    }
-    
-    // Save responses
-    const now = new Date()
-    const updateData: Partial<AssessmentDocument> = {
-      [`responses.${body.stepId.trim()}`]: body.responses,
-      currentStep: body.currentStep,
-      updatedAt: now
-    }
-    
-    // Update status to IN_PROGRESS if it's still DRAFT
-    if (existingAssessment.status === 'DRAFT') {
-      updateData.status = 'IN_PROGRESS'
-    }
+import { NextRequest, NextResponse } from 'next/server'
+import { AssessmentService } from '@/lib/services/assessment-service'
+import { CategoryCompletionStatus } from '@/types/rapid-questionnaire'
 
-    // Update step status if provided
-    if (body.stepStatus && body.stepNumber) {
-      const stepStatuses = existingAssessment.stepStatuses || {}
-      stepStatuses[body.stepNumber] = {
-        status: body.stepStatus.status,
-        lastModified: now,
-        requiredFieldsCount: body.stepStatus.requiredFieldsCount,
-        filledFieldsCount: body.stepStatus.filledFieldsCount
-      }
-      updateData.stepStatuses = stepStatuses
-    }
-    
-    const updateResult = await assessmentsCollection.updateOne(
-      { _id: new ObjectId(id), userId },
-      { $set: updateData }
-    )
-    
-    if (updateResult.matchedCount === 0) {
-      return createErrorResponse('Assessment not found', 404)
-    }
-    
-    // Get updated assessment
-    const updatedAssessment = await assessmentsCollection.findOne({
-      _id: new ObjectId(id),
-      userId
-    })
-    
-    return createSuccessResponse(updatedAssessment, 'Responses saved successfully')
-  } catch (error) {
-    return handleApiError(error)
+interface RouteParams {
+  params: {
+    id: string
   }
 }
 
-/**
- * GET /api/assessments/[id]/responses
- * Get all responses for an assessment
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const userId = getUserId(request)
     const { id } = params
-    
-    // Validate ObjectId format
-    if (!isValidObjectId(id)) {
-      return createErrorResponse('Invalid assessment ID format', 400)
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Assessment ID is required' },
+        { status: 400 }
+      )
     }
-    
-    const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
-    const assessment = await assessmentsCollection.findOne({
-      _id: new ObjectId(id),
-      userId
-    })
+
+    const assessment = await AssessmentService.getAssessment(id)
     
     if (!assessment) {
-      return createErrorResponse('Assessment not found', 404)
+      return NextResponse.json(
+        { error: 'Assessment not found' },
+        { status: 404 }
+      )
     }
-    
-    return createSuccessResponse({
-      assessmentId: id,
-      responses: assessment.responses || {},
-      currentStep: assessment.currentStep,
-      totalSteps: assessment.totalSteps,
-      status: assessment.status
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        responses: assessment.responses,
+        categoryStatuses: assessment.categoryStatuses,
+        currentCategory: assessment.currentCategory,
+        currentSubcategory: assessment.currentSubcategory,
+        status: assessment.status
+      }
     })
+
   } catch (error) {
-    return handleApiError(error)
+    console.error('Error getting assessment responses:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = params
+    const body = await request.json()
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Assessment ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const { 
+      categoryId, 
+      responses, 
+      categoryStatus,
+      currentCategory,
+      currentSubcategory 
+    } = body
+
+    // Validate required fields
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: 'Category ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Update category responses if provided
+    if (responses) {
+      const responseResult = await AssessmentService.updateCategoryResponses(id, categoryId, responses)
+      
+      if (!responseResult.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: responseResult.error || 'Failed to update responses'
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // Update category status if provided
+    if (categoryStatus) {
+      const statusResult = await AssessmentService.updateCategoryStatus(id, categoryId, categoryStatus)
+      
+      if (!statusResult.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: statusResult.error || 'Failed to update category status'
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // Update current category if provided
+    if (currentCategory) {
+      const categoryResult = await AssessmentService.updateCurrentCategory(
+        id, 
+        currentCategory, 
+        currentSubcategory
+      )
+      
+      if (!categoryResult.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: categoryResult.error || 'Failed to update current category'
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // Get updated assessment data
+    const updatedAssessment = await AssessmentService.getAssessment(id)
+    
+    return NextResponse.json({
+      success: true,
+      data: {
+        responses: updatedAssessment?.responses || {},
+        categoryStatuses: updatedAssessment?.categoryStatuses || {},
+        currentCategory: updatedAssessment?.currentCategory,
+        currentSubcategory: updatedAssessment?.currentSubcategory,
+        message: 'Assessment updated successfully'
+      }
+    })
+
+  } catch (error) {
+    console.error('Error updating assessment responses:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = params
+    const body = await request.json()
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Assessment ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const { action } = body
+
+    if (action === 'complete') {
+      const result = await AssessmentService.completeAssessment(id)
+      
+      if (!result.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: result.error || 'Failed to complete assessment'
+          },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          message: 'Assessment completed successfully'
+        }
+      })
+    }
+
+    return NextResponse.json(
+      { error: 'Invalid action. Supported actions: complete' },
+      { status: 400 }
+    )
+
+  } catch (error) {
+    console.error('Error in assessment action:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }

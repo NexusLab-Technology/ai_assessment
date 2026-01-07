@@ -8,7 +8,7 @@ import {
   EyeIcon,
   EyeSlashIcon
 } from '@heroicons/react/24/outline'
-import LoadingSpinner from './LoadingSpinner'
+import { LoadingSpinner } from './LoadingSpinner'
 import FormValidationError from './FormValidationError'
 
 export interface AWSCredentials {

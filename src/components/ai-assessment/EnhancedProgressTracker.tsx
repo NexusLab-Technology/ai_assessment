@@ -1,250 +1,308 @@
-'use client'
+/**
+ * EnhancedProgressTracker Component
+ * Displays visual progress for each category with clickable navigation
+ * Shows completion indicators, progress percentages, and highlights current category
+ */
 
-import React from 'react'
-import { CheckIcon, ClockIcon } from '@heroicons/react/24/solid'
-import { EnhancedProgressTrackerProps, StepStatus } from '../../types/assessment'
+import React from 'react';
+import { 
+  CheckCircleIcon, 
+  ClockIcon, 
+  PlayCircleIcon,
+  ChevronRightIcon 
+} from '@heroicons/react/24/outline';
+import { 
+  CheckCircleIcon as CheckCircleIconSolid 
+} from '@heroicons/react/24/solid';
+import { 
+  RAPIDCategory, 
+  CategoryCompletionStatus 
+} from '@/types/rapid-questionnaire';
 
-const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = ({
-  currentStep,
-  totalSteps,
-  stepStatuses,
-  onStepClick,
-  allowNavigation
+interface EnhancedProgressTrackerProps {
+  categories: RAPIDCategory[];
+  currentCategory: string;
+  categoryStatuses: CategoryCompletionStatus[];
+  onCategoryClick: (categoryId: string) => void;
+  className?: string;
+  showDetailedProgress?: boolean;
+}
+
+export const EnhancedProgressTracker: React.FC<EnhancedProgressTrackerProps> = ({
+  categories,
+  currentCategory,
+  categoryStatuses,
+  onCategoryClick,
+  className = '',
+  showDetailedProgress = true
 }) => {
+  // Get completion status for a specific category
+  const getCategoryStatus = (categoryId: string): CategoryCompletionStatus => {
+    return categoryStatuses.find(status => status.categoryId === categoryId) || {
+      categoryId,
+      status: 'not_started',
+      completionPercentage: 0,
+      lastModified: new Date()
+    };
+  };
+
   // Calculate overall progress
-  const completedSteps = stepStatuses.filter(step => step.status === 'completed').length
-  const progressPercentage = totalSteps > 0 
-    ? Math.round((completedSteps / totalSteps) * 100)
-    : 0
-
-  const getStepIcon = (stepStatus: StepStatus) => {
-    switch (stepStatus.status) {
-      case 'completed':
-        return <CheckIcon className="w-4 h-4" />
-      case 'partial':
-        return <ClockIcon className="w-4 h-4" />
-      case 'current':
-        return stepStatus.stepNumber
-      case 'not_started':
-      default:
-        return stepStatus.stepNumber
-    }
-  }
-
-  const getStepStyles = (stepStatus: StepStatus) => {
-    const baseStyles = "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200"
+  const overallProgress = React.useMemo(() => {
+    const totalCategories = categories.length;
+    const completedCategories = categoryStatuses.filter(status => status.status === 'completed').length;
+    const inProgressCategories = categoryStatuses.filter(status => status.status === 'partial').length;
+    const notStartedCategories = totalCategories - completedCategories - inProgressCategories;
     
-    switch (stepStatus.status) {
-      case 'completed':
-        return `${baseStyles} bg-green-600 text-white shadow-sm`
-      case 'partial':
-        return `${baseStyles} bg-yellow-500 text-white shadow-sm`
-      case 'current':
-        return `${baseStyles} bg-blue-600 text-white shadow-md ring-2 ring-blue-200`
-      case 'not_started':
-      default:
-        return `${baseStyles} bg-gray-200 text-gray-600 hover:bg-gray-300`
-    }
-  }
+    const overallPercentage = totalCategories > 0 ? 
+      Math.round(((completedCategories + (inProgressCategories * 0.5)) / totalCategories) * 100) : 0;
 
-  const getStepContainerStyles = (stepStatus: StepStatus) => {
-    const baseStyles = "flex items-center p-3 rounded-lg transition-all duration-200"
-    const clickableStyles = allowNavigation ? "cursor-pointer hover:shadow-sm" : ""
+    return {
+      totalCategories,
+      completedCategories,
+      inProgressCategories,
+      notStartedCategories,
+      overallPercentage
+    };
+  }, [categories.length, categoryStatuses]);
+
+  // Get status icon for a category
+  const getStatusIcon = (category: RAPIDCategory, status: CategoryCompletionStatus) => {
+    const isActive = category.id === currentCategory;
     
-    switch (stepStatus.status) {
+    switch (status.status) {
       case 'completed':
-        return `${baseStyles} ${clickableStyles} bg-green-50 border border-green-200 hover:bg-green-100`
+        return (
+          <CheckCircleIconSolid 
+            className={`w-6 h-6 ${isActive ? 'text-green-600' : 'text-green-500'}`} 
+          />
+        );
       case 'partial':
-        return `${baseStyles} ${clickableStyles} bg-yellow-50 border border-yellow-200 hover:bg-yellow-100`
-      case 'current':
-        return `${baseStyles} ${clickableStyles} bg-blue-50 border-2 border-blue-300 shadow-sm`
+        return (
+          <div className={`relative w-6 h-6 ${isActive ? 'ring-2 ring-blue-600 ring-offset-1' : ''} rounded-full`}>
+            <ClockIcon className="w-6 h-6 text-blue-500" />
+            <div 
+              className="absolute inset-0 rounded-full border-2 border-blue-500"
+              style={{
+                background: `conic-gradient(#3b82f6 ${status.completionPercentage * 3.6}deg, transparent 0deg)`
+              }}
+            />
+          </div>
+        );
       case 'not_started':
       default:
-        return `${baseStyles} ${clickableStyles} bg-gray-50 border border-gray-200 hover:bg-gray-100`
+        return (
+          <PlayCircleIcon 
+            className={`w-6 h-6 ${isActive ? 'text-gray-700 ring-2 ring-gray-600 ring-offset-1 rounded-full' : 'text-gray-400'}`} 
+          />
+        );
     }
-  }
+  };
 
-  const getProgressText = (stepStatus: StepStatus) => {
-    if (stepStatus.status === 'partial' && stepStatus.requiredFieldsCount > 0) {
-      return `${stepStatus.filledFieldsCount}/${stepStatus.requiredFieldsCount} fields completed`
+  // Get status color classes
+  const getStatusColors = (category: RAPIDCategory, status: CategoryCompletionStatus) => {
+    const isActive = category.id === currentCategory;
+    
+    if (isActive) {
+      return {
+        container: 'bg-blue-50 border-blue-200 shadow-md',
+        title: 'text-blue-900',
+        subtitle: 'text-blue-700',
+        progress: 'bg-blue-600'
+      };
     }
-    return null
-  }
 
-  const handleStepClick = (stepNumber: number) => {
-    if (allowNavigation) {
-      onStepClick(stepNumber)
+    switch (status.status) {
+      case 'completed':
+        return {
+          container: 'bg-green-50 border-green-200 hover:bg-green-100',
+          title: 'text-green-900',
+          subtitle: 'text-green-700',
+          progress: 'bg-green-600'
+        };
+      case 'partial':
+        return {
+          container: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+          title: 'text-blue-900',
+          subtitle: 'text-blue-700',
+          progress: 'bg-blue-600'
+        };
+      case 'not_started':
+      default:
+        return {
+          container: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+          title: 'text-gray-900',
+          subtitle: 'text-gray-600',
+          progress: 'bg-gray-400'
+        };
     }
-  }
+  };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-      {/* Progress Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Assessment Progress</h3>
-        <div className="text-right">
-          <div className="text-sm text-gray-500">
-            {completedSteps} of {totalSteps} completed
-          </div>
-          <div className="text-xs text-gray-400">
-            Step {currentStep} of {totalSteps}
-          </div>
+    <div className={`enhanced-progress-tracker ${className}`}>
+      {/* Overall Progress Header */}
+      <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">Assessment Progress</h3>
+          <span className="text-sm font-medium text-gray-600">
+            {overallProgress.overallPercentage}% Complete
+          </span>
         </div>
-      </div>
-
-      {/* Overall Progress Bar */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <span>Overall Progress</span>
-          <span className="font-medium">{progressPercentage}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+        
+        {/* Overall Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
           <div
-            className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
-            style={{ width: `${progressPercentage}%` }}
+            className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${overallProgress.overallPercentage}%` }}
           />
         </div>
+        
+        {/* Progress Summary */}
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="text-center">
+            <div className="font-semibold text-green-600">{overallProgress.completedCategories}</div>
+            <div className="text-gray-500">Completed</div>
+          </div>
+          <div className="text-center">
+            <div className="font-semibold text-blue-600">{overallProgress.inProgressCategories}</div>
+            <div className="text-gray-500">In Progress</div>
+          </div>
+          <div className="text-center">
+            <div className="font-semibold text-gray-600">{overallProgress.notStartedCategories}</div>
+            <div className="text-gray-500">Not Started</div>
+          </div>
+        </div>
       </div>
 
-      {/* Step List - Desktop */}
-      <div className="hidden md:block space-y-3">
-        {stepStatuses.map((stepStatus) => (
-          <div
-            key={stepStatus.stepNumber}
-            className={getStepContainerStyles(stepStatus)}
-            onClick={() => handleStepClick(stepStatus.stepNumber)}
-            role={allowNavigation ? "button" : undefined}
-            tabIndex={allowNavigation ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (allowNavigation && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault()
-                handleStepClick(stepStatus.stepNumber)
+      {/* Category Progress List */}
+      <div className="space-y-3">
+        {categories.map((category, index) => {
+          const status = getCategoryStatus(category.id);
+          const colors = getStatusColors(category, status);
+          const isActive = category.id === currentCategory;
+          
+          return (
+            <button
+              key={category.id}
+              onClick={() => onCategoryClick(category.id)}
+              className={`
+                w-full text-left p-4 border rounded-lg transition-all duration-200
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                ${colors.container}
+                ${isActive ? 'transform scale-[1.02]' : 'hover:transform hover:scale-[1.01]'}
+              `}
+            >
+              <div className="flex items-start space-x-4">
+                {/* Status Icon */}
+                <div className="flex-shrink-0 mt-1">
+                  {getStatusIcon(category, status)}
+                </div>
+                
+                {/* Category Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className={`text-base font-medium truncate ${colors.title}`}>
+                      {index + 1}. {category.title}
+                    </h4>
+                    
+                    {/* Progress Percentage */}
+                    <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
+                      <span className={`text-sm font-medium ${colors.subtitle}`}>
+                        {status.completionPercentage}%
+                      </span>
+                      {isActive && (
+                        <ChevronRightIcon className="w-4 h-4 text-blue-600" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Category Description */}
+                  {category.description && (
+                    <p className={`text-sm mb-3 line-clamp-2 ${colors.subtitle}`}>
+                      {category.description}
+                    </p>
+                  )}
+                  
+                  {/* Question Count */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-xs ${colors.subtitle}`}>
+                      {category.totalQuestions} questions
+                    </span>
+                    
+                    {/* Status Badge */}
+                    <span className={`
+                      px-2 py-1 text-xs font-medium rounded-full
+                      ${status.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        status.status === 'partial' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'}
+                    `}>
+                      {status.status === 'completed' ? 'Complete' :
+                       status.status === 'partial' ? 'In Progress' :
+                       'Not Started'}
+                    </span>
+                  </div>
+                  
+                  {/* Detailed Progress Bar */}
+                  {showDetailedProgress && (
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${colors.progress}`}
+                        style={{ width: `${status.completionPercentage}%` }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Last Modified */}
+                  {status.status !== 'not_started' && (
+                    <div className={`text-xs mt-2 ${colors.subtitle}`}>
+                      Last updated: {new Date(status.lastModified).toLocaleDateString()} at {new Date(status.lastModified).toLocaleTimeString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h4 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => {
+              // Find first incomplete category
+              const nextCategory = categories.find(cat => {
+                const status = getCategoryStatus(cat.id);
+                return status.status !== 'completed';
+              });
+              if (nextCategory) {
+                onCategoryClick(nextCategory.id);
               }
             }}
+            className="px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
           >
-            {/* Step Number/Status Icon */}
-            <div className={getStepStyles(stepStatus)}>
-              {getStepIcon(stepStatus)}
-            </div>
-
-            {/* Step Info */}
-            <div className="ml-4 flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className={`text-sm font-medium ${
-                  stepStatus.status === 'current' 
-                    ? 'text-blue-900' 
-                    : stepStatus.status === 'completed'
-                    ? 'text-green-900'
-                    : stepStatus.status === 'partial'
-                    ? 'text-yellow-900'
-                    : 'text-gray-700'
-                }`}>
-                  Step {stepStatus.stepNumber}
-                </p>
-                
-                {/* Status Badge */}
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  stepStatus.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : stepStatus.status === 'partial'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : stepStatus.status === 'current'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {stepStatus.status === 'completed' && 'Completed'}
-                  {stepStatus.status === 'partial' && 'In Progress'}
-                  {stepStatus.status === 'current' && 'Current'}
-                  {stepStatus.status === 'not_started' && 'Not Started'}
-                </span>
-              </div>
-              
-              {/* Progress Text */}
-              {getProgressText(stepStatus) && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {getProgressText(stepStatus)}
-                </p>
-              )}
-            </div>
-
-            {/* Navigation Indicator */}
-            {allowNavigation && (
-              <div className="flex-shrink-0 ml-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Step List - Mobile (Simplified) */}
-      <div className="md:hidden">
-        {/* Current Step Info */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className={getStepStyles(stepStatuses.find(s => s.stepNumber === currentStep) || stepStatuses[0])}>
-              {getStepIcon(stepStatuses.find(s => s.stepNumber === currentStep) || stepStatuses[0])}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Step {currentStep}
-              </p>
-              <p className="text-xs text-gray-500">
-                Current step
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Progress Dots */}
-        <div className="flex justify-center space-x-2 mb-4">
-          {stepStatuses.map((stepStatus) => (
-            <button
-              key={stepStatus.stepNumber}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                allowNavigation ? 'cursor-pointer hover:scale-110' : 'cursor-default'
-              } ${
-                stepStatus.status === 'completed'
-                  ? 'bg-green-600'
-                  : stepStatus.status === 'partial'
-                  ? 'bg-yellow-500'
-                  : stepStatus.status === 'current'
-                  ? 'bg-blue-600 ring-2 ring-blue-200'
-                  : 'bg-gray-300'
-              }`}
-              onClick={() => handleStepClick(stepStatus.stepNumber)}
-              disabled={!allowNavigation}
-              aria-label={`Go to step ${stepStatus.stepNumber}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Summary Stats */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-xl font-bold text-green-600">{completedSteps}</p>
-            <p className="text-xs text-gray-500">Completed</p>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-yellow-600">
-              {stepStatuses.filter(s => s.status === 'partial').length}
-            </p>
-            <p className="text-xs text-gray-500">In Progress</p>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-gray-600">
-              {stepStatuses.filter(s => s.status === 'not_started').length}
-            </p>
-            <p className="text-xs text-gray-500">Remaining</p>
-          </div>
+            Continue Assessment
+          </button>
+          
+          <button
+            onClick={() => {
+              // Find first not started category
+              const firstIncomplete = categories.find(cat => {
+                const status = getCategoryStatus(cat.id);
+                return status.status === 'not_started';
+              });
+              if (firstIncomplete) {
+                onCategoryClick(firstIncomplete.id);
+              }
+            }}
+            className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Start Next Section
+          </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EnhancedProgressTracker
+export default EnhancedProgressTracker;

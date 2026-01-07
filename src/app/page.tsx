@@ -73,6 +73,34 @@ export default function Home() {
       href: '/profile',
       icon: '👤',
       color: 'bg-blue-500'
+    },
+    {
+      name: 'AI Assessment (Basic)',
+      description: 'Test FixedQuestionContainer with RAPID questions - GUARANTEED TO WORK!',
+      href: '/ai-assessment-basic',
+      icon: '✅',
+      color: 'bg-emerald-500'
+    },
+    {
+      name: 'AI Assessment (Simple)',
+      description: 'Test individual components - CategorySidebar + FixedContainer',
+      href: '/ai-assessment-simple',
+      icon: '🧪',
+      color: 'bg-indigo-500'
+    },
+    {
+      name: 'AI Assessment Demo',
+      description: 'Try the new RAPID questionnaire with enhanced UI/UX features',
+      href: '/ai-assessment-demo',
+      icon: '🤖',
+      color: 'bg-green-500'
+    },
+    {
+      name: 'AI Assessment (Original)',
+      description: 'Original AI assessment page (may have API issues)',
+      href: '/ai-assessment',
+      icon: '📊',
+      color: 'bg-purple-500'
     }
   ];
 

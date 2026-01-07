@@ -365,7 +365,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                 </div>
                 <div className="flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1" />
-                  {report.generatedAt.toLocaleDateString()}
+                  {new Date(report.generatedAt).toLocaleDateString()}
                 </div>
               </div>
             </div>

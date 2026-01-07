@@ -2,10 +2,12 @@ import { getDatabase } from './mongodb'
 import {
   COLLECTIONS,
   ASSESSMENT_INDEXES,
+  RAPID_QUESTIONNAIRE_INDEXES,
   REPORT_REQUEST_INDEXES,
   REPORT_INDEXES,
   COMPANY_INDEXES
 } from '@/lib/models/assessment'
+import { RAPIDQuestionnaireService } from './services/rapid-questionnaire-service'
 
 /**
  * Initialize MongoDB database with collections and indexes
@@ -41,6 +43,29 @@ export async function initializeDatabase() {
       } catch (error: any) {
         if (error.code === 85) { // Index already exists
           console.log(`ℹ️  Index already exists: ${COLLECTIONS.ASSESSMENTS}.${index.name}`)
+        } else {
+          console.error(`❌ Error creating index ${index.name}:`, error.message)
+        }
+      }
+    }
+    
+    // Create indexes for rapid_questionnaires collection
+    const rapidQuestionnairesCollection = db.collection(COLLECTIONS.RAPID_QUESTIONNAIRES)
+    for (const index of RAPID_QUESTIONNAIRE_INDEXES) {
+      try {
+        const options: any = { 
+          name: index.name,
+          background: true 
+        }
+        if ('unique' in index) {
+          options.unique = index.unique
+        }
+        
+        await rapidQuestionnairesCollection.createIndex(index.key as any, options)
+        console.log(`✅ Created index: ${COLLECTIONS.RAPID_QUESTIONNAIRES}.${index.name}`)
+      } catch (error: any) {
+        if (error.code === 85) { // Index already exists
+          console.log(`ℹ️  Index already exists: ${COLLECTIONS.RAPID_QUESTIONNAIRES}.${index.name}`)
         } else {
           console.error(`❌ Error creating index ${index.name}:`, error.message)
         }
@@ -116,11 +141,26 @@ export async function initializeDatabase() {
       }
     }
     
+    // Initialize default RAPID questionnaires
+    console.log('🔄 Initializing default RAPID questionnaires...')
+    const questionnaireResult = await RAPIDQuestionnaireService.initializeDefaultQuestionnaires()
+    
+    if (questionnaireResult.success) {
+      console.log(`✅ Initialized ${questionnaireResult.initialized} RAPID questionnaires`)
+    } else {
+      console.log(`⚠️  RAPID questionnaire initialization completed with ${questionnaireResult.errors.length} errors:`)
+      questionnaireResult.errors.forEach(error => console.log(`   - ${error}`))
+    }
+    
     console.log('🎉 Database initialization completed successfully!')
     
     return {
       success: true,
-      message: 'Database initialized successfully'
+      message: 'Database initialized successfully',
+      rapidQuestionnaires: {
+        initialized: questionnaireResult.initialized,
+        errors: questionnaireResult.errors
+      }
     }
     
   } catch (error) {

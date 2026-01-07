@@ -7,11 +7,12 @@ import { getErrorMessage, logError } from '../../utils/error-handling'
 import AssessmentDashboard from './AssessmentDashboard'
 import AssessmentViewer from './AssessmentViewer'
 import AssessmentWizard from './AssessmentWizard'
+import DatabaseIntegratedAssessmentWizard from './DatabaseIntegratedAssessmentWizard'
 import QuestionnaireFlow from './QuestionnaireFlow'
 import ReportGenerator from './ReportGenerator'
-import ErrorBoundary from './ErrorBoundary'
-import LoadingSpinner from './LoadingSpinner'
-import ErrorMessage from './ErrorMessage'
+import { ErrorBoundary } from './ErrorBoundary'
+import { LoadingSpinner } from './LoadingSpinner'
+import { ErrorMessage } from './ErrorMessage'
 import mockQuestionnaireData from '../../data/mock-questionnaire.json'
 
 interface AssessmentContainerProps {
@@ -272,12 +273,12 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     return (
       <ErrorBoundary
         onError={(error) => {
-          logError(error, 'QuestionnaireFlow')
+          logError(error, 'AssessmentWizard')
           setCompleteAssessmentError('An unexpected error occurred during the assessment.')
         }}
       >
-        <div className="w-full max-w-none p-4 sm:p-6">
-          <div className="mb-6">
+        <div className="w-full max-w-none">
+          <div className="mb-6 px-4 sm:px-6 pt-4">
             <button
               onClick={handleBackToDashboard}
               className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
@@ -291,16 +292,18 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           </div>
 
           {completeAssessmentError && (
-            <ErrorMessage
-              title="Failed to Complete Assessment"
-              message={completeAssessmentError}
-              onDismiss={() => setCompleteAssessmentError(null)}
-              className="mb-6"
-            />
+            <div className="px-4 sm:px-6">
+              <ErrorMessage
+                title="Failed to Complete Assessment"
+                message={completeAssessmentError}
+                onDismiss={() => setCompleteAssessmentError(null)}
+                className="mb-6"
+              />
+            </div>
           )}
 
           {isCompletingAssessment && (
-            <div className="mb-6">
+            <div className="mb-6 px-4 sm:px-6">
               <LoadingSpinner 
                 size="sm" 
                 text="Completing assessment..." 
@@ -309,13 +312,15 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
             </div>
           )}
           
-          <QuestionnaireFlow
+          {/* Use the DatabaseIntegratedAssessmentWizard for RAPID integration */}
+          <DatabaseIntegratedAssessmentWizard
             assessment={currentAssessment}
-            sections={currentAssessment.type === 'EXPLORATORY' 
-              ? mockQuestionnaireData.exploratory as QuestionSection[]
-              : mockQuestionnaireData.migration as QuestionSection[]}
-            onComplete={handleCompleteAssessment}
-            onSave={handleSaveResponses}
+            assessmentType={currentAssessment.type || 'EXPLORATORY'}
+            responses={currentAssessment.responses || {}}
+            onResponseChange={handleSaveResponses}
+            onComplete={() => handleCompleteAssessment(currentAssessment.responses || {})}
+            onError={(error) => setCompleteAssessmentError(error)}
+            enableAutoInit={true}
           />
         </div>
       </ErrorBoundary>

@@ -7,8 +7,8 @@ import {
   ExclamationTriangleIcon 
 } from '@heroicons/react/24/outline'
 import AWSCredentialsForm, { AWSCredentials } from './AWSCredentialsForm'
-import LoadingSpinner from './LoadingSpinner'
-import ErrorMessage from './ErrorMessage'
+import { LoadingSpinner } from './LoadingSpinner'
+import { ErrorMessage } from './ErrorMessage'
 import { Company } from '../../types/assessment'
 import { getErrorMessage, logError } from '../../utils/error-handling'
 

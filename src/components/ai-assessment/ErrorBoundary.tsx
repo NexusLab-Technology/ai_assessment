@@ -1,7 +1,13 @@
+/**
+ * Error Boundary Component for AI Assessment
+ * Provides comprehensive error handling for category-based operations
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5
+ */
+
 'use client'
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 
 interface Props {
   children: ReactNode
@@ -13,27 +19,26 @@ interface State {
   hasError: boolean
   error: Error | null
   errorInfo: ErrorInfo | null
+  retryCount: number
 }
 
-/**
- * Error boundary component for AI Assessment module
- * Catches JavaScript errors anywhere in the child component tree
- */
 export class ErrorBoundary extends Component<Props, State> {
+  private maxRetries = 3
+
   constructor(props: Props) {
     super(props)
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      retryCount: 0
     }
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
-      error,
-      errorInfo: null
+      error
     }
   }
 
@@ -45,63 +50,114 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo
     })
 
-    // Call optional error callback
-    this.props.onError?.(error, errorInfo)
+    // Call optional error handler
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo)
+    }
+
+    // Log error for monitoring
+    this.logError(error, errorInfo)
   }
 
-  handleRetry = () => {
+  private logError = (error: Error, errorInfo: ErrorInfo) => {
+    // In production, this would send to error monitoring service
+    const errorData = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    }
+
+    console.error('Error logged:', errorData)
+  }
+
+  private handleRetry = () => {
+    if (this.state.retryCount < this.maxRetries) {
+      this.setState(prevState => ({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        retryCount: prevState.retryCount + 1
+      }))
+    }
+  }
+
+  private handleReset = () => {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      retryCount: 0
     })
+  }
+
+  private handleGoHome = () => {
+    window.location.href = '/'
   }
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback UI
+      // Use custom fallback if provided
       if (this.props.fallback) {
         return this.props.fallback
       }
 
-      // Default error UI
-      return (
-        <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto p-6">
-            <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              An unexpected error occurred while loading this section. Please try again or contact support if the problem persists.
-            </p>
-            
-            <div className="space-y-3">
-              <button
-                onClick={this.handleRetry}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <ArrowPathIcon className="-ml-1 mr-2 h-4 w-4" />
-                Try Again
-              </button>
-              
-              <div className="text-xs text-gray-400">
-                Error: {this.state.error?.message}
-              </div>
-            </div>
+      const canRetry = this.state.retryCount < this.maxRetries
+      const errorMessage = this.state.error?.message || 'An unexpected error occurred'
 
-            {/* Development error details */}
-            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-              <details className="mt-4 text-left">
-                <summary className="text-xs text-gray-500 cursor-pointer">
-                  Error Details (Development)
-                </summary>
-                <pre className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded overflow-auto max-h-32">
-                  {this.state.error?.stack}
-                  {this.state.errorInfo.componentStack}
-                </pre>
-              </details>
-            )}
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+            </div>
+            
+            <div className="text-center">
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">
+                Something went wrong
+              </h1>
+              
+              <p className="text-gray-600 mb-4">
+                We encountered an error while processing your request. 
+                {canRetry && ' You can try again or return to the home page.'}
+              </p>
+
+              <div className="bg-gray-50 rounded-md p-3 mb-4">
+                <p className="text-sm text-gray-700 font-mono">
+                  {errorMessage}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {canRetry && (
+                  <button
+                    onClick={this.handleRetry}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again ({this.maxRetries - this.state.retryCount} left)
+                  </button>
+                )}
+                
+                <button
+                  onClick={this.handleGoHome}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Go Home
+                </button>
+              </div>
+
+              {this.state.retryCount >= this.maxRetries && (
+                <div className="mt-4 p-3 bg-yellow-50 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    Maximum retry attempts reached. Please refresh the page or contact support if the problem persists.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )
@@ -111,4 +167,20 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary
+/**
+ * Higher-order component to wrap components with error boundary
+ */
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: ReactNode
+) {
+  const WrappedComponent = (props: P) => (
+    <ErrorBoundary fallback={fallback}>
+      <Component {...props} />
+    </ErrorBoundary>
+  )
+
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
+  
+  return WrappedComponent
+}
