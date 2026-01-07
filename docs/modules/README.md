@@ -1,710 +1,473 @@
-# Module Usage Guide - Configurable Authentication Framework
+# Module Documentation - RAPID AI Assessment Platform
 
 ## Overview
-This guide explains how to use individual modules from the Configurable Authentication Framework in your own projects. Each module is designed to be independent and reusable.
+
+This guide provides comprehensive documentation for all modules in the RAPID AI Assessment Platform. Each module is designed to work independently while integrating seamlessly with other modules.
+
+## Module Index
+
+### Core Modules
+
+1. **[Authentication Module](./authentication.md)** 🔐
+   - Configurable authentication framework
+   - Session management
+   - Route protection
+   - External provider integration
+
+2. **[AI Assessment Module](./ai-assessment.md)** 📊
+   - RAPID questionnaire integration
+   - Category-based navigation
+   - Response management
+   - Report generation
+
+3. **[Company Settings Module](./company-settings.md)** 🏢
+   - Company management
+   - CRUD operations
+   - Assessment integration
+
+### Supporting Modules
+
+4. **[Environment Configuration](./environment-configuration.md)** ⚙️
+   - Environment variable management
+   - Configuration system
+
+5. **[Route Protection](./route-protection.md)** 🛡️
+   - Client and server-side protection
+   - Route guards
+
+6. **[Sidebar Navigation](./sidebar-navigation.md)** 📱
+   - Collapsible sidebar
+   - Navigation management
+
+7. **[External Integration](./external-integration.md)** 🔌
+   - External system integration
+   - Provider system
 
 ## Quick Start
 
-### 1. Identify Your Needs
-Choose the integration scenario that best fits your project:
+### Scenario 1: Full Platform Integration
 
-| Scenario | Use Case | Complexity | Time Required |
-|----------|----------|------------|---------------|
-| **Full Integration** | New project, need complete auth system | 🟢 Low | 2-4 hours |
-| **Core Auth Only** | Existing UI, need auth logic | 🟡 Medium | 4-6 hours |
-| **Custom Provider** | Integrate with existing auth system | 🟡 Medium | 3-5 hours |
-| **Route Protection** | Add auth to existing routes | 🟢 Low | 1-2 hours |
-| **UI Components** | Need auth UI components | 🟢 Low | 2-3 hours |
+**Use Case**: New project needs complete RAPID AI Assessment Platform
 
-### 2. Copy Required Files
-Based on your scenario, copy the appropriate files to your project.
+**Modules Required**:
+- Authentication Module
+- AI Assessment Module
+- Company Settings Module
+- All supporting modules
 
-### 3. Configure Environment
-Set up environment variables for your needs.
+**Time Required**: 4-6 hours
 
-### 4. Integrate and Test
-Follow the integration examples below.
+**Steps**:
+1. Set up Next.js project with TypeScript
+2. Install dependencies
+3. Configure MongoDB connection
+4. Set up environment variables
+5. Copy all module files
+6. Configure authentication
+7. Initialize RAPID questionnaires
+8. Test complete workflow
+
+---
+
+### Scenario 2: AI Assessment Only
+
+**Use Case**: Existing application needs AI assessment functionality
+
+**Modules Required**:
+- AI Assessment Module
+- Company Settings Module (for company management)
+- Authentication Module (if not already present)
+
+**Time Required**: 3-5 hours
+
+**Steps**:
+1. Copy AI Assessment components
+2. Copy Company Settings components
+3. Set up API routes
+4. Configure MongoDB
+5. Initialize RAPID questionnaires
+6. Integrate with existing authentication (if needed)
+
+---
+
+### Scenario 3: Company Management Only
+
+**Use Case**: Need company management functionality
+
+**Modules Required**:
+- Company Settings Module
+- Authentication Module (for user isolation)
+
+**Time Required**: 2-3 hours
+
+**Steps**:
+1. Copy Company Settings components
+2. Set up API routes
+3. Configure MongoDB
+4. Integrate with existing authentication
+
+---
 
 ## Module Details
 
-### Core Authentication Module 🔐
+### 1. Authentication Module 🔐
 
-**What it provides:**
-- Environment-based configuration management
-- Authentication context and state management
-- Session handling and validation
+**Documentation**: [authentication.md](./authentication.md)
+
+**Purpose**: Provides configurable authentication framework with environment-based control
+
+**Key Features**:
+- Environment-based configuration
+- Session management
+- External provider support
+- Route protection
+- Non-interference when disabled
+
+**Files**:
+```
+src/contexts/AuthContext.tsx
+src/lib/config.ts
+src/lib/AuthProviderRegistry.ts
+src/components/AuthWrapper.tsx
+src/components/RouteGuard.tsx
+src/components/LoginPage.tsx
+```
+
+**Dependencies**: React, Next.js
+
+**Integration**: Wrap app with `AuthProvider` or `AuthWrapper`
+
+---
+
+### 2. AI Assessment Module 📊
+
+**Documentation**: [ai-assessment.md](./ai-assessment.md)
+
+**Purpose**: Core assessment functionality with RAPID questionnaire integration
+
+**Key Features**:
+- RAPID questionnaire (162 questions)
+- Category-based navigation
+- Auto-save functionality
+- Response review system
+- Asynchronous report generation
+
+**Files**:
+```
+src/components/ai-assessment/
+src/app/ai-assessment/
+src/lib/services/rapid-questionnaire-service.ts
+src/lib/services/assessment-service.ts
+```
+
+**Dependencies**: 
+- Authentication Module (for user isolation)
+- Company Settings Module (for company selection)
+- MongoDB (for data persistence)
+
+**Integration**: 
+1. Set up company management first
+2. Initialize RAPID questionnaires
+3. Integrate assessment components
+
+---
+
+### 3. Company Settings Module 🏢
+
+**Documentation**: [company-settings.md](./company-settings.md)
+
+**Purpose**: Company management and organization
+
+**Key Features**:
+- Company CRUD operations
+- Search functionality
+- Assessment count tracking
+- Integration with AI Assessment module
+
+**Files**:
+```
+src/components/company-settings/
+src/app/company-settings/
+src/lib/models/Company.ts
+```
+
+**Dependencies**:
+- Authentication Module (for user isolation)
+- MongoDB (for data persistence)
+
+**Integration**: 
+1. Set up authentication
+2. Configure MongoDB
+3. Copy company components and API routes
+
+---
+
+### 4. Environment Configuration ⚙️
+
+**Documentation**: [environment-configuration.md](./environment-configuration.md)
+
+**Purpose**: Centralized configuration management
+
+**Key Features**:
+- Environment variable parsing
+- Type-safe configuration
+- Default values
+- Configuration caching
+
+**Files**:
+```
+src/lib/config.ts
+src/lib/constants.ts
+```
+
+**Dependencies**: None (core utility)
+
+**Integration**: Import `ConfigManager` where needed
+
+---
+
+### 5. Route Protection 🛡️
+
+**Documentation**: [route-protection.md](./route-protection.md)
+
+**Purpose**: Client and server-side route protection
+
+**Key Features**:
+- Client-side route guards
+- Server-side middleware
+- Redirect handling
+- Conditional protection
+
+**Files**:
+```
+src/components/RouteGuard.tsx
+src/middleware.ts
+```
+
+**Dependencies**: Authentication Module
+
+**Integration**: Wrap protected routes with `RouteGuard`
+
+---
+
+### 6. Sidebar Navigation 📱
+
+**Documentation**: [sidebar-navigation.md](./sidebar-navigation.md)
+
+**Purpose**: Collapsible sidebar navigation
+
+**Key Features**:
+- Collapsible sidebar
+- State persistence
+- Responsive design
+- Module navigation
+
+**Files**:
+```
+src/components/Sidebar.tsx
+src/components/SidebarContainer.tsx
+src/components/ApplicationShell.tsx
+```
+
+**Dependencies**: Authentication Module (for user context)
+
+**Integration**: Use `ApplicationShell` for main layout
+
+---
+
+### 7. External Integration 🔌
+
+**Documentation**: [external-integration.md](./external-integration.md)
+
+**Purpose**: External system integration
+
+**Key Features**:
 - Provider registry system
-- Type definitions
+- Hook system
+- External auth integration
+- Non-interference design
 
-**When to use:**
-- You need authentication logic
-- You want configurable auth behavior
-- You need session management
-- You want to support multiple auth providers
-
-**Files to copy:**
+**Files**:
 ```
-src/lib/config.ts              # Configuration management
-src/contexts/AuthContext.tsx   # Authentication context
-src/lib/AuthProviderRegistry.ts # Provider system
-src/types/index.ts             # Type definitions
-src/lib/validation.ts          # Input validation
-src/lib/utils.ts              # Utility functions
-src/lib/constants.ts          # Constants and defaults
+src/lib/AuthProviderRegistry.ts
+src/interfaces/AuthProvider.ts
+src/hooks/useExternalAuth.ts
 ```
 
-**Environment variables:**
-```bash
-# Optional - all have sensible defaults
-AUTH_ENABLED=true              # Enable/disable authentication
-SESSION_TIMEOUT=3600000        # Session timeout in milliseconds
-REMEMBER_SIDEBAR=true          # Remember sidebar state
-DEFAULT_ROUTE=/               # Default landing page
+**Dependencies**: Authentication Module
+
+**Integration**: Register custom providers and hooks
+
+---
+
+## Module Dependencies
+
 ```
+Authentication Module (Core)
+    ├── Environment Configuration
+    └── Route Protection
+            └── Sidebar Navigation
 
-**Basic usage:**
-```typescript
-// 1. Wrap your app with AuthProvider
-import { AuthProvider } from './contexts/AuthContext';
+Company Settings Module
+    ├── Authentication Module
+    └── MongoDB
 
-function App() {
-  return (
-    <AuthProvider>
-      <YourApp />
-    </AuthProvider>
-  );
-}
-
-// 2. Use authentication in components
-import { useAuth } from './contexts/AuthContext';
-
-function LoginComponent() {
-  const { login, isAuthenticated, user } = useAuth();
-  
-  const handleLogin = async (credentials) => {
-    const success = await login(credentials);
-    if (success) {
-      console.log('Logged in as:', user?.username);
-    }
-  };
-  
-  return (
-    <div>
-      {isAuthenticated ? (
-        <p>Welcome, {user?.username}!</p>
-      ) : (
-        <LoginForm onSubmit={handleLogin} />
-      )}
-    </div>
-  );
-}
-```
-
-**Advanced configuration:**
-```typescript
-// Custom configuration
-import { ConfigManager } from './lib/config';
-
-// Check if auth is enabled
-if (ConfigManager.isAuthEnabled()) {
-  // Auth-specific logic
-}
-
-// Get full configuration
-const config = ConfigManager.getAuthConfig();
-console.log('Session timeout:', config.sessionTimeout);
-```
-
-### UI Components Module 🎨
-
-**What it provides:**
-- Complete application layout with sidebar
-- Route protection components
-- Login page component
-- Responsive navigation
-- Authentication-aware UI
-
-**When to use:**
-- You want ready-made auth UI
-- You need responsive layout
-- You want sidebar navigation
-- You need route protection UI
-
-**Files to copy:**
-```
-src/components/ApplicationShell.tsx  # Main layout
-src/components/Sidebar.tsx          # Navigation sidebar
-src/components/RouteGuard.tsx       # Route protection
-src/components/LoginPage.tsx        # Login form
-src/components/AuthWrapper.tsx      # Auth provider wrapper
-```
-
-**Dependencies:**
-- Core Authentication Module (required)
-- TailwindCSS (for styling, can be replaced)
-
-**Basic usage:**
-```typescript
-// 1. Use ApplicationShell for layout
-import { ApplicationShell } from './components/ApplicationShell';
-
-function MyApp() {
-  const navigationItems = [
-    { id: 'home', label: 'Home', icon: '🏠', href: '/' },
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/dashboard' }
-  ];
-
-  return (
-    <ApplicationShell navigationItems={navigationItems}>
-      <YourPageContent />
-    </ApplicationShell>
-  );
-}
-
-// 2. Protect routes
-import { RouteGuard } from './components/RouteGuard';
-
-function ProtectedPage() {
-  return (
-    <RouteGuard requireAuth={true}>
-      <SensitiveContent />
-    </RouteGuard>
-  );
-}
-
-// 3. Use login page
-import { LoginPage } from './components/LoginPage';
-import { useAuth } from './contexts/AuthContext';
-
-function LoginRoute() {
-  const { login, loading, error } = useAuth();
-  
-  return (
-    <LoginPage
-      onLogin={login}
-      loading={loading}
-      error={error}
-    />
-  );
-}
-```
-
-**Customization:**
-```typescript
-// Custom styling (replace TailwindCSS classes)
-const customClasses = {
-  sidebar: 'my-custom-sidebar-class',
-  navigation: 'my-custom-nav-class',
-  loginForm: 'my-custom-form-class'
-};
-
-// Custom navigation items
-const navigationItems = [
-  {
-    id: 'home',
-    label: 'Home',
-    icon: <HomeIcon />, // Use your icon component
-    href: '/',
-    children: [
-      { id: 'sub1', label: 'Sub Item', icon: <SubIcon />, href: '/sub1' }
-    ]
-  }
-];
-```
-
-### Provider Integration Module 🔌
-
-**What it provides:**
-- Plugin architecture for auth providers
-- Provider registry and management
-- Hook system for auth events
-- External system integration
-- Priority-based provider selection
-
-**When to use:**
-- You have existing auth system
-- You need multiple auth methods
-- You want to integrate with external services
-- You need custom authentication logic
-
-**Files to copy:**
-```
-src/interfaces/AuthProvider.ts      # Provider interfaces
-src/lib/AuthProviderRegistry.ts     # Registry system
-src/providers/MockAuthProvider.ts   # Example provider
-```
-
-**Create custom provider:**
-```typescript
-// 1. Implement the interface
-import { IAuthProvider, AuthResult } from './interfaces/AuthProvider';
-
-class FirebaseAuthProvider implements IAuthProvider {
-  name = 'firebase-auth';
-  config = {
-    enabled: true,
-    priority: 1,
-    timeout: 5000
-  };
-
-  async initialize(): Promise<void> {
-    // Initialize Firebase
-    await firebase.initializeApp(firebaseConfig);
-  }
-
-  async authenticate(credentials: LoginCredentials): Promise<AuthResult> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        credentials.username,
-        credentials.password
-      );
-      
-      const user = userCredential.user;
-      
-      return {
-        success: true,
-        user: {
-          id: user.uid,
-          username: user.email || '',
-          email: user.email || '',
-          roles: ['user'],
-          lastLogin: new Date()
-        },
-        token: await user.getIdToken(),
-        session: {
-          token: await user.getIdToken(),
-          userId: user.uid,
-          expiresAt: new Date(Date.now() + 3600000),
-          createdAt: new Date()
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  }
-
-  async validateSession(token: string): Promise<AuthResult> {
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      // Return user data
-    } catch (error) {
-      return { success: false, error: 'Invalid token' };
-    }
-  }
-
-  async cleanup(): Promise<void> {
-    // Cleanup Firebase resources
-  }
-}
-
-// 2. Register the provider
-import { authProviderRegistry } from './lib/AuthProviderRegistry';
-authProviderRegistry.register(new FirebaseAuthProvider());
-```
-
-**Add authentication hooks:**
-```typescript
-// Custom hook for logging
-import { IAuthHook } from './interfaces/AuthProvider';
-
-class AuthLoggingHook implements IAuthHook {
-  name = 'auth-logging';
-
-  async afterAuthenticate(user: User, session: Session): Promise<void> {
-    console.log(`User ${user.username} logged in at ${new Date()}`);
-    
-    // Send to analytics
-    analytics.track('user_login', {
-      userId: user.id,
-      username: user.username,
-      timestamp: new Date()
-    });
-  }
-
-  async afterLogout(userId: string): Promise<void> {
-    console.log(`User ${userId} logged out at ${new Date()}`);
-    
-    // Send to analytics
-    analytics.track('user_logout', {
-      userId,
-      timestamp: new Date()
-    });
-  }
-}
-
-// Register the hook
-import { authHookRegistry } from './lib/AuthProviderRegistry';
-authHookRegistry.registerHook(new AuthLoggingHook());
-```
-
-### Hooks Module 🪝
-
-**What it provides:**
-- Reusable authentication logic
-- Conditional authentication hooks
-- External system integration hooks
-- Login page state management
-
-**When to use:**
-- You need custom authentication logic
-- You want reusable auth state
-- You need conditional auth behavior
-- You're building custom components
-
-**Files to copy:**
-```
-src/hooks/useConditionalAuth.ts  # Conditional auth logic
-src/hooks/useExternalAuth.ts     # External integration
-src/hooks/useLoginPage.ts        # Login page state
-```
-
-**Usage examples:**
-```typescript
-// 1. Conditional authentication
-import { useConditionalAuth } from './hooks/useConditionalAuth';
-
-function ConditionalComponent() {
-  const auth = useConditionalAuth();
-  
-  // auth is null if authentication is disabled
-  if (!auth) {
-    return <PublicContent />;
-  }
-  
-  // auth is available if authentication is enabled
-  if (auth.isAuthenticated) {
-    return <AuthenticatedContent user={auth.user} />;
-  }
-  
-  return <LoginPrompt />;
-}
-
-// 2. External auth integration
-import { useExternalAuth } from './hooks/useExternalAuth';
-
-function ExternalAuthComponent() {
-  const { 
-    isExternalAuthAvailable,
-    externalAuthStatus,
-    syncWithExternal 
-  } = useExternalAuth();
-  
-  useEffect(() => {
-    if (isExternalAuthAvailable) {
-      syncWithExternal();
-    }
-  }, [isExternalAuthAvailable, syncWithExternal]);
-  
-  return (
-    <div>
-      {isExternalAuthAvailable && (
-        <p>External auth system detected</p>
-      )}
-    </div>
-  );
-}
-
-// 3. Login page state
-import { useLoginPage } from './hooks/useLoginPage';
-
-function CustomLoginPage() {
-  const {
-    credentials,
-    setCredentials,
-    loading,
-    error,
-    handleSubmit,
-    handleInputChange
-  } = useLoginPage();
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        name="username"
-        value={credentials.username}
-        onChange={handleInputChange}
-        placeholder="Username"
-      />
-      <input
-        type="password"
-        name="password"
-        value={credentials.password}
-        onChange={handleInputChange}
-        placeholder="Password"
-      />
-      <button type="submit" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
-      {error && <p className="error">{error}</p>}
-    </form>
-  );
-}
+AI Assessment Module
+    ├── Authentication Module
+    ├── Company Settings Module
+    ├── MongoDB
+    └── External Integration (for reports)
 ```
 
 ## Integration Examples
 
-### Example 1: E-commerce Site
+### Example 1: Basic Setup
+
 ```typescript
-// Add authentication to existing e-commerce site
-import { AuthProvider, useAuth } from './lib/contexts/AuthContext';
-import { RouteGuard } from './components/RouteGuard';
+// app/layout.tsx
+import { AuthWrapper } from '@/components/AuthWrapper';
+import { ApplicationShell } from '@/components/ApplicationShell';
 
-function EcommerceApp() {
+export default function RootLayout({ children }) {
   return (
-    <AuthProvider>
-      <Header />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route 
-          path="/account" 
-          element={
-            <RouteGuard requireAuth={true}>
-              <AccountPage />
-            </RouteGuard>
-          } 
-        />
-        <Route 
-          path="/orders" 
-          element={
-            <RouteGuard requireAuth={true}>
-              <OrdersPage />
-            </RouteGuard>
-          } 
-        />
-      </Routes>
-    </AuthProvider>
-  );
-}
-
-function Header() {
-  const { isAuthenticated, user, logout } = useAuth();
-  
-  return (
-    <header>
-      <Logo />
-      <Navigation />
-      {isAuthenticated ? (
-        <div>
-          <span>Welcome, {user?.username}</span>
-          <button onClick={logout}>Logout</button>
-        </div>
-      ) : (
-        <Link to="/login">Login</Link>
-      )}
-    </header>
+    <html>
+      <body>
+        <AuthWrapper>
+          <ApplicationShell>
+            {children}
+          </ApplicationShell>
+        </AuthWrapper>
+      </body>
+    </html>
   );
 }
 ```
 
-### Example 2: Admin Dashboard
+### Example 2: AI Assessment Integration
+
 ```typescript
-// Full integration for admin dashboard
-import { ApplicationShell } from './components/ApplicationShell';
-import { RouteGuard } from './components/RouteGuard';
+// app/ai-assessment/page.tsx
+import { RouteGuard } from '@/components/RouteGuard';
+import { AssessmentContainer } from '@/components/ai-assessment/AssessmentContainer';
 
-function AdminDashboard() {
-  const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/admin' },
-    { id: 'users', label: 'Users', icon: '👥', href: '/admin/users' },
-    { id: 'settings', label: 'Settings', icon: '⚙️', href: '/admin/settings' }
-  ];
-
+export default function AIAssessmentPage() {
   return (
-    <RouteGuard requireAuth={true}>
-      <ApplicationShell navigationItems={navigationItems}>
-        <Routes>
-          <Route path="/admin" element={<DashboardPage />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/settings" element={<SettingsPage />} />
-        </Routes>
-      </ApplicationShell>
+    <RouteGuard>
+      <AssessmentContainer />
     </RouteGuard>
   );
 }
 ```
 
-### Example 3: Multi-tenant SaaS
+### Example 3: Company Settings Integration
+
 ```typescript
-// Custom provider for multi-tenant authentication
-class TenantAuthProvider implements IAuthProvider {
-  name = 'tenant-auth';
-  config = { enabled: true, priority: 1, timeout: 5000 };
+// app/company-settings/page.tsx
+import { RouteGuard } from '@/components/RouteGuard';
+import { CompanyContainer } from '@/components/company-settings/CompanyContainer';
 
-  async authenticate(credentials: LoginCredentials): Promise<AuthResult> {
-    // Extract tenant from username (e.g., user@tenant.com)
-    const [username, tenant] = credentials.username.split('@');
-    
-    const response = await fetch(`/api/auth/${tenant}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password: credentials.password })
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      return {
-        success: true,
-        user: {
-          ...data.user,
-          tenant: tenant
-        },
-        token: data.token,
-        session: data.session
-      };
-    }
-    
-    return { success: false, error: data.message };
-  }
-  
-  // ... other methods
+export default function CompanySettingsPage() {
+  return (
+    <RouteGuard>
+      <CompanyContainer />
+    </RouteGuard>
+  );
 }
-
-// Register tenant-specific provider
-authProviderRegistry.register(new TenantAuthProvider());
 ```
 
-## Migration Guide
+## Testing
 
-### From Existing Auth System
+### Module Testing
 
-1. **Assess current system:**
-   ```typescript
-   // Document your current auth flow
-   const currentAuthFlow = {
-     login: 'POST /api/login',
-     logout: 'POST /api/logout',
-     session: 'GET /api/session',
-     storage: 'localStorage + cookies'
-   };
-   ```
+Each module includes comprehensive tests:
 
-2. **Create migration provider:**
-   ```typescript
-   class MigrationAuthProvider implements IAuthProvider {
-     // Implement using your existing API endpoints
-   }
-   ```
+- **Unit Tests**: Component and function-level
+- **Integration Tests**: Module integration
+- **Property-Based Tests**: Universal correctness properties
 
-3. **Gradual migration:**
-   ```typescript
-   // Phase 1: Add new auth alongside existing
-   // Phase 2: Migrate components one by one
-   // Phase 3: Remove old auth system
-   ```
+### Test Structure
 
-### From No Auth System
+```
+src/__tests__/
+├── api/              # API route tests
+├── components/       # Component tests
+├── integration/      # Integration tests
+├── properties/       # Property-based tests
+└── unit/            # Unit tests
+```
 
-1. **Start with core module:**
-   ```typescript
-   // Copy core authentication files
-   // Set up basic configuration
-   // Add AuthProvider to app root
-   ```
+## Best Practices
 
-2. **Add UI components:**
-   ```typescript
-   // Add login page
-   // Add route protection
-   // Add navigation
-   ```
+### 1. Module Isolation
 
-3. **Enhance with providers:**
-   ```typescript
-   // Add custom providers as needed
-   // Add hooks for analytics/logging
-   // Add external integrations
-   ```
+- Keep modules independent
+- Use interfaces for communication
+- Avoid direct dependencies when possible
+
+### 2. Configuration
+
+- Use environment variables
+- Provide sensible defaults
+- Document all configuration options
+
+### 3. Error Handling
+
+- Implement comprehensive error handling
+- Provide user-friendly error messages
+- Log errors for debugging
+
+### 4. Type Safety
+
+- Use TypeScript throughout
+- Define clear interfaces
+- Validate data at boundaries
+
+### 5. Testing
+
+- Test each module independently
+- Test module integration
+- Use property-based testing for correctness
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"useAuth must be used within AuthProvider"**
-   ```typescript
-   // Solution: Wrap your app with AuthProvider
-   <AuthProvider>
-     <App />
-   </AuthProvider>
-   ```
+#### Module Not Working
 
-2. **Configuration not loading**
-   ```typescript
-   // Solution: Check environment variables
-   console.log('AUTH_ENABLED:', process.env.AUTH_ENABLED);
-   
-   // Or use fallback configuration
-   const config = ConfigManager.getAuthConfig() || defaultConfig;
-   ```
+1. Check module dependencies are installed
+2. Verify environment variables are set
+3. Check module initialization
+4. Review error logs
 
-3. **Provider not working**
-   ```typescript
-   // Solution: Check provider registration
-   console.log('Registered providers:', authProviderRegistry.getAllProviders());
-   
-   // Ensure provider is initialized
-   await authProviderRegistry.initialize();
-   ```
+#### Integration Issues
 
-4. **Styling issues**
-   ```typescript
-   // Solution: Replace TailwindCSS classes
-   const customStyles = {
-     button: 'btn btn-primary', // Your CSS classes
-     form: 'form-container',
-     sidebar: 'nav-sidebar'
-   };
-   ```
+1. Verify module dependencies
+2. Check API compatibility
+3. Review integration examples
+4. Test module isolation
 
-### Debug Mode
+#### Performance Issues
 
-Enable debug logging:
-```typescript
-// Add to your app initialization
-if (process.env.NODE_ENV === 'development') {
-  // Enable debug logging
-  localStorage.setItem('auth_debug', 'true');
-}
-```
+1. Check database indexes
+2. Review API query optimization
+3. Monitor component re-renders
+4. Check for memory leaks
 
-## Performance Tips
+## Related Documentation
 
-1. **Lazy load providers:**
-   ```typescript
-   const loadProvider = async (name: string) => {
-     const module = await import(`./providers/${name}Provider`);
-     return module.default;
-   };
-   ```
+- [Project Structure](../../document/project-structure.md)
+- [API Documentation](../api/README.md)
+- [Architecture Documentation](../architecture/README.md)
+- [Technical Specifications](../technical-specifications.md)
 
-2. **Memoize expensive operations:**
-   ```typescript
-   const config = useMemo(() => ConfigManager.getAuthConfig(), []);
-   ```
+## Support
 
-3. **Optimize re-renders:**
-   ```typescript
-   const authValue = useMemo(() => ({
-     isAuthenticated,
-     user,
-     login,
-     logout
-   }), [isAuthenticated, user, login, logout]);
-   ```
+For module-specific questions, refer to individual module documentation:
 
-## Next Steps
-
-1. **Choose your integration scenario**
-2. **Copy the required files**
-3. **Set up environment variables**
-4. **Follow the integration examples**
-5. **Test thoroughly**
-6. **Customize as needed**
-
-For more detailed examples and advanced usage, see the [Architecture Guide](../architecture/README.md).
+- [Authentication Module](./authentication.md)
+- [AI Assessment Module](./ai-assessment.md)
+- [Company Settings Module](./company-settings.md)
+- [Environment Configuration](./environment-configuration.md)
+- [Route Protection](./route-protection.md)
+- [Sidebar Navigation](./sidebar-navigation.md)
+- [External Integration](./external-integration.md)

@@ -35,18 +35,33 @@ function App({ children }) {
 ```
 
 **Props:**
-- `children: React.ReactNode` - Child components to wrap with authentication context
+```typescript
+interface AuthProviderProps {
+  children: React.ReactNode
+}
+```
 
 **Features:**
-- Manages authentication state (user, loading, isAuthenticated)
+- Manages authentication state (user, loading, isAuthenticated, error)
 - Provides login, logout, and checkAuth methods
-- Handles session persistence and expiration
-- Integrates with external authentication providers
-- Executes authentication lifecycle hooks
+- Handles session persistence and expiration (localStorage + cookies)
+- Integrates with external authentication providers via AuthProviderRegistry
+- Executes authentication lifecycle hooks (beforeAuthenticate, afterAuthenticate, beforeLogout, afterLogout, onAuthDisabled)
+- Mock authentication fallback when no providers are registered
+- Automatic session loading on mount
+- Session expiration checking
+- Error handling with fallback configuration
+
+**Session Management:**
+- Saves session to localStorage and cookies
+- Loads session on mount
+- Checks session expiration
+- Clears session on logout or expiration
+- Uses `STORAGE_KEYS` constants for storage keys
 
 ### AuthWrapper
 
-A wrapper component that conditionally provides authentication context based on configuration.
+A wrapper component that always provides authentication context. The AuthProvider itself handles disabled auth internally.
 
 ```tsx
 import { AuthWrapper } from '@/components/AuthWrapper';
@@ -60,10 +75,50 @@ function RootLayout({ children }) {
 }
 ```
 
+**Props:**
+```typescript
+interface AuthWrapperProps {
+  children: React.ReactNode
+}
+```
+
 **Features:**
-- Always provides AuthProvider for consistent API
+- Always provides AuthProvider to avoid conditional hook issues
 - Handles authentication disabled state internally
 - Ensures non-interference when authentication is disabled
+- Consistent API regardless of authentication configuration
+
+### RouteGuard
+
+Component that protects routes based on authentication state and configuration.
+
+```tsx
+import { RouteGuard } from '@/components/RouteGuard';
+
+function ProtectedPage() {
+  return (
+    <RouteGuard requireAuth={true}>
+      <ProtectedContent />
+    </RouteGuard>
+  );
+}
+```
+
+**Props:**
+```typescript
+interface RouteGuardProps {
+  children: React.ReactNode
+  requireAuth?: boolean // Default: true
+}
+```
+
+**Features:**
+- Protects routes based on authentication state
+- Redirects to login page if not authenticated (when requireAuth=true)
+- Stores return URL for redirect after login
+- Shows loading state while checking authentication
+- Respects authentication configuration (allows access when auth is disabled)
+- Higher-order component `withRouteGuard` available for page protection
 
 ### LoginPage
 
@@ -73,7 +128,24 @@ A complete login form component with validation and error handling.
 import { LoginPage } from '@/components/LoginPage';
 
 function Login() {
-  return <LoginPage />;
+  const { login, loading, error } = useAuth();
+  
+  return (
+    <LoginPage
+      onLogin={login}
+      loading={loading}
+      error={error || null}
+    />
+  );
+}
+```
+
+**Props:**
+```typescript
+interface LoginPageProps {
+  onLogin: (credentials: LoginCredentials) => Promise<boolean>
+  loading: boolean
+  error: string | null
 }
 ```
 
@@ -81,8 +153,27 @@ function Login() {
 - Form validation with real-time feedback
 - Loading states during authentication
 - Error message display
+- Password visibility toggle
 - Responsive design
-- Accessibility support
+- Accessibility support (ARIA labels, keyboard navigation)
+- Validation error display
+
+### LoginPageContainer
+
+Container component that connects LoginPage with authentication logic using `useLoginPage` hook.
+
+```tsx
+import { LoginPageContainer } from '@/components/LoginPageContainer';
+
+function Login() {
+  return <LoginPageContainer />;
+}
+```
+
+**Features:**
+- Automatically connects to authentication context
+- Handles login logic via `useLoginPage` hook
+- Manages loading and error states
 
 ## Hooks
 
@@ -114,13 +205,16 @@ function MyComponent() {
 - `isAuthenticated: boolean` - Current authentication status
 - `user: User | null` - Current user data
 - `loading: boolean` - Loading state during operations
+- `error: string | undefined` - Error message if any
 - `login: (credentials: LoginCredentials) => Promise<boolean>` - Login function
-- `logout: () => Promise<void>` - Logout function
+- `logout: () => Promise<void>` - Logout function (returns Promise, not void)
 - `checkAuth: () => Promise<void>` - Check authentication status
+
+**Note:** When authentication is disabled (`AUTH_ENABLED=false`), the hook returns a mock authenticated state with an anonymous user.
 
 ### useConditionalAuth
 
-A safe authentication hook that works when authentication is disabled.
+A safe authentication hook that works when authentication is disabled. Returns mock authenticated state when auth is disabled.
 
 ```tsx
 import { useConditionalAuth } from '@/hooks/useConditionalAuth';
@@ -128,19 +222,23 @@ import { useConditionalAuth } from '@/hooks/useConditionalAuth';
 function MyComponent() {
   const auth = useConditionalAuth();
   
-  // Returns null when authentication is disabled
-  if (!auth) {
-    return <div>Authentication disabled</div>;
+  // Always returns AuthContextType (never null)
+  // When auth is disabled, returns mock authenticated state
+  const { isAuthenticated, user } = auth;
+  
+  if (!isAuthenticated) {
+    return <div>Please log in</div>;
   }
   
-  const { isAuthenticated, user } = auth;
   return <div>User: {user?.username}</div>;
 }
 ```
 
+**Returns:** `AuthContextType` - Always returns the full auth context type, with mock functions when auth is disabled.
+
 ### useExternalAuth
 
-Hook for integrating with external authentication systems.
+Hook for integrating with external authentication systems. Provides non-interference integration.
 
 ```tsx
 import { useExternalAuth } from '@/hooks/useExternalAuth';
@@ -149,7 +247,11 @@ function ExternalAuthComponent() {
   const { 
     status, 
     syncWithExternal, 
-    handleExternalEvent 
+    handleExternalEvent,
+    checkExternalAuth,
+    registerSyncCallback,
+    unregisterSyncCallback,
+    isAuthEnabled
   } = useExternalAuth();
   
   // Handle external authentication events
@@ -172,19 +274,44 @@ function ExternalAuthComponent() {
 }
 ```
 
+**Returns:**
+- `status: ExternalAuthStatus` - External authentication status
+- `syncWithExternal: (isAuthenticated: boolean, user?: User) => Promise<void>` - Sync with external auth
+- `handleExternalEvent: (event: ExternalAuthEvent) => Promise<void>` - Handle external auth events
+- `checkExternalAuth: () => Promise<void>` - Check external auth availability
+- `registerSyncCallback: (name: string, callback: Function) => void` - Register sync callback
+- `unregisterSyncCallback: (name: string) => void` - Unregister sync callback
+- `isAuthEnabled: boolean` - Whether authentication is enabled
+
+**Additional Hooks:**
+- `useAuthProviderRegistry()` - Hook for managing authentication providers
+- `useAuthHookRegistry()` - Hook for managing authentication hooks
+
 ## Configuration
 
 ### Environment Variables
 
 ```bash
 # Enable/disable authentication (default: true)
+# Can be set as AUTH_ENABLED or NEXT_PUBLIC_AUTH_ENABLED
 AUTH_ENABLED=true
+NEXT_PUBLIC_AUTH_ENABLED=true
 
 # Session timeout in milliseconds (default: 3600000 = 1 hour)
+# Can be set as SESSION_TIMEOUT or NEXT_PUBLIC_SESSION_TIMEOUT
 SESSION_TIMEOUT=3600000
+NEXT_PUBLIC_SESSION_TIMEOUT=3600000
 
 # Remember sidebar state (default: true)
+# Can be set as REMEMBER_SIDEBAR or NEXT_PUBLIC_REMEMBER_SIDEBAR
 REMEMBER_SIDEBAR=true
+NEXT_PUBLIC_REMEMBER_SIDEBAR=true
+
+# Default route for the application (default: '/')
+# Can be set as DEFAULT_ROUTE or NEXT_PUBLIC_DEFAULT_ROUTE
+# NEXT_PUBLIC_DEFAULT_ROUTE takes priority
+DEFAULT_ROUTE=/
+NEXT_PUBLIC_DEFAULT_ROUTE=/
 ```
 
 ### Configuration Object
@@ -194,12 +321,29 @@ interface AuthConfig {
   authEnabled: boolean;
   sessionTimeout: number;
   rememberSidebar: boolean;
+  defaultRoute: string;
 }
 
 // Access configuration
 import { ConfigManager } from '@/lib/config';
+
+// Get full config
 const config = ConfigManager.getAuthConfig();
+
+// Check if auth is enabled
+const isEnabled = ConfigManager.isAuthEnabled();
+
+// Get default route
+const defaultRoute = ConfigManager.getDefaultRoute();
+
+// Reset config cache (useful for testing)
+ConfigManager.resetConfig();
 ```
+
+**Configuration Priority:**
+- `NEXT_PUBLIC_*` environment variables take priority over non-prefixed versions
+- Secure defaults: `authEnabled` defaults to `true` if not set
+- Configuration is cached after first access (use `resetConfig()` to clear cache)
 
 ## Authentication Flow
 
@@ -240,11 +384,17 @@ sequenceDiagram
 Sessions are managed with the following lifecycle:
 
 1. **Creation** - New session created on successful authentication
-2. **Persistence** - Session data stored in localStorage
+2. **Persistence** - Session data stored in localStorage and cookies (for SSR compatibility)
 3. **Validation** - Session checked on app initialization and periodically
-4. **Refresh** - Sessions can be refreshed before expiration
+4. **Expiration Checking** - Automatic expiration check using `isSessionExpired()`
 5. **Expiration** - Automatic logout when session expires
-6. **Cleanup** - Session data cleared on logout
+6. **Cleanup** - Session data cleared on logout (localStorage + cookies)
+
+**Storage Keys:**
+- `STORAGE_KEYS.SESSION_DATA` - Session information
+- `STORAGE_KEYS.USER_DATA` - User information
+- `STORAGE_KEYS.AUTH_TOKEN` - Authentication token
+- `STORAGE_KEYS.SIDEBAR_STATE` - Sidebar state (if rememberSidebar is enabled)
 
 ```tsx
 interface Session {

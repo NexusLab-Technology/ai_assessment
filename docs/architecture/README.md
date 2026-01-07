@@ -1,139 +1,226 @@
-# Architecture Overview - Configurable Authentication Framework
+# Architecture Documentation - RAPID AI Assessment Platform
 
-## Table of Contents
-- [System Architecture](#system-architecture)
-- [Module Structure](#module-structure)
-- [Design Patterns](#design-patterns)
-- [Integration Guide](#integration-guide)
-- [Best Practices](#best-practices)
+## Overview
+
+The RAPID AI Assessment Platform is a comprehensive Next.js 14+ application built with TypeScript that enables organizations to assess their GenAI readiness through structured questionnaires. The platform follows a modular architecture with clear separation of concerns, making it maintainable, testable, and extensible.
 
 ## System Architecture
 
 ### High-Level Architecture
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                        │
-├─────────────────────────────────────────────────────────────┤
-│  Next.js Pages  │  React Components  │  Custom Hooks      │
-├─────────────────────────────────────────────────────────────┤
-│                    Framework Layer                          │
-├─────────────────────────────────────────────────────────────┤
-│  Auth Context   │  Route Guards     │  UI Components      │
-├─────────────────────────────────────────────────────────────┤
-│                     Core Layer                              │
-├─────────────────────────────────────────────────────────────┤
-│  Config Manager │  Provider Registry │  Validation        │
-├─────────────────────────────────────────────────────────────┤
-│                   Infrastructure Layer                      │
-├─────────────────────────────────────────────────────────────┤
-│  Environment    │  Local Storage    │  External APIs      │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      Application Layer                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Next.js Pages  │  React Components  │  Custom Hooks         │
+│  (App Router)    │  (UI Components)    │  (Business Logic)     │
+├─────────────────────────────────────────────────────────────────┤
+│                      Framework Layer                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Auth Context   │  Route Guards     │  Layout Components      │
+│  State Mgmt     │  Navigation       │  Error Boundaries       │
+├─────────────────────────────────────────────────────────────────┤
+│                        Core Layer                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Config Manager │  Provider Registry │  Validation             │
+│  API Client     │  Services         │  Utilities              │
+├─────────────────────────────────────────────────────────────────┤
+│                    Infrastructure Layer                         │
+├─────────────────────────────────────────────────────────────────┤
+│  MongoDB        │  External API     │  AWS Services           │
+│  Local Storage  │  Environment      │  File System            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Core Principles
 
-1. **Separation of Concerns**: Each module has a single responsibility
+1. **Separation of Concerns**: Each module has a single, well-defined responsibility
 2. **Dependency Inversion**: High-level modules don't depend on low-level modules
 3. **Interface Segregation**: Clients depend only on interfaces they use
 4. **Plugin Architecture**: Extensible through provider registration
 5. **Configuration-Driven**: Behavior controlled by environment variables
+6. **Type Safety**: Comprehensive TypeScript typing throughout
+7. **Testability**: Each module can be tested independently
 
-## Module Structure
+## Module Architecture
 
-### 1. Core Authentication Module 🔐
+### 1. Authentication Module 🔐
 
-**Purpose**: Provides core authentication functionality
-**Location**: `src/lib/`, `src/contexts/`, `src/types/`
+**Purpose**: Configurable authentication framework with environment-based control
 
-```typescript
-// Core interfaces
-interface AuthConfig {
-  authEnabled: boolean;
-  sessionTimeout: number;
-  rememberSidebar: boolean;
-  defaultRoute: string;
-}
-
-interface User {
-  id: string;
-  username: string;
-  email?: string;
-  roles: string[];
-  lastLogin: Date;
-}
-```
+**Location**: `src/contexts/`, `src/lib/config.ts`, `src/lib/AuthProviderRegistry.ts`
 
 **Key Components**:
-- `ConfigManager`: Environment-based configuration
-- `AuthContext`: React context for authentication state
-- `AuthProviderRegistry`: Plugin system for auth providers
-- Type definitions and validation utilities
+- `AuthContext`: React context for authentication state and operations
+- `AuthProvider`: Context provider component
+- `AuthWrapper`: Wrapper that always provides AuthProvider
+- `ConfigManager`: Environment-based configuration management
+- `AuthProviderRegistry`: Plugin system for authentication providers
+- `RouteGuard`: Route protection component with `withRouteGuard` HOC
+- `LoginPage`: Login form component
+- `LoginPageContainer`: Container connecting LoginPage with auth logic
 
-### 2. UI Framework Module 🎨
+**Architecture Pattern**: Registry Pattern, Strategy Pattern
 
-**Purpose**: Reusable UI components for authentication
-**Location**: `src/components/`
+---
 
-```typescript
-// Component interfaces
-interface ApplicationShellProps {
-  children: React.ReactNode;
-  navigationItems?: NavigationItem[];
-  showSidebar?: boolean;
-  className?: string;
-}
+### 2. AI Assessment Module 📊
 
-interface RouteGuardProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-}
-```
+**Purpose**: Core assessment functionality with RAPID questionnaire integration
+
+**Location**: `src/components/ai-assessment/`, `src/app/ai-assessment/`
 
 **Key Components**:
-- `ApplicationShell`: Main layout with sidebar
-- `RouteGuard`: Route protection component
-- `Sidebar`: Collapsible navigation
-- `LoginPage`: Authentication form
+- `AssessmentContainer`: Main container managing assessment flow and view modes
+- `AssessmentDashboard`: Assessment list and management
+- `DatabaseIntegratedAssessmentWizard`: Primary wizard component with RAPID integration
+- `EnhancedCategoryNavigationWithSubcategories`: Category navigation with subcategory support
+- `FixedQuestionContainer`: Consistent UI container with fixed dimensions
+- `EnhancedRAPIDQuestionnaireLoader`: Enhanced loader with database integration and caching
+- `ResponseReviewModal`: Comprehensive response review
+- `AssessmentViewer`: Read-only assessment viewer (uses `useAssessmentViewer` hook)
+- `ReportGenerator`: Report generation component
+- `AsyncReportGenerator`: Asynchronous report generation
+- `ReportStatusTracker`: Tracks report generation status
 
-### 3. Provider Integration Module 🔌
-
-**Purpose**: Extensible authentication provider system
-**Location**: `src/interfaces/`, `src/providers/`
-
-```typescript
-// Provider interface
-interface IAuthProvider {
-  name: string;
-  config: AuthProviderConfig;
-  initialize(): Promise<void>;
-  authenticate(credentials: LoginCredentials): Promise<AuthResult>;
-  validateSession(token: string): Promise<AuthResult>;
-  cleanup(): Promise<void>;
-}
+**Data Flow**:
+```
+User → Company Selection → Assessment Creation → 
+Questionnaire Loading → Category Navigation → 
+Response Entry (Auto-save) → Review → Completion → 
+Report Generation
 ```
 
-**Key Features**:
-- Plugin architecture
-- Priority-based provider selection
-- Hook system for lifecycle events
-- External system integration
+**Architecture Pattern**: Component Composition, State Management
 
-### 4. Hooks Module 🪝
+---
 
-**Purpose**: Reusable React hooks for authentication logic
-**Location**: `src/hooks/`
+### 3. Company Settings Module 🏢
 
-```typescript
-// Hook examples
-const useConditionalAuth = () => AuthContextType | null;
-const useExternalAuth = () => ExternalAuthState;
-const useLoginPage = () => LoginPageState;
+**Purpose**: Company management and organization
+
+**Location**: `src/components/company-settings/`, `src/app/company-settings/`
+
+**Key Components**:
+- `CompanyContainer`: Main container for company management (no props, self-contained)
+- `CompanyDashboard`: Company list with search and integrated form modal
+- `CompanyForm`: Create/edit company form with duplicate checking
+- `CompanyCard`: Individual company display with navigation
+- `CompanySearch`: Client-side search functionality with debouncing
+- `CompanyErrorBoundary`: Error boundary for graceful error handling
+- `Tooltip`: Reusable tooltip component
+
+**Data Flow**:
 ```
+User → Company List → Create/Edit/Delete → 
+Validation → API Call → Database Update → 
+UI Refresh
+```
+
+**Architecture Pattern**: CRUD Pattern, Form Management
+
+---
+
+### 4. Report Generation Module 📄
+
+**Purpose**: Asynchronous report generation via External API Gateway
+
+**Location**: `src/components/ai-assessment/AsyncReportGenerator.tsx`, `src/app/api/reports/`
+
+**Key Components**:
+- `AsyncReportGenerator`: Initiates report generation
+- `ReportStatusTracker`: Tracks report generation status
+- `ReportViewer`: Displays generated reports
+
+**Data Flow**:
+```
+User → Request Report → External API Gateway → 
+SQS Queue → Lambda Function → AWS Bedrock → 
+Report Generation → MongoDB Update → Status Polling → 
+Report Display
+```
+
+**Architecture Pattern**: Asynchronous Processing, Polling Pattern
+
+---
+
+### 5. API Layer 🌐
+
+**Purpose**: Serverless API routes for all operations
+
+**Location**: `src/app/api/`
+
+**Structure**:
+```
+api/
+├── assessments/        # Assessment CRUD operations
+│   ├── route.ts                    # GET, POST
+│   └── [id]/
+│       ├── route.ts                # GET, PUT, DELETE
+│       ├── responses/route.ts      # GET, PUT, PATCH
+│       ├── review/route.ts         # GET
+│       └── validate/route.ts       # GET, POST, PUT, DELETE
+├── companies/          # Company CRUD operations
+│   ├── route.ts                    # GET, POST
+│   ├── [id]/route.ts              # GET, PUT, DELETE
+│   └── search/route.ts            # GET
+├── questionnaires/     # Questionnaire endpoints
+│   ├── route.ts                    # GET (legacy)
+│   └── rapid/
+│       ├── route.ts                # GET, POST
+│       └── init/route.ts          # GET, POST
+├── reports/            # Report generation endpoints
+│   ├── route.ts                    # GET, POST
+│   ├── generate/route.ts          # POST
+│   └── [id]/route.ts              # GET
+├── aws/                # AWS integration endpoints
+│   ├── test-bedrock/route.ts      # POST
+│   └── credentials/route.ts      # POST
+└── db/                 # Database initialization
+    └── init/route.ts              # GET, POST
+```
+
+**Architecture Pattern**: RESTful API, Serverless Functions
+
+---
+
+### 6. Data Layer 💾
+
+**Purpose**: Data persistence and management
+
+**Location**: `src/lib/mongodb.ts`, `src/lib/models/`, `src/lib/services/`
+
+**Key Components**:
+- `MongoDB Connection`: Database connection management (`mongodb.ts`)
+- `Data Models`: TypeScript interfaces and model classes for MongoDB documents
+  - `AssessmentModel` / `AssessmentDocument`: Assessment data model
+  - `CompanyModel` / `CompanyDocument`: Company data model
+  - `ReportModel` / `ReportDocument`: Report data model
+- `Services`: Business logic layer for data operations
+  - `AssessmentService`: Assessment CRUD and category-based operations
+  - `RAPIDQuestionnaireService`: RAPID questionnaire loading and management
+  - `validation-service`: Assessment validation logic
+  - `rapid-questionnaire-init`: RAPID questionnaire initialization
+
+**Collections** (defined in `COLLECTIONS` constant):
+- `companies`: Company information
+- `assessments`: Assessment data with category-based responses
+- `rapid_questionnaires`: RAPID questionnaire structure
+- `reports`: Generated assessment reports
+- `report_requests`: Asynchronous report generation requests
+
+**Collection Access**:
+- Collections accessed via `getCollection(COLLECTIONS.COLLECTION_NAME)`
+- Models use static methods for data access (Repository Pattern)
+- All queries filtered by `userId` for data isolation
+
+**Architecture Pattern**: Repository Pattern, Service Layer
 
 ## Design Patterns
 
 ### 1. Registry Pattern
-Used for managing authentication providers:
+
+Used for managing authentication providers and hooks:
 
 ```typescript
 class AuthProviderRegistry {
@@ -145,6 +232,7 @@ class AuthProviderRegistry {
 ```
 
 ### 2. Strategy Pattern
+
 Different authentication strategies through providers:
 
 ```typescript
@@ -164,18 +252,18 @@ class LDAPProvider implements IAuthProvider {
 ```
 
 ### 3. Observer Pattern
-Hook system for authentication events:
+
+Hook system for authentication events and assessment lifecycle:
 
 ```typescript
 interface IAuthHook {
   beforeAuthenticate?(credentials: LoginCredentials): Promise<LoginCredentials | null>;
   afterAuthenticate?(user: User, session: Session): Promise<void>;
-  beforeLogout?(user: User, session: Session): Promise<void>;
-  afterLogout?(userId: string): Promise<void>;
 }
 ```
 
 ### 4. Factory Pattern
+
 Configuration factory based on environment:
 
 ```typescript
@@ -191,366 +279,470 @@ class ConfigManager {
 }
 ```
 
-### 5. Higher-Order Component Pattern
-Route protection and layout wrapping:
+### 5. Component Composition Pattern
+
+Building complex UIs from smaller components:
 
 ```typescript
-export function withRouteGuard<P extends object>(
-  Component: React.ComponentType<P>,
-  requireAuth: boolean = true
-) {
-  return (props: P) => (
-    <RouteGuard requireAuth={requireAuth}>
-      <Component {...props} />
-    </RouteGuard>
-  );
-}
+<AssessmentContainer>
+  <CompanySelector />
+  <AssessmentDashboard>
+    <AssessmentWizard>
+      <CategoryNavigationSidebar />
+      <FixedQuestionContainer>
+        <QuestionStep />
+      </FixedQuestionContainer>
+    </AssessmentWizard>
+  </AssessmentDashboard>
+</AssessmentContainer>
 ```
 
-## Integration Guide
+### 6. Repository Pattern
 
-### Scenario 1: Full Framework Integration
+Data access abstraction through Model classes:
 
-**Use Case**: New application needs complete authentication system
-
-**Steps**:
-1. Copy all core modules
-2. Set up environment variables
-3. Wrap application with AuthProvider
-4. Use ApplicationShell for layout
-
-**Files to Copy**:
-```
-src/lib/
-src/contexts/
-src/types/
-src/interfaces/
-src/components/
-src/hooks/
-```
-
-**Integration Code**:
 ```typescript
-// app/layout.tsx
-import { AuthWrapper } from '@/components/AuthWrapper';
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        <AuthWrapper>
-          {children}
-        </AuthWrapper>
-      </body>
-    </html>
-  );
+// Model classes provide data access
+class AssessmentService {
+  async getAssessment(id: string): Promise<Assessment | null>;
+  async createAssessment(data: CreateAssessmentRequest): Promise<Assessment>;
+  async updateCategoryResponses(id: string, categoryId: string, responses: any): Promise<void>;
+  async updateCategoryStatus(id: string, categoryId: string, status: CategoryCompletionStatus): Promise<void>;
+  async getAssessmentStatistics(id: string): Promise<AssessmentStatistics>;
 }
 
-// app/page.tsx
-import { ApplicationShell } from '@/components/ApplicationShell';
-import { RouteGuard } from '@/components/RouteGuard';
+class CompanyModel {
+  static async findAll(userId: string): Promise<Company[]>;
+  static async findById(id: string, userId: string): Promise<Company | null>;
+  static async create(data: CreateCompanyRequest, userId: string): Promise<Company>;
+  static async update(id: string, userId: string, data: UpdateCompanyRequest): Promise<Company>;
+  static async delete(id: string, userId: string): Promise<boolean>;
+  static async search(query: string, userId: string): Promise<Company[]>;
+  static async getAssessmentCount(id: string, userId: string): Promise<number>;
+}
 
-export default function HomePage() {
-  return (
-    <RouteGuard requireAuth={true}>
-      <ApplicationShell>
-        <h1>Welcome to your app!</h1>
-      </ApplicationShell>
-    </RouteGuard>
-  );
+class RAPIDQuestionnaireService {
+  static async getActiveQuestionnaire(type: AssessmentType): Promise<RAPIDQuestionnaireStructure | null>;
+  static async getQuestionnaireByVersion(version: string, type: AssessmentType): Promise<RAPIDQuestionnaireStructure | null>;
+  static async storeQuestionnaire(questionnaire: RAPIDQuestionnaireStructure): Promise<{ success: boolean; id?: string }>;
+  static async listVersions(): Promise<string[]>;
 }
 ```
 
-### Scenario 2: Core Authentication Only
+## Data Flow Architecture
 
-**Use Case**: Existing application needs authentication logic only
+### Assessment Creation Flow
 
-**Steps**:
-1. Copy core authentication module
-2. Implement custom UI components
-3. Use authentication context
-
-**Files to Copy**:
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as UI Component
+    participant API as API Route
+    participant SVC as Service Layer
+    participant DB as MongoDB
+    
+    U->>UI: Create Assessment
+    UI->>API: POST /api/assessments
+    API->>SVC: AssessmentService.create()
+    SVC->>DB: Insert Assessment Document
+    DB-->>SVC: Created Assessment
+    SVC-->>API: Assessment Object
+    API-->>UI: Success Response
+    UI-->>U: Show Success Message
 ```
-src/lib/config.ts
-src/contexts/AuthContext.tsx
-src/lib/AuthProviderRegistry.ts
-src/types/index.ts
-src/lib/validation.ts
-src/lib/utils.ts
-src/lib/constants.ts
+
+### Response Saving Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as AssessmentWizard
+    participant API as API Route
+    participant SVC as AssessmentService
+    participant DB as MongoDB
+    
+    U->>UI: Enter Response
+    UI->>UI: Auto-save Timer (30s)
+    UI->>API: PUT /api/assessments/[id]/responses
+    API->>SVC: updateCategoryResponses()
+    SVC->>DB: Update Assessment Document
+    DB-->>SVC: Updated Document
+    SVC-->>API: Success
+    API-->>UI: Updated Responses
+    UI->>UI: Update Local State
 ```
 
-**Integration Code**:
+### Report Generation Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as AsyncReportGenerator
+    participant API as API Route
+    participant EXT as External API Gateway
+    participant SQS as SQS Queue
+    participant LAMBDA as Lambda Function
+    participant BEDROCK as AWS Bedrock
+    participant DB as MongoDB
+    
+    U->>UI: Request Report
+    UI->>API: POST /api/reports/generate
+    API->>EXT: Send Report Request
+    EXT->>SQS: Push to Queue
+    EXT-->>API: Request ID
+    API-->>UI: Request ID
+    
+    SQS->>LAMBDA: Process Message
+    LAMBDA->>BEDROCK: Generate Report
+    BEDROCK-->>LAMBDA: Report Content
+    LAMBDA->>DB: Save Report
+    LAMBDA->>DB: Update Request Status
+    
+    UI->>API: Poll Status
+    API->>DB: Query Request Status
+    DB-->>API: Status Update
+    API-->>UI: Status (COMPLETED)
+    UI->>UI: Display Report
+```
+
+## State Management
+
+### Client-Side State
+
+**React Context**:
+- `AuthContext`: Authentication state
+- Component-level state for UI interactions
+
+**Local Storage**:
+- Session data
+- User preferences
+- Sidebar state (if enabled)
+
+**Server State**:
+- Assessment data (fetched from API)
+- Company data (fetched from API)
+- Questionnaire structure (cached)
+
+### State Synchronization
+
+- **Optimistic Updates**: Immediate UI feedback
+- **Auto-save**: Background synchronization every 30 seconds
+- **Real-time Updates**: Polling for report status
+- **Error Recovery**: Retry mechanism for failed operations
+
+## API Architecture
+
+### RESTful Design
+
+- **Resources**: Assessments, Companies, Reports, Questionnaires
+- **HTTP Methods**: GET, POST, PUT, DELETE, PATCH
+- **Status Codes**: Standard HTTP status codes
+- **Error Handling**: Consistent error response format
+
+### API Structure
+
+```
+/api
+├── assessments/
+│   ├── GET /                    # List assessments
+│   ├── POST /                   # Create assessment
+│   ├── GET /[id]                # Get assessment with statistics
+│   ├── PUT /[id]                # Update assessment (currentCategory, currentSubcategory)
+│   ├── DELETE /[id]             # Delete assessment
+│   ├── GET /[id]/responses      # Get responses
+│   ├── PUT /[id]/responses      # Save category-based responses
+│   ├── PATCH /[id]/responses    # Complete assessment (action: 'complete')
+│   ├── GET /[id]/review         # Get review data
+│   └── GET /[id]/validate       # Get validation summary
+│   └── POST /[id]/validate      # Validate specific responses/categories
+│   └── PUT /[id]/validate       # Save validated responses
+│   └── DELETE /[id]/validate    # Clear validation cache
+├── companies/
+│   ├── GET /                    # List companies
+│   ├── POST /                   # Create company
+│   ├── GET /[id]                # Get company with assessment count
+│   ├── PUT /[id]                # Update company
+│   ├── DELETE /[id]             # Delete company (cascade deletion)
+│   └── GET /search?q=query      # Search companies
+├── questionnaires/
+│   ├── GET /                    # Get questionnaire sections (legacy)
+│   ├── GET /rapid               # Get RAPID questionnaire
+│   ├── POST /rapid              # Store RAPID questionnaire
+│   ├── GET /rapid/init          # Check initialization status
+│   └── POST /rapid/init         # Initialize RAPID questionnaires
+└── reports/
+    ├── GET /                    # List reports
+    ├── POST /                   # Create report request
+    ├── POST /generate           # Generate report (synchronous)
+    └── GET /[id]                # Get report
+```
+
+## Database Architecture
+
+### MongoDB Collections
+
+#### Companies Collection
 ```typescript
-// Your existing app
-import { AuthProvider, useAuth } from './lib/contexts/AuthContext';
-
-function App() {
-  return (
-    <AuthProvider>
-      <YourExistingLayout>
-        <AuthenticatedContent />
-      </YourExistingLayout>
-    </AuthProvider>
-  );
-}
-
-function AuthenticatedContent() {
-  const { isAuthenticated, user, login, logout } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <YourCustomLoginForm onLogin={login} />;
-  }
-  
-  return (
-    <div>
-      <p>Welcome, {user?.username}!</p>
-      <button onClick={logout}>Logout</button>
-      <YourAppContent />
-    </div>
-  );
+{
+  _id: ObjectId,
+  name: string,
+  description?: string,
+  createdAt: Date,
+  updatedAt: Date,
+  userId: string
 }
 ```
 
-### Scenario 3: Custom Provider Integration
+**Indexes**:
+- `{ userId: 1 }` - User-specific queries
+- `{ userId: 1, createdAt: -1 }` - User queries sorted by creation date
+- `{ userId: 1, name: 1 }` - User-specific company name queries (for uniqueness)
+- Text search indexes for name and description fields
 
-**Use Case**: Integrate with existing authentication system
-
-**Steps**:
-1. Copy provider interfaces and registry
-2. Implement custom provider
-3. Register provider
-
-**Files to Copy**:
-```
-src/interfaces/AuthProvider.ts
-src/lib/AuthProviderRegistry.ts
-src/types/index.ts
-```
-
-**Integration Code**:
+#### Assessments Collection
 ```typescript
-// Custom provider implementation
-import { IAuthProvider, AuthResult } from './interfaces/AuthProvider';
-
-class MyCustomAuthProvider implements IAuthProvider {
-  name = 'my-custom-auth';
-  config = {
-    enabled: true,
-    priority: 1,
-    timeout: 5000
-  };
-
-  async initialize(): Promise<void> {
-    // Initialize your auth system
-  }
-
-  async authenticate(credentials: LoginCredentials): Promise<AuthResult> {
-    try {
-      // Your authentication logic
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        return {
-          success: true,
-          user: data.user,
-          token: data.token,
-          session: data.session
-        };
-      } else {
-        return {
-          success: false,
-          error: data.message
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error'
-      };
+{
+  _id: ObjectId,
+  name: string,
+  companyId: ObjectId,
+  userId: string,
+  type: 'EXPLORATORY' | 'MIGRATION',
+  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED',
+  currentCategory: string,
+  currentSubcategory?: string,
+  totalCategories: number,
+  responses: {
+    [categoryId: string]: {
+      [questionId: string]: any
     }
-  }
-
-  async validateSession(token: string): Promise<AuthResult> {
-    // Your session validation logic
-  }
-
-  async cleanup(): Promise<void> {
-    // Cleanup resources
-  }
+  },
+  categoryStatuses: {
+    [categoryId: string]: {
+      categoryId: string,
+      status: 'not_started' | 'partial' | 'completed',
+      completionPercentage: number,
+      lastModified: Date,
+      requiredQuestionsCount: number,
+      answeredRequiredCount: number,
+      totalQuestionsCount: number,
+      answeredTotalCount: number
+    }
+  },
+  rapidQuestionnaireVersion: string,
+  // Legacy fields (for backward compatibility)
+  currentStep?: number,
+  totalSteps?: number,
+  stepStatuses?: {
+    [stepNumber: number]: {
+      status: 'not_started' | 'partial' | 'completed',
+      lastModified: Date,
+      requiredFieldsCount: number,
+      filledFieldsCount: number
+    }
+  },
+  createdAt: Date,
+  updatedAt: Date,
+  completedAt?: Date
 }
-
-// Register the provider
-import { authProviderRegistry } from './lib/AuthProviderRegistry';
-authProviderRegistry.register(new MyCustomAuthProvider());
 ```
 
-### Scenario 4: Route Protection Only
+**Indexes**:
+- `{ companyId: 1, userId: 1 }` - Company and user queries
+- `{ userId: 1, status: 1 }` - User status queries
+- `{ createdAt: -1 }` - Creation date sorting
+- `{ updatedAt: -1 }` - Update date sorting
+- `{ rapidQuestionnaireVersion: 1, type: 1 }` - RAPID version and type queries
+- `{ currentCategory: 1, status: 1 }` - Current category and status queries
+- `{ userId: 1, type: 1, status: 1 }` - User, type, and status queries
+- `{ 'categoryStatuses.status': 1 }` - Category status queries
 
-**Use Case**: Add route protection to existing application
-
-**Files to Copy**:
-```
-src/components/RouteGuard.tsx
-src/contexts/AuthContext.tsx
-src/lib/config.ts
-src/types/index.ts
-```
-
-**Integration Code**:
+#### RAPID Questionnaires Collection
 ```typescript
-// Protect specific routes
-import { RouteGuard } from './components/RouteGuard';
-
-function ProtectedPage() {
-  return (
-    <RouteGuard requireAuth={true}>
-      <YourPageContent />
-    </RouteGuard>
-  );
-}
-
-// Protect entire app sections
-function AdminSection() {
-  return (
-    <RouteGuard requireAuth={true}>
-      <AdminDashboard />
-    </RouteGuard>
-  );
+{
+  _id: ObjectId,
+  version: string,
+  assessmentType: 'EXPLORATORY' | 'MIGRATION',
+  totalQuestions: number,
+  categories: {
+    id: string,
+    title: string,
+    description?: string,
+    subcategories: {
+      id: string,
+      title: string,
+      questions: {
+        id: string,
+        number: string,
+        text: string,
+        description?: string,
+        type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'number',
+        required: boolean,
+        options?: string[],
+        category: string,
+        subcategory: string
+      }[],
+      questionCount: number
+    }[],
+    totalQuestions: number
+  }[],
+  isActive: boolean,
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
-## Best Practices
+**Indexes**:
+- `{ version: 1, assessmentType: 1 }` - Unique index for version and type
+- `{ isActive: 1, assessmentType: 1 }` - Active questionnaire queries
+- `{ createdAt: -1 }` - Creation date sorting
+- `{ 'categories.id': 1 }` - Category ID queries
+- `{ 'categories.subcategories.questions.id': 1 }` - Question ID queries
 
-### 1. Environment Configuration
-Always use environment variables for configuration:
+## Security Architecture
+
+### Authentication & Authorization
+
+- **Configurable Authentication**: Environment-based control
+- **Session Management**: Secure session handling with expiration
+- **Route Protection**: Client and server-side protection
+- **User Isolation**: All queries filtered by userId
+
+### Data Security
+
+- **Input Validation**: Client and server-side validation
+- **Type Safety**: TypeScript for compile-time safety
+- **Error Handling**: Secure error messages (no sensitive data)
+- **HTTPS**: Required in production
+
+### API Security
+
+- **Authentication**: Required for protected endpoints
+- **Authorization**: User-based data access
+- **Rate Limiting**: Protection against abuse
+- **Input Sanitization**: All inputs sanitized
+
+## Performance Architecture
+
+### Optimization Strategies
+
+1. **Code Splitting**: Dynamic imports for large components
+2. **Lazy Loading**: Load questionnaire data on demand
+3. **Caching**: Cache questionnaire structure and company list
+4. **Debouncing**: Debounce search and auto-save operations
+5. **Virtual Scrolling**: For long lists (future enhancement)
+
+### Database Optimization
+
+1. **Indexing**: Proper indexes on frequently queried fields
+2. **Aggregation**: Efficient aggregation pipelines
+3. **Connection Pooling**: MongoDB connection pooling
+4. **Query Optimization**: Optimized queries with projections
+
+## Testing Architecture
+
+### Testing Strategy
+
+1. **Unit Tests**: Component and function-level testing
+2. **Integration Tests**: End-to-end workflow testing
+3. **Property-Based Tests**: Universal correctness properties
+4. **E2E Tests**: Complete user journey testing
+
+### Test Structure
+
+```
+src/__tests__/
+├── api/              # API route tests
+│   ├── api-routes.test.ts
+│   ├── assessments.property.test.ts
+│   ├── company-persistence.test.ts
+│   ├── questionnaires.test.ts
+│   └── report-generation.test.ts
+├── components/        # Component tests
+│   ├── [30 component test files]
+│   └── [Property-based tests for components]
+├── hooks/            # Hook tests
+│   ├── useAssessmentViewer.test.ts
+│   ├── useAutoSave.test.ts
+│   └── useAutoSave.navigation.property.test.ts
+├── integration/       # Integration tests
+│   └── [29 integration test files]
+├── properties/        # Property-based tests
+│   └── [22 property-based test files]
+├── types/            # Type tests
+│   ├── assessment.test.ts
+│   └── company.test.ts
+├── unit/             # Unit tests
+│   ├── navigation-constants.test.ts
+│   └── settings-page.test.tsx
+└── validation/        # Validation tests
+    └── company-validation.test.ts
+```
+
+## Deployment Architecture
+
+### Production Setup
+
+- **Next.js**: Server-side rendering and static generation
+- **MongoDB**: Database hosting (MongoDB Atlas or self-hosted)
+- **External API Gateway**: AWS API Gateway for report generation
+- **AWS Services**: Bedrock, Lambda, SQS for report processing
+- **CDN**: CloudFront for static assets (future)
+
+### Environment Configuration
 
 ```bash
-# .env.local
+# Database
+MONGODB_URI=mongodb://...
+MONGODB_DB=ai-assessment-prod
+
+# Authentication
 AUTH_ENABLED=true
 SESSION_TIMEOUT=3600000
-REMEMBER_SIDEBAR=true
-DEFAULT_ROUTE=/dashboard
+
+# External Services
+EXTERNAL_API_GATEWAY_URL=https://...
 ```
 
-### 2. Error Handling
-Implement proper error boundaries:
+## Scalability Considerations
 
-```typescript
-try {
-  const config = ConfigManager.getAuthConfig();
-} catch (error) {
-  console.error('Config error:', error);
-  // Use fallback configuration
-  const config = {
-    authEnabled: true,
-    sessionTimeout: 3600000,
-    rememberSidebar: true,
-    defaultRoute: '/'
-  };
-}
-```
+### Horizontal Scaling
 
-### 3. Type Safety
-Always use TypeScript interfaces:
+- **Stateless API**: All API routes are stateless
+- **Database Sharding**: MongoDB sharding for large datasets
+- **Load Balancing**: Multiple Next.js instances
 
-```typescript
-// Good: Type-safe configuration
-const config: AuthConfig = ConfigManager.getAuthConfig();
+### Vertical Scaling
 
-// Good: Type-safe authentication
-const result: AuthResult = await provider.authenticate(credentials);
-```
+- **Connection Pooling**: Efficient database connections
+- **Caching**: Redis for frequently accessed data (future)
+- **CDN**: Static asset delivery
 
-### 4. Testing
-Test each module independently:
+## Monitoring & Observability
 
-```typescript
-// Unit test for ConfigManager
-describe('ConfigManager', () => {
-  it('should parse auth enabled correctly', () => {
-    process.env.AUTH_ENABLED = 'false';
-    expect(ConfigManager.isAuthEnabled()).toBe(false);
-  });
-});
+### Logging
 
-// Integration test for AuthContext
-describe('AuthContext', () => {
-  it('should authenticate user successfully', async () => {
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider
-    });
-    
-    const success = await result.current.login({
-      username: 'test',
-      password: 'password'
-    });
-    
-    expect(success).toBe(true);
-    expect(result.current.isAuthenticated).toBe(true);
-  });
-});
-```
+- **Structured Logging**: JSON-formatted logs
+- **Error Tracking**: Comprehensive error logging
+- **Performance Metrics**: API response times
 
-### 5. Performance
-Optimize for performance:
+### Metrics
 
-```typescript
-// Lazy load authentication providers
-const loadProvider = async (providerName: string) => {
-  const provider = await import(`./providers/${providerName}Provider`);
-  return provider.default;
-};
+- **API Performance**: Response times, error rates
+- **Database Performance**: Query times, connection pool usage
+- **User Activity**: Assessment creation, completion rates
 
-// Memoize expensive operations
-const memoizedConfig = useMemo(() => {
-  return ConfigManager.getAuthConfig();
-}, []);
-```
+## Future Enhancements
 
-### 6. Security
-Follow security best practices:
+1. **Real-time Collaboration**: WebSocket support for multi-user editing
+2. **Offline Support**: PWA with offline capabilities
+3. **Advanced Analytics**: Assessment completion analytics
+4. **Export Functionality**: Export assessments to various formats
+5. **Templates**: Pre-configured assessment templates
+6. **Role-Based Access Control**: Advanced permission system
 
-```typescript
-// Secure session storage
-const saveSession = (user: User, token: string) => {
-  // Use httpOnly cookies for sensitive data
-  document.cookie = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict`;
-  
-  // Store non-sensitive data in localStorage
-  localStorage.setItem('user_preferences', JSON.stringify({
-    theme: user.theme,
-    language: user.language
-  }));
-};
+## Related Documentation
 
-// Validate all inputs
-const validateCredentials = (credentials: LoginCredentials) => {
-  if (!credentials.username || credentials.username.length < 3) {
-    throw new Error('Username must be at least 3 characters');
-  }
-  
-  if (!credentials.password || credentials.password.length < 8) {
-    throw new Error('Password must be at least 8 characters');
-  }
-};
-```
-
-## Conclusion
-
-This modular architecture provides:
-
-- **Flexibility**: Use only the modules you need
-- **Extensibility**: Add custom providers and hooks
-- **Maintainability**: Clear separation of concerns
-- **Testability**: Each module can be tested independently
-- **Reusability**: Modules can be used across different projects
-
-The framework is designed to grow with your application while maintaining clean architecture principles.
+- [Project Structure](../../document/project-structure.md)
+- [API Documentation](../api/README.md)
+- [Module Documentation](../modules/README.md)
+- [Technical Specifications](../../document/requirement/Technical_Specs_Summary.md)
