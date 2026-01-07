@@ -1,26 +1,93 @@
-# Application Instructions - Configurable Authentication Framework
+# Application Development Instructions
 
-## Overview
-This application provides a configurable authentication framework with sidebar navigation for NextJS applications.
+## 🎯 **Business Data Platform - Core Coding Rules**
 
-## Current UI Layout
-The sidebar currently has this structure:
-1. **Header** - Navigation title with collapse button
-2. **Main Navigation** - Home and Settings links
-3. **Footer** - Logout button and app version
+This document contains the essential coding rules for the Business Data Platform. **MANDATORY READING** before making any code modifications.
 
-## User Request
-Move the Settings navigation item to the footer area, near the logout button, to create a more logical grouping of user-related actions.
+---
 
-## Implementation Approach
-1. Modify the Sidebar component to separate main navigation from user actions
-2. Move Settings link to the footer section alongside logout
-3. Update styling to maintain visual hierarchy
-4. Ensure responsive behavior is preserved
-5. Update tests to reflect the new layout
+## 🚨 **CORE CODING RULES - NO EXCEPTIONS**
 
-## Design Considerations
-- Keep Home in main navigation (general app navigation)
-- Group Settings with Logout (user-specific actions)
-- Maintain accessibility and visual consistency
-- Preserve existing functionality and behavior
+### **Rule 1: NextJS Core Application**
+- **Application MUST use NextJS as the core framework**
+- **No other frameworks or build tools allowed**
+- **Follow NextJS best practices and patterns**
+
+### **Rule 2: Directory Structure & Separation**
+- **`components/` directory**: UI components ONLY - NO business logic
+- **`containers/` directory**: Application flow and business logic ONLY - NO UI rendering
+- **NEVER mix concerns between components and containers**
+- **NEVER put business logic in UI components**
+- **NEVER put UI rendering in containers**
+
+### **Rule 3: File Size Limitation**
+- **Each file MUST NOT exceed 400-500 lines**
+- **If a file exceeds the limit:**
+  - Create smaller functions within the file, OR
+  - Extract code to separate files and import them
+- **Purpose**: Keep files small and manageable to avoid affecting other code
+
+### **Rule 4: Time Handling**
+- **Any updates about time MUST use local machine time**
+- **NEVER use server time or UTC time for user-facing updates**
+- **Use JavaScript Date() or browser time APIs for local time**
+- **Purpose**: Ensure users see time in their local timezone
+
+---
+
+## 📁 **File Organization Example**
+
+```
+src/
+├── components/           # UI ONLY - NO LOGIC
+│   ├── Button.tsx       # Pure UI component
+│   ├── Form.tsx         # Pure UI component
+│   └── Layout.tsx       # Pure UI component
+├── containers/           # LOGIC ONLY - NO UI
+│   ├── UserLogic.tsx    # Business logic only
+│   ├── DataFlow.tsx     # Application flow only
+│   └── StateManager.tsx # State management only
+└── lib/                 # Utility functions
+    ├── helpers.ts       # Helper functions
+    └── validators.ts    # Validation functions
+```
+
+---
+
+## ❌ **What NOT to Do**
+
+- ❌ **NEVER** put business logic in components
+- ❌ **NEVER** put UI rendering in containers
+- ❌ **NEVER** create files larger than 500 lines
+- ❌ **NEVER** mix UI and logic concerns
+- ❌ **NEVER** use frameworks other than NextJS
+- ❌ **NEVER** use server time or UTC time for user-facing updates
+
+---
+
+## ✅ **What TO Do**
+
+- ✅ **ALWAYS** keep components pure UI only
+- ✅ **ALWAYS** keep containers logic only
+- ✅ **ALWAYS** keep files under 500 lines
+- ✅ **ALWAYS** extract large functions to separate files
+- ✅ **ALWAYS** use NextJS as the core framework
+- ✅ **ALWAYS** use local machine time for user-facing updates
+
+---
+
+## 🔍 **Code Review Checklist**
+
+Before committing any code, verify:
+- [ ] File is under 500 lines
+- [ ] Components contain only UI code
+- [ ] Containers contain only business logic
+- [ ] No mixed concerns between layers
+- [ ] NextJS patterns followed correctly
+
+---
+
+**Last Updated**: 2025-08-14 14:51:33 +07 - Simplified to core coding rules
+**Purpose**: Provide essential coding rules for the Business Data Platform
+**Audience**: All developers working on the Business Data Platform
+**Compliance**: Mandatory for all code modifications
