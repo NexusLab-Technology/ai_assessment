@@ -375,7 +375,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
 
       {/* Show main content when questionnaire is loaded */}
       {questionnaire && !questionnaireLoading && (
-        <>
+        <div className="flex h-full">
           {/* Sidebar */}
           <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50">
             <CategoryNavigationSidebar
@@ -469,7 +469,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
                 name: 'Assessment',
                 companyId: '',
                 userId: '',
-                type: assessmentType,
+                type: validAssessmentType,
                 status: 'IN_PROGRESS',
                 currentCategory: currentCategory,
                 totalCategories: questionnaire.categories.length,
@@ -492,7 +492,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
               }}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   );
