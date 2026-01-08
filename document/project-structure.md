@@ -93,7 +93,8 @@ ai_assessment/
 │   │   │   ├── AssessmentDashboard.tsx
 │   │   │   ├── AssessmentWizard.tsx
 │   │   │   ├── AssessmentViewer.tsx
-│   │   │   ├── CategoryNavigationSidebar.tsx
+│   │   │   ├── CategoryNavigationSidebar.tsx  # Assessment Category Nav (sub-navigation, NOT main nav)
+│   │   │   ├── SubSidebar.tsx                # Module Navigation (sub-navigation, NOT main nav)
 │   │   │   ├── FixedQuestionContainer.tsx
 │   │   │   ├── RAPIDQuestionnaireLoader.tsx
 │   │   │   ├── ResponseReviewModal.tsx
@@ -119,10 +120,10 @@ ai_assessment/
 │   │   │   ├── CompanyForm.tsx
 │   │   │   ├── CompanyCard.tsx
 │   │   │   └── CompanySearch.tsx
-│   │   ├── ApplicationShell.tsx    # Main layout with sidebar
+│   │   ├── ApplicationShell.tsx    # Application Layout (App Shell) - Navbar (left) + Core App (right)
+│   │   ├── Sidebar.tsx             # Main Navigation Sidebar (Navbar) - Primary app navigation
 │   │   ├── AuthWrapper.tsx         # Auth provider wrapper
 │   │   ├── RouteGuard.tsx          # Route protection component
-│   │   ├── Sidebar.tsx             # Main navigation sidebar
 │   │   └── LoginPage.tsx           # Login form component
 │   │
 │   ├── containers/                 # Business logic containers (NO UI rendering)

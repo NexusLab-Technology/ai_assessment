@@ -1,3 +1,20 @@
+/**
+ * Module Navigation Sidebar Component
+ * 
+ * Sub-navigation sidebar for switching between application modules.
+ * Displays main modules: AI Assessment, Company Settings, etc.
+ * 
+ * Note: This is NOT the main app navigation.
+ * This is a module-level navigation used for switching between major app sections.
+ * 
+ * Features:
+ * - Module switching navigation
+ * - Active module highlighting
+ * - Responsive mobile menu
+ * 
+ * Used by: Assessment pages and other module pages
+ */
+
 'use client'
 
 import React, { useState } from 'react'

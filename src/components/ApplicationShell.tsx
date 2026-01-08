@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ApplicationShellProps } from '@/types';
+import { ApplicationShellProps, AuthConfig } from '@/types';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConfigManager } from '@/lib/config';
@@ -10,8 +10,21 @@ import { isBrowser, safeParseJSON } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 /**
- * ApplicationShell Component
- * Main layout container with sidebar integration, conditional rendering, and logout functionality
+ * Application Layout Component (App Shell)
+ * 
+ * Main application layout that divides the app into 2 parts:
+ * 1. Main Navigation Sidebar (left) - Uses Sidebar component
+ * 2. Core Application Content (right) - Main content area
+ * 
+ * Features:
+ * - Sidebar integration with state management
+ * - Conditional rendering based on authentication
+ * - Logout functionality
+ * - Responsive layout
+ * 
+ * Structure:
+ * - Left: Navbar (Sidebar component)
+ * - Right: Core Application (children)
  */
 export function ApplicationShell({ 
   children, 
@@ -24,19 +37,22 @@ export function ApplicationShell({
   const router = useRouter();
 
   // Get authentication configuration with error handling
-  let config;
-  try {
-    config = ConfigManager.getAuthConfig();
-  } catch (error) {
-    console.error('ConfigManager error in ApplicationShell, using default configuration:', error);
-    // Fallback to default configuration
-    config = {
-      authEnabled: true,
-      sessionTimeout: 3600000,
-      rememberSidebar: true,
-      defaultRoute: '/',
-    };
-  }
+  const getConfig = (): AuthConfig => {
+    try {
+      return ConfigManager.getAuthConfig();
+    } catch (error) {
+      console.error('ConfigManager error in ApplicationShell, using default configuration:', error);
+      // Fallback to default configuration
+      return {
+        authEnabled: true,
+        sessionTimeout: 3600000,
+        rememberSidebar: true,
+        defaultRoute: '/',
+      };
+    }
+  };
+  
+  const config: AuthConfig = getConfig();
   
   // Use auth context (now always available)
   const { isAuthenticated, loading, logout } = useAuth();

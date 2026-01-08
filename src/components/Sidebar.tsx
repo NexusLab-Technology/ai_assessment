@@ -10,8 +10,18 @@ import { isBrowser, safeStringifyJSON } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Sidebar Component
- * Collapsible navigation sidebar with responsive behavior
+ * Main Navigation Sidebar Component
+ * 
+ * Main application navigation sidebar (Navbar) located on the left side.
+ * This is the primary navigation component for the entire application.
+ * 
+ * Features:
+ * - Collapsible navigation sidebar with responsive behavior
+ * - Active route highlighting
+ * - State persistence
+ * - User actions (Settings, Logout) when authenticated
+ * 
+ * Used by: ApplicationShell (App Layout)
  */
 export function Sidebar({ isCollapsed, onToggle, navigationItems, onLogout }: SidebarProps) {
   const pathname = usePathname();

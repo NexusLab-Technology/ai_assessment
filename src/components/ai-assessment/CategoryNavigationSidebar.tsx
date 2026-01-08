@@ -1,7 +1,18 @@
 /**
- * CategoryNavigationSidebar Component
- * Displays main categories in left sidebar with visual progress indicators
- * Supports responsive design for mobile devices
+ * Assessment Category Navigation Sidebar Component
+ * 
+ * Sub-navigation sidebar for AI Assessment module.
+ * Displays assessment categories with progress indicators.
+ * 
+ * Note: This is NOT the main app navigation.
+ * This is a sub-navigation used within the Assessment module only.
+ * 
+ * Features:
+ * - Category navigation with progress indicators
+ * - Visual completion status
+ * - Responsive design for mobile devices
+ * 
+ * Used by: Assessment components (QuestionnaireFlow, RAPIDAssessmentWizard, etc.)
  */
 
 import React, { useState } from 'react';
