@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+export const dynamic = 'force-dynamic'
+
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Company } from '../../types/assessment'
 import { companyApi } from '../../lib/api-client'
@@ -9,7 +11,7 @@ import AssessmentContainer from '../../components/ai-assessment/assessment/Asses
 import { ApplicationShell } from '../../components/ApplicationShell'
 import { RouteGuard } from '../../components/RouteGuard'
 
-export default function AIAssessmentPage() {
+function AIAssessmentPageContent() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [isLoading, setIsLoading] = useState(false) // Start with false to prevent flash
@@ -141,5 +143,20 @@ export default function AIAssessmentPage() {
         </div>
       </ApplicationShell>
     </RouteGuard>
+  )
+}
+
+export default function AIAssessmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AIAssessmentPageContent />
+    </Suspense>
   )
 }

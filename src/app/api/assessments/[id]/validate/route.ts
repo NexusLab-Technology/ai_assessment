@@ -9,22 +9,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../../../lib/db-init';
-import { Assessment } from '../../../../../lib/models/assessment';
-import { validationService } from '../../../../../lib/services/validation-service';
-import { rapidQuestionnaireService } from '../../../../../lib/services/rapid-questionnaire-service';
+import { AssessmentService } from '@/lib/services/assessment-service';
+import { validationService } from '@/lib/services/validation-service';
+import { RAPIDQuestionnaireService } from '@/lib/services/rapid-questionnaire-service';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
-
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
     
     // Find the assessment
-    const assessment = await Assessment.findById(assessmentId);
+    const assessment = await AssessmentService.getAssessment(assessmentId);
     if (!assessment) {
       return NextResponse.json(
         { error: 'Assessment not found' },
@@ -33,7 +30,7 @@ export async function GET(
     }
 
     // Get the questionnaire structure
-    const questionnaire = await rapidQuestionnaireService.getQuestionnaire(assessment.type);
+    const questionnaire = await RAPIDQuestionnaireService.getActiveQuestionnaire(assessment.type);
     if (!questionnaire) {
       return NextResponse.json(
         { error: 'Questionnaire structure not found' },
@@ -43,7 +40,7 @@ export async function GET(
 
     // Get validation summary
     const validationSummary = await validationService.getValidationSummary(
-      assessment.toObject(),
+      assessment,
       questionnaire
     );
 
@@ -67,16 +64,14 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
-
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
     const body = await request.json();
     
     // Find the assessment
-    const assessment = await Assessment.findById(assessmentId);
+    const assessment = await AssessmentService.getAssessment(assessmentId);
     if (!assessment) {
       return NextResponse.json(
         { error: 'Assessment not found' },
@@ -85,7 +80,7 @@ export async function POST(
     }
 
     // Get the questionnaire structure
-    const questionnaire = await rapidQuestionnaireService.getQuestionnaire(assessment.type);
+    const questionnaire = await RAPIDQuestionnaireService.getActiveQuestionnaire(assessment.type);
     if (!questionnaire) {
       return NextResponse.json(
         { error: 'Questionnaire structure not found' },
@@ -118,8 +113,8 @@ export async function POST(
       case 'responses':
         // Update assessment with new responses if provided
         const updatedAssessment = newResponses ? 
-          { ...assessment.toObject(), responses: newResponses } : 
-          assessment.toObject();
+          { ...assessment, responses: newResponses } : 
+          assessment;
         
         validationResult = await validationService.validateAssessmentResponses(
           updatedAssessment,
@@ -131,8 +126,8 @@ export async function POST(
       case 'completion':
         // Update assessment with new responses if provided
         const completionAssessment = newResponses ? 
-          { ...assessment.toObject(), responses: newResponses } : 
-          assessment.toObject();
+          { ...assessment, responses: newResponses } : 
+          assessment;
         
         validationResult = await validationService.validateAssessmentCompletion(
           completionAssessment,
@@ -173,16 +168,14 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
-
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
     const body = await request.json();
     
     // Find the assessment
-    const assessment = await Assessment.findById(assessmentId);
+    const assessment = await AssessmentService.getAssessment(assessmentId);
     if (!assessment) {
       return NextResponse.json(
         { error: 'Assessment not found' },
@@ -191,7 +184,7 @@ export async function PUT(
     }
 
     // Get the questionnaire structure
-    const questionnaire = await rapidQuestionnaireService.getQuestionnaire(assessment.type);
+    const questionnaire = await RAPIDQuestionnaireService.getActiveQuestionnaire(assessment.type);
     if (!questionnaire) {
       return NextResponse.json(
         { error: 'Questionnaire structure not found' },
@@ -211,7 +204,7 @@ export async function PUT(
     // Validate responses before saving if requested
     let validationResult = null;
     if (validateBeforeSave) {
-      const updatedAssessment = { ...assessment.toObject(), responses: newResponses };
+      const updatedAssessment = { ...assessment, responses: newResponses };
       validationResult = await validationService.validateAssessmentResponses(
         updatedAssessment,
         questionnaire
@@ -229,32 +222,34 @@ export async function PUT(
       }
     }
 
-    // Update assessment responses
-    assessment.responses = newResponses;
-    assessment.updatedAt = new Date();
-
-    // Update category statuses based on validation
-    if (validationResult) {
-      const categoryStatuses: Record<string, any> = {};
+    // Update assessment responses - update each category
+    for (const [categoryId, categoryResponses] of Object.entries(newResponses)) {
+      const updateResult = await AssessmentService.updateCategoryResponses(
+        assessmentId,
+        categoryId,
+        categoryResponses as { [questionId: string]: any }
+      );
       
-      Object.keys(validationResult.completionStatus.categoryCompletions).forEach(categoryId => {
-        const completion = validationResult.completionStatus.categoryCompletions[categoryId];
-        categoryStatuses[categoryId] = {
-          status: completion === 100 ? 'completed' : completion > 0 ? 'partial' : 'not_started',
-          completionPercentage: completion,
-          lastModified: new Date()
-        };
-      });
-
-      assessment.categoryStatuses = categoryStatuses;
+      if (!updateResult.success) {
+        return NextResponse.json(
+          { error: updateResult.error || `Failed to update responses for category ${categoryId}` },
+          { status: 500 }
+        );
+      }
     }
 
-    // Save assessment
-    await assessment.save();
+    // Get updated assessment
+    const updatedAssessment = await AssessmentService.getAssessment(assessmentId);
+    if (!updatedAssessment) {
+      return NextResponse.json(
+        { error: 'Assessment not found after update' },
+        { status: 404 }
+      );
+    }
 
     // Get final validation summary
     const finalValidation = await validationService.getValidationSummary(
-      assessment.toObject(),
+      updatedAssessment,
       questionnaire
     );
 
@@ -280,10 +275,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assessmentId = params.id;
+    const { id: assessmentId } = await params;
     
     // Clear validation cache for this assessment
     validationService.clearAssessmentCache(assessmentId);

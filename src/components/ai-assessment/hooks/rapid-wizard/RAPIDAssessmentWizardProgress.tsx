@@ -46,7 +46,7 @@ export function useRAPIDProgressTracking(
     const category = getCurrentCategory();
     if (!category) return;
 
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
+    const allQuestions = category.subcategories.flatMap((sub: any) => sub.questions);
     
     if (currentQuestionIndex < allQuestions.length - 1) {
       // Move to next question in same category

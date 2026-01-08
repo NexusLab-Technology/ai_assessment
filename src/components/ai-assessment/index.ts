@@ -8,13 +8,13 @@ export { default as CompanySelector } from './assessment/CompanySelector'
 
 // Wizard Components
 export { DatabaseIntegratedAssessmentWizard } from './wizards/DatabaseIntegratedAssessmentWizard'
-export { default as RAPIDAssessmentWizard } from './wizards/RAPIDAssessmentWizard'
+export { AssessmentWizard as RAPIDAssessmentWizard } from './wizards/RAPIDAssessmentWizard'
 export { default as QuestionnaireFlow } from './wizards/QuestionnaireFlow'
 
 // Progress Tracker Components
 export { default as ProgressTracker } from './progress/ProgressTracker'
 export { default as EnhancedProgressTracker } from './progress/EnhancedProgressTracker'
-export { default as DatabaseIntegratedProgressTracker } from './progress/DatabaseIntegratedProgressTracker'
+export { DatabaseIntegratedProgressTracker } from './progress/DatabaseIntegratedProgressTracker'
 
 // Report Components
 export { default as ReportViewer } from './reports/ReportViewer'

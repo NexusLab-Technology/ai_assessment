@@ -25,10 +25,18 @@ interface StoredCredentials {
 }
 
 function decrypt(encryptedData: { encrypted: string; iv: string; authTag: string }): string {
-  const decipher = crypto.createDecipher('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32))
+  const iv = Buffer.from(encryptedData.iv, 'hex')
+  const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32), iv)
+  
+  // Set authentication tag for GCM mode
+  decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'))
   
   let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8')
-  decrypted += decipher.final('utf8')
+  try {
+    decrypted += decipher.final('utf8')
+  } catch (error) {
+    throw new Error('Decryption failed: authentication tag mismatch')
+  }
   
   return decrypted
 }
@@ -39,7 +47,7 @@ export async function getDecryptedCredentials(companyId: string): Promise<AWSCre
     const db = await getDatabase()
     const collection = db.collection<StoredCredentials>('aws_credentials')
 
-    const storedCredentials = await collection.findOne({ companyId })
+    const storedCredentials = await collection.findOne({ companyId: companyId as any })
 
     if (!storedCredentials) {
       return null

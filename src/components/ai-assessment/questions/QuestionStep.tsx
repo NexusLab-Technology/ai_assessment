@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { InformationCircleIcon } from '@heroicons/react/24/outline'
 import { Question, ValidationRules } from '../../../types/assessment'
-import FormValidationError from './FormValidationError'
+import { FormFieldError as FormValidationError } from '../common/ErrorMessage'
 
 interface QuestionStepProps {
   question: Question
@@ -298,7 +298,7 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
       {displayError && (
         <FormValidationError 
           error={displayError}
-          className="mt-2"
+          fieldName=""
         />
       )}
     </div>

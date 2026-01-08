@@ -29,21 +29,13 @@ export function useQuestionnaireAutoSave(
   onSave?: (responses: AssessmentResponses, currentStep: number) => void
 ): UseQuestionnaireAutoSaveReturn {
   // Auto-save hook with API integration
-  const { saveStatus, lastSaved, saveNow, hasUnsavedChanges } = useAutoSave(
-    responses,
-    currentStep,
-    {
-      assessmentId: assessment.id,
-      autoSaveInterval: 30000, // 30 seconds
-      onSaveSuccess: () => {
-        // Call the optional onSave callback for compatibility
-        onSave?.(responses, currentStep);
-      },
-      onSaveError: (error) => {
-        console.error('Auto-save error:', error);
-      }
-    }
-  );
+  const autoSaveResult = useAutoSave({
+    assessmentId: assessment.id,
+    intervalMs: 30000, // 30 seconds
+    enabled: true
+  });
+  
+  const { status, saveNow } = autoSaveResult;
 
   // Backup to localStorage for offline support
   useEffect(() => {
@@ -63,9 +55,14 @@ export function useQuestionnaireAutoSave(
   }, [responses, completedSteps, assessment.id, isLoadingResponses]);
 
   return {
-    saveStatus,
-    lastSaved,
-    saveNow,
-    hasUnsavedChanges
+    saveStatus: status.status === 'retrying' ? 'saving' : status.status as 'idle' | 'saving' | 'saved' | 'error',
+    lastSaved: status.lastSaved,
+    saveNow: async () => {
+      const result = await saveNow();
+      if (result.success && onSave) {
+        onSave(responses, currentStep);
+      }
+    },
+    hasUnsavedChanges: status.hasUnsavedChanges
   };
 }

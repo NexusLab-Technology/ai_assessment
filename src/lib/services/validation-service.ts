@@ -56,7 +56,7 @@ export class ValidationService {
    * Validate questionnaire structure with caching
    */
   async validateQuestionnaire(questionnaire: RAPIDQuestionnaireStructure): Promise<ValidationResult> {
-    const cacheKey = `questionnaire_${questionnaire.version}_${questionnaire.type}`;
+    const cacheKey = `questionnaire_${questionnaire.version}_${questionnaire.assessmentType}`;
     
     // Check cache first
     if (this.options.enableCaching) {

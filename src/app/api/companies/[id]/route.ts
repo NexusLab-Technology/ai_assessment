@@ -11,19 +11,16 @@ import {
   isValidObjectId
 } from '../../../../lib/api-utils'
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
 /**
  * GET /api/companies/[id]
  * Get a specific company by ID
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
     
     if (!isValidObjectId(id)) {
       return createErrorResponse('Invalid company ID format', 400)
@@ -45,9 +42,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * PUT /api/companies/[id]
  * Update a specific company
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await parseRequestBody(request)
     
     if (!isValidObjectId(id)) {
@@ -84,9 +84,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/companies/[id]
  * Delete a specific company and all associated assessments (cascade deletion)
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
     
     if (!isValidObjectId(id)) {
       return createErrorResponse('Invalid company ID format', 400)

@@ -324,7 +324,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
                   const category = questionnaire.categories.find(cat => cat.id === currentCategory);
                   const subcategory = category?.subcategories.find(sub => sub.id === currentSubcategory);
                   
-                  if (subcategory && subcategory.questions.length > 0) {
+                  if (subcategory && subcategory.questions.length > 0 && category) {
                     const currentQuestion = subcategory.questions[currentQuestionIndex];
                     
                     // Get current indices
@@ -551,7 +551,6 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
                 id: 'temp',
                 name: 'Assessment',
                 companyId: '',
-                userId: '',
                 type: validAssessmentType,
                 status: 'IN_PROGRESS',
                 currentCategory: currentCategory,
@@ -565,8 +564,10 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
               responses={responses}
               rapidQuestions={questionnaire}
               onClose={() => setShowReviewModal(false)}
-              onEditResponse={(categoryId: string) => {
-                setCurrentCategory(categoryId);
+              onEditResponse={(categoryIdOrStep: string | number, questionId?: string) => {
+                if (typeof categoryIdOrStep === 'string') {
+                  setCurrentCategory(categoryIdOrStep);
+                }
                 setShowReviewModal(false);
               }}
               onComplete={() => {

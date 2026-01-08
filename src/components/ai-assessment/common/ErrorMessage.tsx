@@ -18,6 +18,7 @@ interface ErrorMessageProps {
   retryText?: string
   className?: string
   showIcon?: boolean
+  children?: React.ReactNode
 }
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({
@@ -28,7 +29,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   onDismiss,
   retryText = 'Try Again',
   className = '',
-  showIcon = true
+  showIcon = true,
+  children
 }) => {
   const typeStyles = {
     error: {
@@ -77,6 +79,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
           <p className={`text-sm ${styles.message}`}>
             {message}
           </p>
+          
+          {children && (
+            <div className="mt-2">
+              {children}
+            </div>
+          )}
           
           {(onRetry || onDismiss) && (
             <div className="mt-3 flex space-x-3">

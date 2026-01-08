@@ -26,11 +26,11 @@ export class RAPIDQuestionnaireService {
         version: questionnaire.version,
         assessmentType: questionnaire.assessmentType,
         totalQuestions: questionnaire.totalQuestions,
-        categories: questionnaire.categories.map(category => ({
+        categories: questionnaire.categories.map((category: any) => ({
           id: category.id,
           title: category.title,
           description: category.description,
-          subcategories: category.subcategories.map(subcategory => ({
+          subcategories: category.subcategories.map((subcategory: any) => ({
             id: subcategory.id,
             title: subcategory.title,
             questions: subcategory.questions,
@@ -107,7 +107,7 @@ export class RAPIDQuestionnaireService {
         version: document.version,
         assessmentType: document.assessmentType,
         totalQuestions: document.totalQuestions,
-        categories: document.categories.map(category => ({
+        categories: document.categories.map((category: any) => ({
           id: category.id,
           title: category.title,
           description: category.description,
@@ -147,7 +147,7 @@ export class RAPIDQuestionnaireService {
         version: document.version,
         assessmentType: document.assessmentType,
         totalQuestions: document.totalQuestions,
-        categories: document.categories.map(category => ({
+        categories: document.categories.map((category: any) => ({
           id: category.id,
           title: category.title,
           description: category.description,
@@ -244,8 +244,9 @@ export class RAPIDQuestionnaireService {
   }> {
     try {
       // Import the complete RAPID questionnaire data
-      const { rapidQuestionnaireExploratory, rapidQuestionnaireMigration } = 
-        await import('@/data/rapid-questionnaire-complete')
+      const module = await import('@/data/rapid-questionnaire-complete')
+      const rapidQuestionnaireExploratory = (module as any).exploratoryRAPIDQuestionnaire
+      const rapidQuestionnaireMigration = (module as any).migrationRAPIDQuestionnaire
 
       const errors: string[] = []
       let initialized = 0

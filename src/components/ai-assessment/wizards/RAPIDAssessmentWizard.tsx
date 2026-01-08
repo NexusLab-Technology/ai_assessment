@@ -169,7 +169,8 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
     setShowReviewModal(false);
   }, []);
 
-  const handleEditFromReview = useCallback((categoryId: string, questionId: string) => {
+  const handleEditFromReview = useCallback((categoryIdOrStep: string | number, questionId: string) => {
+    const categoryId = typeof categoryIdOrStep === 'string' ? categoryIdOrStep : '';
     const category = rapidQuestions.categories.find(cat => cat.id === categoryId);
     if (!category) return;
 
@@ -275,7 +276,11 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
             {/* Current Question */}
             <div className="mb-8">
               <QuestionStep
-                question={currentQuestion}
+                question={{
+                  ...currentQuestion,
+                  label: currentQuestion.text,
+                  options: currentQuestion.options?.map(opt => ({ value: opt, label: opt }))
+                } as any}
                 value={responses[currentCategory]?.[currentQuestion.id]}
                 onChange={(value) => handleResponseChange(currentQuestion.id, value)}
                 onValidation={(isValid, error) => handleQuestionValidation(currentQuestion.id, isValid, error)}

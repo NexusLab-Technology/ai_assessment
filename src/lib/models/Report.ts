@@ -66,8 +66,8 @@ export class ReportModel {
     const now = new Date()
 
     const document: Omit<ReportDocument, '_id'> = {
-      assessmentId: new ObjectId(data.assessmentId),
-      companyId: new ObjectId(data.companyId),
+      assessmentId: new ObjectId(data.assessmentId) as any,
+      companyId: new ObjectId(data.companyId) as any,
       htmlContent: data.htmlContent,
       generatedAt: now,
       isActive: true, // New reports are active by default

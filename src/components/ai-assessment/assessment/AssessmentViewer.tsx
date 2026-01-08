@@ -9,7 +9,7 @@ import {
   DocumentTextIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
-import { Assessment } from '../../types/assessment'
+import { Assessment } from '@/types/assessment'
 import { organizeBySessions, formatResponseForDisplay } from '../../../utils/session-data-utils'
 import { useAssessmentViewer } from '../../../hooks/useAssessmentViewer'
 

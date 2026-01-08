@@ -6,15 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AssessmentService } from '@/lib/services/assessment-service'
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return NextResponse.json(
@@ -151,13 +148,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       category.validation.allRequiredAnswered
     )
 
-    const totalQuestions = categoryDetails.reduce((sum, cat) => sum + cat.totalQuestions, 0)
-    const totalAnswered = categoryDetails.reduce((sum, cat) => sum + cat.answeredQuestions, 0)
-    const totalRequired = categoryDetails.reduce((sum, cat) => sum + cat.requiredQuestions, 0)
-    const totalRequiredAnswered = categoryDetails.reduce((sum, cat) => sum + cat.answeredRequiredQuestions, 0)
+    const totalQuestions = categoryDetails.reduce((sum: number, cat: any) => sum + cat.totalQuestions, 0)
+    const totalAnswered = categoryDetails.reduce((sum: number, cat: any) => sum + cat.answeredQuestions, 0)
+    const totalRequired = categoryDetails.reduce((sum: number, cat: any) => sum + cat.requiredQuestions, 0)
+    const totalRequiredAnswered = categoryDetails.reduce((sum: number, cat: any) => sum + cat.answeredRequiredQuestions, 0)
 
     // Calculate next recommended category - prioritize categories with required questions that aren't answered
-    const nextCategory = categoryDetails.find(cat => 
+    const nextCategory = categoryDetails.find((cat: any) => 
       // Has required questions that aren't answered
       (cat.requiredQuestions > 0 && cat.answeredRequiredQuestions < cat.requiredQuestions) ||
       // Or has no progress at all
@@ -213,8 +210,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             categoryTitle: nextCategory.categoryTitle,
             completionPercentage: nextCategory.completionPercentage
           } : null,
-          completionIssues: categoryDetails.flatMap(cat => 
-            cat.validation.missingRequiredQuestions.map(q => ({
+          completionIssues: categoryDetails.flatMap((cat: any) => 
+            cat.validation.missingRequiredQuestions.map((q: any) => ({
               categoryId: cat.categoryId,
               categoryTitle: cat.categoryTitle,
               questionId: q.questionId,

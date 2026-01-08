@@ -232,7 +232,7 @@ export class RAPIDStructureValidator {
       });
     }
 
-    if (!structure.type || !['EXPLORATORY', 'MIGRATION'].includes(structure.type)) {
+    if (!structure.assessmentType || !['EXPLORATORY', 'MIGRATION'].includes(structure.assessmentType)) {
       errors.push({
         code: 'INVALID_TYPE',
         message: 'Questionnaire type must be either EXPLORATORY or MIGRATION',
@@ -261,11 +261,11 @@ export class RAPIDStructureValidator {
     }
 
     // Validate expected category count based on type
-    const expectedCategoryCount = structure.type === 'EXPLORATORY' ? 5 : 6;
+    const expectedCategoryCount = structure.assessmentType === 'EXPLORATORY' ? 5 : 6;
     if (structure.categories.length !== expectedCategoryCount) {
       warnings.push({
         code: 'UNEXPECTED_CATEGORY_COUNT',
-        message: `Expected ${expectedCategoryCount} categories for ${structure.type} assessment, found ${structure.categories.length}`,
+        message: `Expected ${expectedCategoryCount} categories for ${structure.assessmentType} assessment, found ${structure.categories.length}`,
         field: 'categories',
         severity: 'warning'
       });

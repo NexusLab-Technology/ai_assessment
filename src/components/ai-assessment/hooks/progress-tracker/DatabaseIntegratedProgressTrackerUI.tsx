@@ -19,9 +19,9 @@ import {
 } from '@heroicons/react/24/solid';
 import { 
   RAPIDCategory, 
-  CategoryCompletionStatus,
-  ProgressSummary
+  CategoryCompletionStatus
 } from '../../../../types/rapid-questionnaire';
+import { ProgressSummary } from './DatabaseIntegratedProgressTrackerLogic';
 
 export interface UseProgressTrackerUIReturn {
   getCategoryStatus: (categoryId: string) => CategoryCompletionStatus;

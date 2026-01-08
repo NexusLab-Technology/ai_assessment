@@ -123,9 +123,9 @@ export function generateLegacyReviewSummary(
                      (Array.isArray(answer) && answer.length === 0);
       return {
         id: q.id,
-        number: q.number || q.id,
-        text: q.text,
-        description: q.description,
+        number: (q as any).number || q.id,
+        text: (q as any).text || (q as any).label || q.id,
+        description: (q as any).description,
         answer: answer,
         required: q.required || false,
         isEmpty: isEmpty,

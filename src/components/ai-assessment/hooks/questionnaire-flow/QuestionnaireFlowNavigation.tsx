@@ -85,7 +85,7 @@ export function useQuestionnaireNavigation(
 
   const currentSection = getCurrentSection();
   const isFirstQuestion = currentStep === 1 && currentQuestionIndex === 0;
-  const isLastQuestion = currentStep === sections.length && currentSection && currentQuestionIndex === currentSection.questions.length - 1;
+  const isLastQuestion = currentStep === sections.length && currentSection !== null && currentSection !== undefined && currentQuestionIndex === currentSection.questions.length - 1;
 
   return {
     handleNext,

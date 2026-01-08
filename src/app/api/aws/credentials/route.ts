@@ -28,7 +28,7 @@ interface StoredCredentials {
 
 function encrypt(text: string): { encrypted: string; iv: string; authTag: string } {
   const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipher('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32))
+  const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32), iv)
   
   let encrypted = cipher.update(text, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -45,10 +45,19 @@ function encrypt(text: string): { encrypted: string; iv: string; authTag: string
 }
 
 function decrypt(encryptedData: { encrypted: string; iv: string; authTag: string }): string {
-  const decipher = crypto.createDecipher('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32))
+  const iv = Buffer.from(encryptedData.iv, 'hex')
+  const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY.slice(0, 32), iv)
+  
+  // Set authentication tag for GCM mode
+  decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'))
   
   let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8')
-  decrypted += decipher.final('utf8')
+  try {
+    decrypted += decipher.final('utf8')
+  } catch (error) {
+    // If authTag verification fails, throw error
+    throw new Error('Decryption failed: authentication tag mismatch')
+  }
   
   return decrypted
 }

@@ -73,20 +73,19 @@ const CompanyContainer: React.FC = () => {
       )
       
       // Extract company from response
-      // API returns: { success: true, data: company, message: '...' }
-      // apiRequest returns: data.data || data (which is the company object directly)
-      // But CreateCompanyResponse expects: { company: Company, message: string }
+      // UpdateCompanyResponse has: { company: Company, message: string }
+      // But API might return: { success: true, data: company, message: '...' }
       let newCompany: Company
       
-      if (response.data) {
-        // Response has data property (from API)
-        newCompany = response.data
-      } else if (response.company) {
+      if (response.company) {
         // Response has company property (from type definition)
         newCompany = response.company
-      } else if (response.id || response.name) {
+      } else if ((response as any).data) {
+        // Response has data property (from API wrapper)
+        newCompany = (response as any).data
+      } else if ((response as any).id || (response as any).name) {
         // Response is the company object directly
-        newCompany = response as Company
+        newCompany = response as any as Company
       } else {
         throw new Error('Invalid response format: company data not found')
       }
