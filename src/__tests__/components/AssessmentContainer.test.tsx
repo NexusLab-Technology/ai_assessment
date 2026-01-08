@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import AssessmentContainer from '../../components/ai-assessment/AssessmentContainer'
+import AssessmentContainer from '../../components/ai-assessment/assessment/AssessmentContainer'
 import { Company } from '../../types/assessment'
 
 // Mock the API client

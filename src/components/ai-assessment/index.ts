@@ -1,22 +1,64 @@
 // AI Assessment module component exports
 
-export { default as SubSidebar } from './SubSidebar'
-export { default as CompanySelector } from './CompanySelector'
-export { default as AssessmentDashboard } from './AssessmentDashboard'
-export { default as AssessmentWizard } from './AssessmentWizard'
-export { default as QuestionStep } from './QuestionStep'
-export { default as ProgressTracker } from './ProgressTracker'
-export { default as EnhancedProgressTracker } from './EnhancedProgressTracker'
-export { default as ResponseReviewModal } from './ResponseReviewModal'
-export { default as ReportViewer } from './ReportViewer'
-export { default as AsyncReportGenerator } from './AsyncReportGenerator'
-export { default as ReportStatusTracker } from './ReportStatusTracker'
-// export { default as ReportGenerator } from './ReportGenerator' // TODO: Implement in Phase 3
+// Assessment Management Components
+export { default as AssessmentContainer } from './assessment/AssessmentContainer'
+export { default as AssessmentDashboard } from './assessment/AssessmentDashboard'
+export { default as AssessmentViewer } from './assessment/AssessmentViewer'
+export { default as CompanySelector } from './assessment/CompanySelector'
 
-// New RAPID Integration Components
-export { default as CategoryNavigationSidebar } from './CategoryNavigationSidebar'
-export { default as FixedQuestionContainer } from './FixedQuestionContainer'
-export { default as RAPIDQuestionnaireLoader } from './RAPIDQuestionnaireLoader'
+// Wizard Components
+export { DatabaseIntegratedAssessmentWizard } from './wizards/DatabaseIntegratedAssessmentWizard'
+export { default as RAPIDAssessmentWizard } from './wizards/RAPIDAssessmentWizard'
+export { default as QuestionnaireFlow } from './wizards/QuestionnaireFlow'
+
+// Progress Tracker Components
+export { default as ProgressTracker } from './progress/ProgressTracker'
+export { default as EnhancedProgressTracker } from './progress/EnhancedProgressTracker'
+export { default as DatabaseIntegratedProgressTracker } from './progress/DatabaseIntegratedProgressTracker'
+
+// Report Components
+export { default as ReportViewer } from './reports/ReportViewer'
+export { default as AsyncReportGenerator } from './reports/AsyncReportGenerator'
+export { default as ReportStatusTracker } from './reports/ReportStatusTracker'
+export { default as ReportGenerator } from './reports/ReportGenerator'
+
+// Navigation Components
+export { default as CategoryNavigationSidebar } from './navigation/CategoryNavigationSidebar'
+export { default as EnhancedCategoryNavigationWithSubcategories } from './navigation/EnhancedCategoryNavigationWithSubcategories'
+export { default as SubSidebar } from './navigation/SubSidebar'
+
+// Question Components
+export { default as QuestionStep } from './questions/QuestionStep'
+export { default as FixedQuestionContainer } from './questions/FixedQuestionContainer'
+export { default as RAPIDQuestionnaireLoader } from './questions/RAPIDQuestionnaireLoader'
+
+// Modal Components
+export { default as ResponseReviewModal } from './modals/ResponseReviewModal'
+
+// Common/Utility Components
+export { ErrorBoundary } from './common/ErrorBoundary'
+export { ErrorMessage } from './common/ErrorMessage'
+export { LoadingSpinner } from './common/LoadingSpinner'
+export * from './common/ResponseReviewModalUtils'
+
+// Hooks - Database Integrated Assessment Wizard
+export { useQuestionnaireLoader } from './hooks/database-integrated/DatabaseIntegratedAssessmentWizardLoader'
+export { useAssessmentWizardState } from './hooks/database-integrated/DatabaseIntegratedAssessmentWizardState'
+export { useAssessmentWizardValidation } from './hooks/database-integrated/DatabaseIntegratedAssessmentWizardValidation'
+
+// Hooks - Progress Tracker
+export { useProgressCalculation } from './hooks/progress-tracker/DatabaseIntegratedProgressTrackerLogic'
+export { useProgressTrackerUI } from './hooks/progress-tracker/DatabaseIntegratedProgressTrackerUI'
+
+// Hooks - Questionnaire Flow
+export { useQuestionnaireAutoSave } from './hooks/questionnaire-flow/QuestionnaireFlowAutoSave'
+export { useQuestionnaireNavigation } from './hooks/questionnaire-flow/QuestionnaireFlowNavigation'
+export { useQuestionnaireResponses } from './hooks/questionnaire-flow/QuestionnaireFlowResponses'
+
+// Hooks - RAPID Assessment Wizard
+export { useRAPIDCategoryManagement } from './hooks/rapid-wizard/RAPIDAssessmentWizardCategories'
+export { useRAPIDQuestionHandling } from './hooks/rapid-wizard/RAPIDAssessmentWizardQuestions'
+export { useRAPIDProgressTracking } from './hooks/rapid-wizard/RAPIDAssessmentWizardProgress'
 
 // Re-export types for convenience
 export type {

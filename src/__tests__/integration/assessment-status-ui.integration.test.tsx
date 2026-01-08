@@ -6,7 +6,7 @@
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import AssessmentContainer from '../../components/ai-assessment/AssessmentContainer'
+import AssessmentContainer from '../../components/ai-assessment/assessment/AssessmentContainer'
 import { assessmentApi } from '../../lib/api-client'
 import { Assessment } from '@/types/assessment'
 

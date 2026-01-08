@@ -11,7 +11,7 @@ import {
   COMPANY_NAME_MAX_LENGTH,
   COMPANY_DESCRIPTION_MAX_LENGTH
 } from '@/utils/company-validation'
-import { LoadingSpinner } from '../ai-assessment/LoadingSpinner'
+import { LoadingSpinner } from '../ai-assessment/common/LoadingSpinner'
 
 interface EnhancedCompanyFormProps extends CompanyFormProps {
   existingCompanies?: Company[]

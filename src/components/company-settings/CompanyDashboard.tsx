@@ -7,7 +7,7 @@ import { CompanyError } from '@/utils/company-error-handling'
 import CompanyCard from '@/components/company-settings/CompanyCard'
 import CompanySearch from '@/components/company-settings/CompanySearch'
 import CompanyForm from '@/components/company-settings/CompanyForm'
-import { LoadingSpinner } from '../ai-assessment/LoadingSpinner'
+import { LoadingSpinner } from '../ai-assessment/common/LoadingSpinner'
 import Tooltip from './Tooltip'
 
 interface ExtendedCompanyDashboardProps extends CompanyDashboardProps {

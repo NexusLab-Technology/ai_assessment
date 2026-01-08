@@ -89,32 +89,41 @@ ai_assessment/
 │   │
 │   ├── components/                  # React components (UI ONLY - NO business logic)
 │   │   ├── ai-assessment/          # AI Assessment components
-│   │   │   ├── AssessmentContainer.tsx          # Main container (UI only, uses container logic)
+│   │   │   ├── common/             # Shared utility components
+│   │   │   │   ├── ErrorBoundary.tsx
+│   │   │   │   ├── ErrorMessage.tsx
+│   │   │   │   ├── LoadingSpinner.tsx
+│   │   │   │   └── ResponseReviewModalUtils.tsx  # Extracted utilities
+│   │   │   ├── hooks/              # Extracted hooks (organized by feature)
+│   │   │   │   ├── database-integrated/  # DatabaseIntegratedAssessmentWizard hooks
+│   │   │   │   │   ├── DatabaseIntegratedAssessmentWizardLoader.tsx
+│   │   │   │   │   ├── DatabaseIntegratedAssessmentWizardState.tsx
+│   │   │   │   │   └── DatabaseIntegratedAssessmentWizardValidation.tsx
+│   │   │   │   ├── progress-tracker/    # DatabaseIntegratedProgressTracker hooks
+│   │   │   │   │   ├── DatabaseIntegratedProgressTrackerLogic.tsx
+│   │   │   │   │   └── DatabaseIntegratedProgressTrackerUI.tsx
+│   │   │   │   ├── questionnaire-flow/  # QuestionnaireFlow hooks
+│   │   │   │   │   ├── QuestionnaireFlowAutoSave.tsx
+│   │   │   │   │   ├── QuestionnaireFlowNavigation.tsx
+│   │   │   │   │   └── QuestionnaireFlowResponses.tsx
+│   │   │   │   └── rapid-wizard/        # RAPIDAssessmentWizard hooks
+│   │   │   │       ├── RAPIDAssessmentWizardCategories.tsx
+│   │   │   │       ├── RAPIDAssessmentWizardQuestions.tsx
+│   │   │   │       └── RAPIDAssessmentWizardProgress.tsx
+│   │   │   ├── AssessmentContainer.tsx          # Main container (423 lines ✅)
 │   │   │   ├── AssessmentDashboard.tsx
-│   │   │   ├── AssessmentWizard.tsx
 │   │   │   ├── AssessmentViewer.tsx
-│   │   │   ├── CategoryNavigationSidebar.tsx  # Assessment Category Nav (sub-navigation, NOT main nav)
-│   │   │   ├── SubSidebar.tsx                # Module Navigation (sub-navigation, NOT main nav)
+│   │   │   ├── CategoryNavigationSidebar.tsx    # Assessment Category Nav (sub-navigation, NOT main nav)
+│   │   │   ├── SubSidebar.tsx                   # Module Navigation (sub-navigation, NOT main nav)
 │   │   │   ├── FixedQuestionContainer.tsx
 │   │   │   ├── RAPIDQuestionnaireLoader.tsx
-│   │   │   ├── ResponseReviewModal.tsx
+│   │   │   ├── ResponseReviewModal.tsx          # Review modal (393 lines ✅ - was 560, fixed!)
 │   │   │   ├── AsyncReportGenerator.tsx
 │   │   │   ├── ReportStatusTracker.tsx
-│   │   │   ├── DatabaseIntegratedAssessmentWizard.tsx  # Main wizard (refactored, 482 lines)
-│   │   │   ├── DatabaseIntegratedAssessmentWizardLoader.tsx  # Extracted hook
-│   │   │   ├── DatabaseIntegratedAssessmentWizardState.tsx   # Extracted hook
-│   │   │   ├── DatabaseIntegratedAssessmentWizardValidation.tsx  # Extracted hook
-│   │   │   ├── QuestionnaireFlow.tsx              # Main flow (refactored, 383 lines)
-│   │   │   ├── QuestionnaireFlowAutoSave.tsx      # Extracted hook
-│   │   │   ├── QuestionnaireFlowNavigation.tsx    # Extracted hook
-│   │   │   ├── QuestionnaireFlowResponses.tsx     # Extracted hook
-│   │   │   ├── RAPIDAssessmentWizard.tsx          # Main wizard (refactored, 402 lines)
-│   │   │   ├── RAPIDAssessmentWizardCategories.tsx    # Extracted hook
-│   │   │   ├── RAPIDAssessmentWizardQuestions.tsx      # Extracted hook
-│   │   │   ├── RAPIDAssessmentWizardProgress.tsx      # Extracted hook
-│   │   │   ├── DatabaseIntegratedProgressTracker.tsx  # Main tracker (refactored, 344 lines)
-│   │   │   ├── DatabaseIntegratedProgressTrackerLogic.tsx  # Extracted hook
-│   │   │   └── DatabaseIntegratedProgressTrackerUI.tsx    # Extracted hook
+│   │   │   ├── DatabaseIntegratedAssessmentWizard.tsx  # Main wizard (478 lines ✅)
+│   │   │   ├── QuestionnaireFlow.tsx              # Main flow (387 lines ✅)
+│   │   │   ├── RAPIDAssessmentWizard.tsx          # Main wizard (395 lines ✅)
+│   │   │   └── DatabaseIntegratedProgressTracker.tsx  # Main tracker (344 lines ✅)
 │   │   ├── company-settings/        # Company Settings components
 │   │   │   ├── CompanyDashboard.tsx
 │   │   │   ├── CompanyForm.tsx
@@ -358,11 +367,14 @@ The codebase follows strict coding rules defined in `Application-instruction.md`
   - `containers/` directory: Business logic ONLY (no UI rendering)
   - `lib/services/` directory: Service layer for business logic
   - Clean separation of concerns
+  - **Organized structure**: Related files grouped in subdirectories (common/, hooks/)
 
 - **Rule 3: File Size Limitation** ✅
   - All files are under 500 lines
   - Large components split into smaller, focused files
   - Extracted hooks for reusable logic
+  - **Organized hooks**: Hooks grouped by feature in `hooks/` subdirectories
+  - **Common utilities**: Shared components in `common/` directory
 
 - **Rule 4: Time Handling** ✅
   - All user-facing time displays use local machine time

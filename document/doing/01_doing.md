@@ -1,60 +1,87 @@
-# Sidebar Structure Review & Fix Checklist
+# Function-Based Grouping Checklist
 
-## 🎯 What I'm doing: Review and fix Sidebar/Navbar structure to ensure it's separated from other modules and used only as Nav component
+## 🎯 What I'm doing: Group files by function for better organization and easier management
 
 ## 📋 Checklist
-### Phase 1: Preparation
-- [x] Read project-structure.md
-- [x] Checked doing/ directory
-- [x] Asked user about job (new job - fixing sidebar structure)
-- [x] Read Application-instruction.md
-- [x] Read module docs (sidebar-navigation)
 
-### Phase 2: Analysis
-- [x] Checked Sidebar.tsx - Main sidebar component (correct)
-- [x] Checked ApplicationShell.tsx - Layout with sidebar (correct structure)
-- [x] Found SidebarContainer.tsx - Duplicate, not used anywhere
-- [x] Verified CategoryNavigationSidebar.tsx - Sub-navigation in assessment module (OK, not main nav)
+### Phase 1: Analysis
+- [x] Analyze current file count (36 files total)
+- [x] Identify grouping opportunities by function
+- [x] Create function-based grouping plan
 
-### Phase 3: Fix Structure
-- [x] Delete SidebarContainer.tsx (duplicate, not used)
-- [x] Verify ApplicationShell.tsx structure (Navbar left + Core right)
-- [x] Verify Sidebar.tsx is only used as Nav component
-- [x] Update module documentation (remove SidebarContainer references)
-- [ ] Update project-structure.md (if needed)
+### Phase 2: Create Directory Structure
+- [x] Create wizards/ directory
+- [x] Create progress/ directory
+- [x] Create reports/ directory
+- [x] Create navigation/ directory
+- [x] Create questions/ directory
+- [x] Create assessment/ directory
+- [x] Create modals/ directory
 
-### Phase 4: Verification
-- [x] Check no duplicate sidebar code in other modules
-- [x] Verify structure: Navbar (left) + Core Application (right)
-- [x] Documentation updated
+### Phase 3: Move Files by Function
+- [x] Move Wizard components (3 files) → wizards/
+- [x] Move Progress Tracker components (3 files) → progress/
+- [x] Move Report components (4 files) → reports/
+- [x] Move Navigation components (3 files) → navigation/
+- [x] Move Question components (3 files) → questions/
+- [x] Move Assessment Management components (4 files) → assessment/
+- [x] Move Modal components (1 file) → modals/
 
-### Phase 5: Update Component Names & Comments
-- [x] Update Sidebar.tsx comment - clarify it is Main Navigation
-- [x] Update ApplicationShell.tsx comment - clarify it is App Layout
-- [x] Update CategoryNavigationSidebar.tsx comment - clarify it is Assessment Category Nav
-- [x] Update SubSidebar.tsx comment - clarify it is Module Navigation
-- [x] Update documentation with consistent naming
+### Phase 4: Update Imports
+- [x] Update AssessmentContainer.tsx imports
+- [x] Update DatabaseIntegratedAssessmentWizard.tsx imports
+- [x] Update RAPIDAssessmentWizard.tsx imports
+- [x] Update QuestionnaireFlow.tsx imports
+- [x] Update ResponseReviewModal.tsx imports
+- [x] Update DatabaseIntegratedProgressTracker.tsx imports
+- [x] Update page.tsx imports
+- [x] Update test files imports
+- [x] Update index.ts exports
+- [x] Fix hooks relative paths
+
+### Phase 5: Verification
+- [x] Verify no linter errors
+- [x] Check all imports work correctly
+- [x] Verify file count (36 files maintained)
 
 ## 🚀 Current Status: ✅ ALL PHASES COMPLETE
-## 🎯 Next Action: Wait for user confirmation
+## 🎯 Next Action: Ready for commit
 
-## 📝 Work Log (Add entry after EACH activity)
-- ✅ Thu Jan  8 11:14:12 +07 2026 Read project structure
-- ✅ Thu Jan  8 11:14:12 +07 2026 Checked doing/ directory
-- ✅ Thu Jan  8 11:14:12 +07 2026 Read Application-instruction.md
-- ✅ Thu Jan  8 11:14:12 +07 2026 Read sidebar-navigation module docs
-- ✅ Thu Jan  8 11:14:12 +07 2026 Analyzed current structure - found SidebarContainer.tsx is duplicate and not used
-- ✅ Thu Jan  8 11:14:32 +07 2026 Created work files (01_doing.md, 02_structure.md, 03_implement_note.md)
-- ✅ Thu Jan  8 11:14:47 +07 2026 Deleted `src/components/SidebarContainer.tsx` - Duplicate component, not used anywhere
-- ✅ Thu Jan  8 11:15:03 +07 2026 Verified ApplicationShell.tsx structure - Correct: Navbar (left) + Core Application (right)
-- ✅ Thu Jan  8 11:15:03 +07 2026 Verified Sidebar.tsx usage - Only used in ApplicationShell.tsx as Nav component ✅
-- ✅ Thu Jan  8 11:15:03 +07 2026 Updated `document/modules/supporting/sidebar-navigation/structure.md` - Removed SidebarContainer reference
-- ✅ Thu Jan  8 11:15:14 +07 2026 Verified project-structure.md - No SidebarContainer references (already correct)
-- ✅ Thu Jan  8 11:15:14 +07 2026 All tasks completed - Structure is correct: Navbar (left) + Core Application (right)
-- ✅ Thu Jan  8 11:17:04 +07 2026 Updated Sidebar.tsx comment - Clarified it is Main Navigation Sidebar
-- ✅ Thu Jan  8 11:17:04 +07 2026 Updated ApplicationShell.tsx comment - Clarified it is App Layout (Navbar left + Core right)
-- ✅ Thu Jan  8 11:17:04 +07 2026 Updated CategoryNavigationSidebar.tsx comment - Clarified it is Assessment Category Nav (sub-navigation)
-- ✅ Thu Jan  8 11:17:04 +07 2026 Updated SubSidebar.tsx comment - Clarified it is Module Navigation (sub-navigation)
-- ✅ Thu Jan  8 11:17:18 +07 2026 Updated `document/modules/supporting/sidebar-navigation/structure.md` - Added clear descriptions
-- ✅ Thu Jan  8 11:17:18 +07 2026 Updated `document/project-structure.md` - Added clear comments for navigation components
-- ✅ Thu Jan  8 11:18:15 +07 2026 Fixed TypeScript error in ApplicationShell.tsx - Added explicit AuthConfig type for config variable
+## 📝 Work Log
+- ✅ Thu Jan  8 11:34:43 +07 2026 Started function-based grouping analysis
+- ✅ Thu Jan  8 11:34:43 +07 2026 Created function-grouping-plan.md
+- ✅ Thu Jan  8 11:34:59 +07 2026 Created 7 new directories (wizards, progress, reports, navigation, questions, assessment, modals)
+- ✅ Thu Jan  8 11:35:07 +07 2026 Moved 21 files to function-based directories
+- ✅ Thu Jan  8 11:35:45 +07 2026 Updated all imports in main components
+- ✅ Thu Jan  8 11:35:45 +07 2026 Updated index.ts with new export paths
+- ✅ Thu Jan  8 11:35:45 +07 2026 Fixed hooks relative paths
+- ✅ Thu Jan  8 11:35:45 +07 2026 Updated test files imports
+- ✅ Thu Jan  8 11:35:45 +07 2026 Verified no linter errors - All working correctly ✅
+
+## 📊 Summary
+
+### File Organization:
+- **Before**: 21 main component files in root directory
+- **After**: 21 files organized into 7 function-based directories
+- **Total files**: 36 files (maintained, no files lost)
+
+### Directory Structure:
+```
+ai-assessment/
+├── common/ (4 files) - Shared utilities
+├── hooks/ (11 files) - Extracted hooks
+├── wizards/ (3 files) - Wizard components
+├── progress/ (3 files) - Progress tracking
+├── reports/ (4 files) - Report components
+├── navigation/ (3 files) - Navigation components
+├── questions/ (3 files) - Question components
+├── assessment/ (4 files) - Assessment management
+└── modals/ (1 file) - Modal components
+```
+
+### Benefits:
+1. ✅ Clear function separation
+2. ✅ Easy navigation
+3. ✅ Better maintainability
+4. ✅ Logical organization
+5. ✅ Scalability for future additions

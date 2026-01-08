@@ -7,7 +7,7 @@
 import React from 'react'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import * as fc from 'fast-check'
-import CompanySelector from '../../components/ai-assessment/CompanySelector'
+import CompanySelector from '../../components/ai-assessment/assessment/CompanySelector'
 import { Company } from '../../types/assessment'
 import { companyGenerator } from '../helpers/generators'
 
