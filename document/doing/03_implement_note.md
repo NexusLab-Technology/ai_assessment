@@ -1,72 +1,61 @@
-# Implementation Notes - Assessment Creation Database Fix
+# Implementation Notes - Question Display One-by-One
 
-## Goal: Fix assessment creation to save to database instead of crashing
-## Started: Thu Jan  8 11:42:22 +07 2026
-## Updated: Thu Jan  8 11:42:54 +07 2026
+## Goal: Change assessment questions display from showing all questions in a list to showing one question at a time with Next/Previous navigation buttons, with auto-navigation to next subcategory/category and confirmation dialog
+## Started: Thu Jan  8 14:18:30 +07 2026
+## Updated: Thu Jan  8 14:23:28 +07 2026
 
 ## Problem Identified:
-- Assessment creation was using mock in-memory array instead of database
-- Assessments were lost on server restart
-- App crashed when trying to use created assessments
-
-## Root Cause:
-- `/api/assessments/route.ts` was using `mockAssessments.push()` instead of database service
-- No database persistence, data only existed in memory
+- Questions were displayed all at once in a long list
+- No way to navigate between questions one by one
+- No automatic progression to next subcategory/category when completing current section
+- No confirmation when reaching the last question
 
 ## Implementation Details:
-- Thu Jan  8 11:42:42 +07 2026 **Changed** `src/app/api/assessments/route.ts` - Replaced mock with database service
-  - **What**: Changed POST and GET routes to use AssessmentService instead of mock array
-  - **Why**: Assessments need to persist in database, not just memory
+- Thu Jan  8 14:20:04 +07 2026 **Changed** `src/components/ai-assessment/hooks/database-integrated/DatabaseIntegratedAssessmentWizardState.tsx` - Added currentQuestionIndex state management
+  - **What**: Added currentQuestionIndex state to track which question is currently displayed
+  - **Why**: Need to track current question position for one-by-one display
+  - **Details**: 
+    - Added currentQuestionIndex: number to state
+    - Reset to 0 when category or subcategory changes
+    - Added to return interface for component access
+
+- Thu Jan  8 14:20:04 +07 2026 **Changed** `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Modified question display to show one at a time
+  - **What**: Changed from displaying all questions in a list to showing one question at a time with navigation
+  - **Why**: User requested one-by-one display with Next button instead of long list
   - **Details**:
-    - POST route now calls `AssessmentService.createAssessment()` with proper parameters
-    - GET route now calls `AssessmentService.listAssessments()` to fetch from database
-    - Added userId extraction using `getUserId(request)` from api-utils
-    - Added RAPID questionnaire version lookup using `RAPIDQuestionnaireService.getActiveQuestionnaire()`
-    - Fixed response format to return assessment directly (not wrapped in object)
-    - Added proper validation and error handling
+    - Replaced `subcategory.questions.map()` with single question display using `currentQuestionIndex`
+    - Added Previous/Next navigation buttons with proper disabled states
+    - Added question counter showing "Question X of Y"
+    - Improved layout with flex-col for better button placement
+    - Navigation buttons disabled at first/last question appropriately
+    - Increased textarea rows from 3 to 6 for better visibility
+
+- Thu Jan  8 14:23:13 +07 2026 **Changed** `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Enhanced navigation logic
+  - **What**: Added auto-navigation to next subcategory/category and confirmation dialog
+  - **Why**: User requested automatic progression when completing sections and confirmation before completing assessment
+  - **Details**:
+    - Enhanced handleNext() to check if at last question of subcategory, then navigate to next subcategory
+    - If at last subcategory of category, navigate to next category's first subcategory
+    - If at absolute last question, show confirmation modal instead of navigating
+    - Enhanced handlePrevious() to navigate backwards across subcategories and categories
+    - Added showCompleteConfirmModal state for confirmation dialog
+    - Added confirmation modal with options: Complete Assessment, Review Responses, or Cancel
+    - Changed Next button text to "Complete Assessment" when at last question
+    - Added XMarkIcon import for modal
 
 ## Issues & Solutions:
-- Thu Jan  8 11:42:42 +07 2026 **Problem**: API response format didn't match client expectations
- - **Solution**: Changed from `{ data: { assessment } }` to `{ data: assessment }` to match handleResponse() behavior
-- Thu Jan  8 11:44:35 +07 2026 **Problem**: BSONError when listing assessments with mock company IDs (e.g., 'demo-company-1')
- - **Root Cause**: `listAssessments` was trying to convert non-ObjectId strings to ObjectId without validation
- - **Solution**: Added ObjectId format validation (24 hex characters) before conversion. Returns empty array for invalid ObjectIds to handle mock company IDs gracefully
-- Thu Jan  8 11:45:34 +07 2026 **Problem**: BSONError when creating assessment with mock company IDs
- - **Root Cause**: `createAssessment` was trying to convert non-ObjectId strings to ObjectId without validation
- - **Solution**: Added ObjectId format validation in both API route (returns 400 error with clear message) and service method (returns error response). Prevents crashes and provides helpful error messages
+- Thu Jan  8 14:23:13 +07 2026 **Problem**: User requested navigation to next subcategory/category when completing current section
+ - **Solution**: Enhanced handleNext() to check if at last question of subcategory, then navigate to next subcategory. If at last subcategory of category, navigate to next category. If at absolute last question, show confirmation modal.
+- Thu Jan  8 14:23:13 +07 2026 **Problem**: User requested confirmation dialog when reaching last question
+ - **Solution**: Added showCompleteConfirmModal state and confirmation modal component with options to complete, review responses, or cancel.
+- Thu Jan  8 14:23:28 +07 2026 **Problem**: Variable declaration duplication (currentSubcategoryIndex and currentCategoryIndex declared twice)
+ - **Solution**: Reorganized variable declarations to declare indices first, then use them for all position checks.
 
 ## Current Status:
-- ✅ POST route now saves to MongoDB database
-- ✅ GET route now fetches from MongoDB database
-- ✅ ObjectId validation added to prevent errors with mock company IDs
-- ✅ Proper error handling and validation added
+- ✅ Questions now display one at a time with navigation buttons
+- ✅ Auto-navigation to next subcategory when current subcategory is complete
+- ✅ Auto-navigation to next category when all subcategories in current category are complete
+- ✅ Confirmation dialog when reaching the absolute last question
+- ✅ Enhanced Previous button navigation across subcategories and categories
 - ✅ No linter errors
-- ✅ Response format matches client expectations
-- ✅ **VERIFIED**: User confirmed assessment creation now works successfully
-
-## Additional Fixes:
-- Thu Jan  8 11:45:34 +07 2026 **Changed** `src/app/api/assessments/route.ts` - Added companyId validation in POST route
-  - **What**: Validates companyId format before calling createAssessment
-  - **Why**: Prevents BSONError when creating assessments with invalid company IDs
-  - **Details**: Uses isValidObjectId() to check format, returns 400 error with helpful message
-
-- Thu Jan  8 11:45:34 +07 2026 **Changed** `src/lib/services/assessment-service.ts` - Added companyId validation in createAssessment
-  - **What**: Validates companyId format before converting to ObjectId
-  - **Why**: Safety measure in case method is called from elsewhere
-  - **Details**: Returns error response if companyId is not valid ObjectId format
-
-## Additional Fixes:
-- Thu Jan  8 11:46:47 +07 2026 **Changed** `src/app/api/companies/route.ts` - Migrated from mock to database
-  - **What**: Replaced mock companies array with CompanyModel database calls
-  - **Why**: Companies need valid MongoDB ObjectIds for assessment creation to work
-  - **Details**:
-    - GET route now fetches companies from MongoDB using `CompanyModel.findAll(userId)`
-    - POST route now saves companies to MongoDB using `CompanyModel.create()`
-    - Added userId extraction and validation
-    - Companies now have valid ObjectIds that work with assessment creation
-
-## Note:
-- ✅ Companies API now uses database - companies have valid MongoDB ObjectIds
-- ✅ Assessment creation should now work with companies from the database
-- ✅ Users need to create companies through the API to get valid ObjectIds
-- Mock company IDs (like 'demo-company-1') are no longer returned - users must create real companies
+- ✅ Ready for user testing

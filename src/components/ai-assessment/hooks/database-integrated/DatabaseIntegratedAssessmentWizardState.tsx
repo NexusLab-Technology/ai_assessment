@@ -15,11 +15,13 @@ export interface UseAssessmentWizardStateReturn {
   responses: AssessmentResponses;
   currentCategory: string;
   currentSubcategory: string;
+  currentQuestionIndex: number;
   showReviewModal: boolean;
   autoSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
   setResponses: React.Dispatch<React.SetStateAction<AssessmentResponses>>;
   setCurrentCategory: React.Dispatch<React.SetStateAction<string>>;
   setCurrentSubcategory: React.Dispatch<React.SetStateAction<string>>;
+  setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
   setShowReviewModal: React.Dispatch<React.SetStateAction<boolean>>;
   setAutoSaveStatus: React.Dispatch<React.SetStateAction<'idle' | 'saving' | 'saved' | 'error'>>;
   handleCategorySelect: (categoryId: string) => void;
@@ -36,6 +38,7 @@ export function useAssessmentWizardState(
   const [responses, setResponses] = useState<AssessmentResponses>(initialResponses);
   const [currentCategory, setCurrentCategory] = useState<string>('');
   const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -46,6 +49,7 @@ export function useAssessmentWizardState(
     const category = questionnaire?.categories.find(cat => cat.id === categoryId);
     if (category && category.subcategories.length > 0) {
       setCurrentSubcategory(category.subcategories[0].id);
+      setCurrentQuestionIndex(0); // Reset to first question when category changes
     }
     onCategoryChange?.(categoryId);
     // Clear validation errors when switching categories (handled by validation hook)
@@ -55,6 +59,7 @@ export function useAssessmentWizardState(
   const handleSubcategorySelect = useCallback((categoryId: string, subcategoryId: string) => {
     setCurrentCategory(categoryId);
     setCurrentSubcategory(subcategoryId);
+    setCurrentQuestionIndex(0); // Reset to first question when subcategory changes
     onCategoryChange?.(categoryId);
   }, [onCategoryChange]);
 
@@ -84,11 +89,13 @@ export function useAssessmentWizardState(
     responses,
     currentCategory,
     currentSubcategory,
+    currentQuestionIndex,
     showReviewModal,
     autoSaveStatus,
     setResponses,
     setCurrentCategory,
     setCurrentSubcategory,
+    setCurrentQuestionIndex,
     setShowReviewModal,
     setAutoSaveStatus,
     handleCategorySelect,

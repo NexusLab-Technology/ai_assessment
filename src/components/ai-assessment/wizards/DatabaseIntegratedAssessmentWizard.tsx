@@ -17,7 +17,10 @@ import {
   ExclamationTriangleIcon,
   CloudArrowUpIcon,
   DocumentTextIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { 
   Assessment, 
@@ -78,15 +81,19 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
     onError
   );
 
+  const [showCompleteConfirmModal, setShowCompleteConfirmModal] = React.useState(false);
+
   const {
     responses,
     currentCategory,
     currentSubcategory,
+    currentQuestionIndex,
     showReviewModal,
     autoSaveStatus,
     setResponses,
     setCurrentCategory,
     setCurrentSubcategory,
+    setCurrentQuestionIndex,
     setShowReviewModal,
     handleCategorySelect,
     handleSubcategorySelect,
@@ -131,11 +138,12 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
       const category = questionnaire.categories.find(cat => cat.id === initialCategory);
       if (category && category.subcategories.length > 0) {
         setCurrentSubcategory(category.subcategories[0].id);
+        setCurrentQuestionIndex(0); // Reset to first question
       }
       
       onCategoryChange?.(initialCategory);
     }
-  }, [questionnaire, currentCategory, assessment?.currentCategory, onCategoryChange, setCurrentCategory, setCurrentSubcategory]);
+  }, [questionnaire, currentCategory, assessment?.currentCategory, onCategoryChange, setCurrentCategory, setCurrentSubcategory, setCurrentQuestionIndex]);
 
   // Update responses when initial responses change
   useEffect(() => {
@@ -316,114 +324,210 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
                   const category = questionnaire.categories.find(cat => cat.id === currentCategory);
                   const subcategory = category?.subcategories.find(sub => sub.id === currentSubcategory);
                   
-                  if (subcategory) {
+                  if (subcategory && subcategory.questions.length > 0) {
+                    const currentQuestion = subcategory.questions[currentQuestionIndex];
+                    
+                    // Get current indices
+                    const currentSubcategoryIndex = category.subcategories.findIndex(sub => sub.id === currentSubcategory);
+                    const currentCategoryIndex = questionnaire.categories.findIndex(cat => cat.id === currentCategory);
+                    
+                    // Check positions
+                    const isFirstQuestionInSubcategory = currentQuestionIndex === 0;
+                    const isFirstSubcategoryInCategory = currentSubcategoryIndex === 0;
+                    const isFirstCategory = currentCategoryIndex === 0;
+                    const isFirstQuestion = isFirstQuestionInSubcategory && isFirstSubcategoryInCategory && isFirstCategory;
+                    const isLastQuestionInSubcategory = currentQuestionIndex === subcategory.questions.length - 1;
+                    const isLastSubcategoryInCategory = currentSubcategoryIndex === category.subcategories.length - 1;
+                    const isLastCategory = currentCategoryIndex === questionnaire.categories.length - 1;
+                    
+                    // Check if this is the absolute last question
+                    const isAbsoluteLastQuestion = isLastQuestionInSubcategory && isLastSubcategoryInCategory && isLastCategory;
+                    
+                    // Navigation handlers
+                    const handlePrevious = () => {
+                      if (currentQuestionIndex > 0) {
+                        // Go to previous question in same subcategory
+                        setCurrentQuestionIndex(currentQuestionIndex - 1);
+                      } else {
+                        // Go to previous subcategory's last question
+                        if (currentSubcategoryIndex > 0) {
+                          const prevSubcategory = category.subcategories[currentSubcategoryIndex - 1];
+                          handleSubcategorySelect(currentCategory, prevSubcategory.id);
+                          setCurrentQuestionIndex(prevSubcategory.questions.length - 1);
+                        } else {
+                          // Go to previous category's last subcategory's last question
+                          if (currentCategoryIndex > 0) {
+                            const prevCategory = questionnaire.categories[currentCategoryIndex - 1];
+                            const prevCategoryLastSubcategory = prevCategory.subcategories[prevCategory.subcategories.length - 1];
+                            handleCategorySelect(prevCategory.id);
+                            setCurrentSubcategory(prevCategoryLastSubcategory.id);
+                            setCurrentQuestionIndex(prevCategoryLastSubcategory.questions.length - 1);
+                          }
+                        }
+                      }
+                    };
+                    
+                    const handleNext = () => {
+                      if (!isLastQuestionInSubcategory) {
+                        // Move to next question in same subcategory
+                        setCurrentQuestionIndex(currentQuestionIndex + 1);
+                      } else {
+                        // Check if there's a next subcategory in current category
+                        if (!isLastSubcategoryInCategory) {
+                          // Move to next subcategory's first question
+                          const nextSubcategory = category.subcategories[currentSubcategoryIndex + 1];
+                          handleSubcategorySelect(currentCategory, nextSubcategory.id);
+                          setCurrentQuestionIndex(0);
+                        } else {
+                          // Check if there's a next category
+                          if (!isLastCategory) {
+                            // Move to next category's first subcategory's first question
+                            const nextCategory = questionnaire.categories[currentCategoryIndex + 1];
+                            handleCategorySelect(nextCategory.id);
+                            if (nextCategory.subcategories.length > 0) {
+                              setCurrentSubcategory(nextCategory.subcategories[0].id);
+                              setCurrentQuestionIndex(0);
+                            }
+                          } else {
+                            // This is the absolute last question - show confirmation
+                            setShowCompleteConfirmModal(true);
+                          }
+                        }
+                      }
+                    };
+                    
                     return (
-                      <div className="p-6">
+                      <div className="p-6 flex flex-col h-full">
                         <div className="mb-6">
                           <h3 className="text-lg font-medium text-gray-900 mb-2">
                             {subcategory.title}
                           </h3>
                           <p className="text-sm text-gray-600 mb-4">
-                            {subcategory.questionCount} questions in this section
+                            Question {currentQuestionIndex + 1} of {subcategory.questions.length} in this section
                           </p>
                         </div>
                         
-                        <div className="space-y-6">
-                          {subcategory.questions.map((question, index) => (
-                            <div key={question.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                              <div className="flex items-start space-x-3">
-                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-medium text-blue-600">
-                                    {index + 1}
-                                  </span>
+                        {/* Current Question */}
+                        <div className="flex-1">
+                          <div className="border-b border-gray-200 pb-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-sm font-medium text-blue-600">
+                                  {currentQuestionIndex + 1}
+                                </span>
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <h4 className="text-sm font-medium text-gray-900">
+                                    {currentQuestion.number}
+                                  </h4>
+                                  {currentQuestion.required && (
+                                    <span className="text-red-500 text-sm">*</span>
+                                  )}
                                 </div>
                                 
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <h4 className="text-sm font-medium text-gray-900">
-                                      {question.number}
-                                    </h4>
-                                    {question.required && (
-                                      <span className="text-red-500 text-sm">*</span>
-                                    )}
-                                  </div>
-                                  
-                                  <p className="text-sm text-gray-700 mb-3">
-                                    {question.text}
+                                <p className="text-sm text-gray-700 mb-3">
+                                  {currentQuestion.text}
+                                </p>
+                                
+                                {currentQuestion.description && (
+                                  <p className="text-xs text-gray-500 mb-3">
+                                    {currentQuestion.description}
                                   </p>
-                                  
-                                  {question.description && (
-                                    <p className="text-xs text-gray-500 mb-3">
-                                      {question.description}
-                                    </p>
+                                )}
+                                
+                                {/* Question Input */}
+                                <div className="space-y-2">
+                                  {currentQuestion.type === 'text' && (
+                                    <input
+                                      type="text"
+                                      value={responses[currentCategory]?.[currentQuestion.id] || ''}
+                                      onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Enter your answer..."
+                                    />
                                   )}
                                   
-                                  {/* Question Input */}
-                                  <div className="space-y-2">
-                                    {question.type === 'text' && (
-                                      <input
-                                        type="text"
-                                        value={responses[currentCategory]?.[question.id] || ''}
-                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter your answer..."
-                                      />
-                                    )}
-                                    
-                                    {question.type === 'textarea' && (
-                                      <textarea
-                                        value={responses[currentCategory]?.[question.id] || ''}
-                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter your detailed answer..."
-                                      />
-                                    )}
-                                    
-                                    {question.type === 'select' && question.options && (
-                                      <select
-                                        value={responses[currentCategory]?.[question.id] || ''}
-                                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                      >
-                                        <option value="">Select an option...</option>
-                                        {question.options.map((option) => (
-                                          <option key={option} value={option}>
-                                            {option}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    )}
-                                    
-                                    {question.type === 'radio' && question.options && (
-                                      <div className="space-y-2">
-                                        {question.options.map((option) => (
-                                          <label key={option} className="flex items-center">
-                                            <input
-                                              type="radio"
-                                              name={question.id}
-                                              value={option}
-                                              checked={responses[currentCategory]?.[question.id] === option}
-                                              onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700">{option}</span>
-                                          </label>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
+                                  {currentQuestion.type === 'textarea' && (
+                                    <textarea
+                                      value={responses[currentCategory]?.[currentQuestion.id] || ''}
+                                      onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+                                      rows={6}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Enter your detailed answer..."
+                                    />
+                                  )}
                                   
-                                  {/* Validation Error */}
-                                  {validationErrors[question.id] && !validationErrors[question.id].isValid && (
-                                    <p className="mt-2 text-sm text-red-600">
-                                      {validationErrors[question.id].error}
-                                    </p>
+                                  {currentQuestion.type === 'select' && currentQuestion.options && (
+                                    <select
+                                      value={responses[currentCategory]?.[currentQuestion.id] || ''}
+                                      onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                      <option value="">Select an option...</option>
+                                      {currentQuestion.options.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  
+                                  {currentQuestion.type === 'radio' && currentQuestion.options && (
+                                    <div className="space-y-2">
+                                      {currentQuestion.options.map((option) => (
+                                        <label key={option} className="flex items-center">
+                                          <input
+                                            type="radio"
+                                            name={currentQuestion.id}
+                                            value={option}
+                                            checked={responses[currentCategory]?.[currentQuestion.id] === option}
+                                            onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                          />
+                                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                                        </label>
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
+                                
+                                {/* Validation Error */}
+                                {validationErrors[currentQuestion.id] && !validationErrors[currentQuestion.id].isValid && (
+                                  <p className="mt-2 text-sm text-red-600">
+                                    {validationErrors[currentQuestion.id].error}
+                                  </p>
+                                )}
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        </div>
+                        
+                        {/* Navigation Buttons */}
+                        <div className="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center">
+                          <button
+                            type="button"
+                            onClick={handlePrevious}
+                            disabled={isFirstQuestion}
+                            className={`inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md ${
+                              isFirstQuestion
+                                ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                                : 'text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                            }`}
+                          >
+                            <ArrowLeftIcon className="-ml-1 mr-2 h-5 w-5" />
+                            Previous
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={handleNext}
+                            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            {isAbsoluteLastQuestion ? 'Complete Assessment' : 'Next'}
+                            <ArrowRightIcon className="ml-2 -mr-1 h-5 w-5" />
+                          </button>
                         </div>
                       </div>
                     );
@@ -470,6 +574,62 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
                 onComplete?.(responses);
               }}
             />
+          )}
+
+          {/* Complete Assessment Confirmation Modal */}
+          {showCompleteConfirmModal && (
+            <div className="fixed inset-0 z-50 overflow-y-auto">
+              <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowCompleteConfirmModal(false)} />
+                
+                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="sm:flex sm:items-start">
+                      <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <CloudArrowUpIcon className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                          Complete Assessment
+                        </h3>
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-500">
+                            You have reached the last question. Are you sure you want to complete this assessment? 
+                            You can review your responses before submitting.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCompleteConfirmModal(false);
+                        handleComplete();
+                      }}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Complete Assessment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowReviewModal(true)}
+                      className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Review Responses
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowCompleteConfirmModal(false)}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}

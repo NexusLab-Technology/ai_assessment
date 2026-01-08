@@ -1,7 +1,7 @@
-# Project Structure - Assessment Creation Fix
+# Project Structure - Question Display One-by-One
 
-## Module: AI Assessment Module - Database Integration Fix
-## Updated: Thu Jan  8 11:42:54 +07 2026
+## Module: AI Assessment Module - Question Display Enhancement
+## Updated: Thu Jan  8 14:18:30 +07 2026
 
 ## New Directory Structure:
 
@@ -99,9 +99,29 @@ src/components/ai-assessment/
 10. **QuestionnaireFlowAutoSave.tsx** - Fixed hooks relative path
 
 ## Files I'm Working With:
-- `src/app/api/assessments/route.ts` - Assessment CRUD API route
+- `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Main wizard component
+- `src/components/ai-assessment/hooks/database-integrated/DatabaseIntegratedAssessmentWizardState.tsx` - State management hook
 
 ## Changes Made:
+- Thu Jan  8 14:20:04 +07 2026 **Modified**: `src/components/ai-assessment/hooks/database-integrated/DatabaseIntegratedAssessmentWizardState.tsx` - Added currentQuestionIndex state
+  - Added currentQuestionIndex to state and return interface
+  - Reset question index to 0 when category or subcategory changes
+  - Added setCurrentQuestionIndex to return interface
+- Thu Jan  8 14:20:04 +07 2026 **Modified**: `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Changed question display to one-by-one
+  - Added ArrowLeftIcon and ArrowRightIcon imports
+  - Updated to use currentQuestionIndex from state hook
+  - Changed question display from map() to single question display
+  - Added Previous/Next navigation buttons with disabled states
+  - Added question counter (Question X of Y)
+  - Improved layout with flex-col for better navigation button placement
+- Thu Jan  8 14:23:13 +07 2026 **Modified**: `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Enhanced navigation logic
+  - Added auto-navigation to next subcategory when current subcategory questions are complete
+  - Added auto-navigation to next category when all subcategories in current category are complete
+  - Added confirmation modal when reaching the absolute last question
+  - Enhanced Previous button to navigate backwards across subcategories and categories
+  - Added showCompleteConfirmModal state for confirmation dialog
+  - Added XMarkIcon import for modal close button
+  - Changed Next button text to "Complete Assessment" when at last question
 - Thu Jan  8 11:42:42 +07 2026 **Modified**: `src/app/api/assessments/route.ts` - Replaced mock implementation with database service
   - POST route: Now uses `AssessmentService.createAssessment()` to save to MongoDB
   - GET route: Now uses `AssessmentService.listAssessments()` to fetch from MongoDB
