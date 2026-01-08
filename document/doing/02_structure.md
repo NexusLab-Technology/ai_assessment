@@ -1,7 +1,7 @@
-# Project Structure - Function-Based Grouping
+# Project Structure - Assessment Creation Fix
 
-## Module: AI Assessment Module - Function-Based Organization
-## Updated: Thu Jan  8 11:35:53 +07 2026
+## Module: AI Assessment Module - Database Integration Fix
+## Updated: Thu Jan  8 11:42:54 +07 2026
 
 ## New Directory Structure:
 
@@ -98,12 +98,32 @@ src/components/ai-assessment/
 9. **Test files** - Updated imports (3 files)
 10. **QuestionnaireFlowAutoSave.tsx** - Fixed hooks relative path
 
+## Files I'm Working With:
+- `src/app/api/assessments/route.ts` - Assessment CRUD API route
+
 ## Changes Made:
-- Thu Jan  8 11:34:59 +07 2026 **Created**: 7 function-based directories
-- Thu Jan  8 11:35:07 +07 2026 **Moved**: 21 files to function-based directories
-- Thu Jan  8 11:35:45 +07 2026 **Updated**: All imports in components and tests
-- Thu Jan  8 11:35:45 +07 2026 **Updated**: index.ts with new export paths
-- Thu Jan  8 11:35:53 +07 2026 **Verified**: No linter errors, all imports working ✅
+- Thu Jan  8 11:42:42 +07 2026 **Modified**: `src/app/api/assessments/route.ts` - Replaced mock implementation with database service
+  - POST route: Now uses `AssessmentService.createAssessment()` to save to MongoDB
+  - GET route: Now uses `AssessmentService.listAssessments()` to fetch from MongoDB
+  - Added userId extraction using `getUserId(request)`
+  - Added RAPID questionnaire version lookup using `RAPIDQuestionnaireService.getActiveQuestionnaire()`
+  - Fixed API response format to match client expectations
+  - Added proper error handling with validation
+- Thu Jan  8 11:44:35 +07 2026 **Modified**: `src/lib/services/assessment-service.ts` - Fixed ObjectId validation in listAssessments
+  - Added ObjectId format validation before converting companyId to ObjectId
+  - Returns empty array if companyId is not a valid ObjectId (handles mock company IDs gracefully)
+- Thu Jan  8 11:45:34 +07 2026 **Modified**: `src/app/api/assessments/route.ts` - Added ObjectId validation in POST route
+  - Validates companyId format before calling createAssessment
+  - Returns clear error message if companyId is invalid (e.g., mock company IDs)
+- Thu Jan  8 11:45:34 +07 2026 **Modified**: `src/lib/services/assessment-service.ts` - Added ObjectId validation in createAssessment
+  - Validates companyId format before converting to ObjectId
+  - Returns error if companyId is not a valid ObjectId format
+- Thu Jan  8 11:46:47 +07 2026 **Modified**: `src/app/api/companies/route.ts` - Migrated from mock data to database
+  - GET route: Now uses `CompanyModel.findAll(userId)` to fetch from MongoDB
+  - POST route: Now uses `CompanyModel.create()` to save to MongoDB
+  - Added userId extraction using `getUserId(request)`
+  - Added proper validation and error handling
+  - Companies now have valid MongoDB ObjectIds, allowing assessment creation
 
 ## File Count:
 

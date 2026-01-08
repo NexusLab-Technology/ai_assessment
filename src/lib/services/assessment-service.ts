@@ -31,6 +31,14 @@ export class AssessmentService {
     rapidQuestionnaireVersion: string
   }): Promise<{ success: boolean; assessmentId?: string; error?: string }> {
     try {
+      // Validate companyId is a valid ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(data.companyId)) {
+        return {
+          success: false,
+          error: `Invalid company ID format. Company ID must be a valid MongoDB ObjectId (24 hex characters). Received: ${data.companyId}`
+        }
+      }
+
       const collection = await this.getCollection()
       
       // Get the RAPID questionnaire structure
@@ -252,7 +260,17 @@ export class AssessmentService {
       
       const filter: any = { userId }
       if (companyId) {
-        filter.companyId = new ObjectId(companyId)
+        // Validate ObjectId format before converting
+        // ObjectId must be 24 hex characters
+        if (/^[0-9a-fA-F]{24}$/.test(companyId)) {
+          filter.companyId = new ObjectId(companyId)
+        } else {
+          // If companyId is not a valid ObjectId (e.g., mock ID like 'demo-company-1'),
+          // skip the companyId filter and return empty array since no assessments
+          // in database will match a non-ObjectId companyId
+          console.warn(`Invalid ObjectId format for companyId: ${companyId}. Skipping companyId filter.`)
+          return []
+        }
       }
 
       const documents = await collection.find(filter, {
