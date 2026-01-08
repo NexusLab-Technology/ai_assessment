@@ -49,6 +49,7 @@ alwaysApply: true
 2. **Update `01_doing.md`** → mark ✅ checkbox, add log entry with timestamp
 3. **Update `02_structure.md`** → if files changed (added/modified/deleted)
 4. **Update `03_implement_note.md`** → add implementation details
+5. **Update `document/project-structure.md`** → **IF** structure changed (new directories, new file types, moved files, deleted files)
 
 **WORKFLOW PATTERN**:
 ```
@@ -62,8 +63,22 @@ Update 02_structure.md (if files changed)
   ↓
 Update 03_implement_note.md (add details)
   ↓
+Update project-structure.md (if structure changed)
+  ↓
 Do NEXT activity (repeat)
 ```
+
+**WHEN TO UPDATE project-structure.md**:
+- ✅ **MUST UPDATE** when:
+  - Creating new directories (e.g., `src/containers/`, `src/lib/services/`)
+  - Adding new file types in new locations
+  - Moving files to different directories
+  - Deleting directories or major files
+  - Adding new modules or major components
+- ❌ **NO NEED** to update for:
+  - Modifying existing files in same location
+  - Adding files to existing directories (unless it's a new pattern)
+  - Small refactoring within same structure
 
 **EXAMPLE**:
 ```
@@ -76,14 +91,34 @@ Do NEXT activity (repeat)
    - Add: - Thu Jan 8 10:37:11 +07 2026 **Added**: `src/components/Button.tsx` - Button component
 5. Update 03_implement_note.md:
    - Add: - Thu Jan 8 10:37:11 +07 2026 **Created** `src/components/Button.tsx` - Button component with onClick handler
+6. Update project-structure.md (if new directory or pattern):
+   - Add new file entry in appropriate section
+   - Update directory structure if needed
+```
+
+**EXAMPLE - Structure Change**:
+```
+1. Create directory src/containers/ai-assessment/
+2. Create file src/containers/ai-assessment/AssessmentContainerLogic.tsx
+3. Run: date → "Thu Jan 8 10:37:11 +07 2026"
+4. Update 01_doing.md: (as above)
+5. Update 02_structure.md: (as above)
+6. Update 03_implement_note.md: (as above)
+7. **MUST Update project-structure.md**:
+   - Add `containers/` section under Directory Structure
+   - Document new directory: `src/containers/ai-assessment/`
+   - Add file: `AssessmentContainerLogic.tsx` - Business logic container
 ```
 
 ### STEP 8: Finish
 **ACTION**:
+- **VERIFY** `document/project-structure.md` is up-to-date (check all changes in `02_structure.md`)
 - Update module docs if needed
-- Update `document/project-structure.md` if structure changed
+- **FINAL UPDATE** `document/project-structure.md` if any structure changes were missed
 - Wait for user confirmation
 - Clear 3 work files after user OK
+
+**CRITICAL**: Before finishing, ALWAYS verify project-structure.md reflects all structural changes made during work.
 
 ---
 
@@ -211,12 +246,15 @@ Do NEXT activity (repeat)
 - [ ] ✅ Update `01_doing.md` (✅ checkbox + log entry)
 - [ ] ✅ Update `02_structure.md` (if files changed)
 - [ ] ✅ Update `03_implement_note.md` (add details)
+- [ ] ✅ Update `document/project-structure.md` (if structure changed - new dirs, moved files, deleted dirs)
 
 ### Before Finishing:
 - [ ] ✅ All tasks marked ✅
 - [ ] ✅ All timestamps from `date` command
 - [ ] ✅ Only 3 files in doing/ directory
 - [ ] ✅ All checklists in `01_doing.md`
+- [ ] ✅ **VERIFIED** `document/project-structure.md` is up-to-date
+- [ ] ✅ Updated module docs if needed
 - [ ] ✅ User confirmed work
 - [ ] ✅ Cleared work files
 
@@ -234,12 +272,12 @@ Do NEXT activity (repeat)
 
 ### WORK (Step 7 - Repeat for each activity):
 ```
-Activity → date → update 3 files → next activity
+Activity → date → update 3 files → update project-structure.md (if structure changed) → next activity
 ```
 
 ### FINISH (Step 8):
 ```
-Update docs → wait user OK → clear work files
+Verify project-structure.md → update module docs → wait user OK → clear work files
 ```
 
 ---
@@ -249,9 +287,10 @@ Update docs → wait user OK → clear work files
 **MUST DO (No Exceptions):**
 1. ✅ Follow 8 steps in order
 2. ✅ Update doing files after EVERY activity
-3. ✅ Keep only 3 files in doing/ directory
-4. ✅ All checklists in `01_doing.md` only
-5. ✅ Use `date` command for timestamps
+3. ✅ Update `document/project-structure.md` when structure changes (new dirs, moved files, deleted dirs)
+4. ✅ Keep only 3 files in doing/ directory
+5. ✅ All checklists in `01_doing.md` only
+6. ✅ Use `date` command for timestamps
 
 **IF TEMPTED TO SKIP → STOP → FOLLOW EXACTLY AS WRITTEN**
 
@@ -261,12 +300,15 @@ Update docs → wait user OK → clear work files
 
 1. **One activity = One update cycle**: Do one thing, update all 3 files, then do next thing
 2. **Timestamps are mandatory**: Always run `date` command, never hardcode
-3. **3 files only**: Never create extra files in doing/ directory
-4. **Immediate updates**: Update files right after each activity, don't batch
-5. **Follow order**: Complete each step before moving to next
+3. **Update project-structure.md**: When creating new directories, moving files, or deleting directories
+4. **3 files only**: Never create extra files in doing/ directory
+5. **Immediate updates**: Update files right after each activity, don't batch
+6. **Follow order**: Complete each step before moving to next
+7. **Verify before finish**: Always check project-structure.md is up-to-date before finishing
 
 ---
 
 **Last Updated**: 2026-01-08
 **Purpose**: Ensure consistent workflow and documentation tracking
 **Compliance**: Mandatory for all development work
+**Note**: Always update `document/project-structure.md` when structure changes (new directories, moved files, deleted directories)

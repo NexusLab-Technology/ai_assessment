@@ -87,9 +87,9 @@ ai_assessment/
 │   │   ├── layout.tsx               # Root layout with AuthProvider
 │   │   └── page.tsx                 # Home dashboard
 │   │
-│   ├── components/                  # React components
+│   ├── components/                  # React components (UI ONLY - NO business logic)
 │   │   ├── ai-assessment/          # AI Assessment components
-│   │   │   ├── AssessmentContainer.tsx
+│   │   │   ├── AssessmentContainer.tsx          # Main container (UI only, uses container logic)
 │   │   │   ├── AssessmentDashboard.tsx
 │   │   │   ├── AssessmentWizard.tsx
 │   │   │   ├── AssessmentViewer.tsx
@@ -98,7 +98,22 @@ ai_assessment/
 │   │   │   ├── RAPIDQuestionnaireLoader.tsx
 │   │   │   ├── ResponseReviewModal.tsx
 │   │   │   ├── AsyncReportGenerator.tsx
-│   │   │   └── ReportStatusTracker.tsx
+│   │   │   ├── ReportStatusTracker.tsx
+│   │   │   ├── DatabaseIntegratedAssessmentWizard.tsx  # Main wizard (refactored, 482 lines)
+│   │   │   ├── DatabaseIntegratedAssessmentWizardLoader.tsx  # Extracted hook
+│   │   │   ├── DatabaseIntegratedAssessmentWizardState.tsx   # Extracted hook
+│   │   │   ├── DatabaseIntegratedAssessmentWizardValidation.tsx  # Extracted hook
+│   │   │   ├── QuestionnaireFlow.tsx              # Main flow (refactored, 383 lines)
+│   │   │   ├── QuestionnaireFlowAutoSave.tsx      # Extracted hook
+│   │   │   ├── QuestionnaireFlowNavigation.tsx    # Extracted hook
+│   │   │   ├── QuestionnaireFlowResponses.tsx     # Extracted hook
+│   │   │   ├── RAPIDAssessmentWizard.tsx          # Main wizard (refactored, 402 lines)
+│   │   │   ├── RAPIDAssessmentWizardCategories.tsx    # Extracted hook
+│   │   │   ├── RAPIDAssessmentWizardQuestions.tsx      # Extracted hook
+│   │   │   ├── RAPIDAssessmentWizardProgress.tsx      # Extracted hook
+│   │   │   ├── DatabaseIntegratedProgressTracker.tsx  # Main tracker (refactored, 344 lines)
+│   │   │   ├── DatabaseIntegratedProgressTrackerLogic.tsx  # Extracted hook
+│   │   │   └── DatabaseIntegratedProgressTrackerUI.tsx    # Extracted hook
 │   │   ├── company-settings/        # Company Settings components
 │   │   │   ├── CompanyDashboard.tsx
 │   │   │   ├── CompanyForm.tsx
@@ -110,8 +125,14 @@ ai_assessment/
 │   │   ├── Sidebar.tsx             # Main navigation sidebar
 │   │   └── LoginPage.tsx           # Login form component
 │   │
-│   ├── contexts/                   # React contexts
-│   │   └── AuthContext.tsx         # Authentication context
+│   ├── containers/                 # Business logic containers (NO UI rendering)
+│   │   ├── ai-assessment/         # AI Assessment business logic
+│   │   │   └── AssessmentContainerLogic.tsx  # Assessment CRUD operations
+│   │   ├── authentication/         # Authentication business logic (empty - using services)
+│   │   └── company-settings/       # Company Settings business logic (empty - ready for future)
+│   │
+│   ├── contexts/                   # React contexts (state management only)
+│   │   └── AuthContext.tsx         # Authentication context (refactored, uses auth-service)
 │   │
 │   ├── hooks/                      # Custom React hooks
 │   │   ├── useAssessmentViewer.ts
@@ -131,7 +152,8 @@ ai_assessment/
 │   │   │   ├── Assessment.ts
 │   │   │   ├── Company.ts
 │   │   │   └── Report.ts
-│   │   ├── services/               # Business logic services
+│   │   ├── services/               # Business logic services (NO UI)
+│   │   │   ├── auth-service.ts     # Authentication business logic (extracted from AuthContext)
 │   │   │   ├── rapid-questionnaire-service.ts
 │   │   │   └── assessment-service.ts
 │   │   └── validation/             # Validation utilities
@@ -145,7 +167,9 @@ ai_assessment/
 │   ├── utils/                      # Utility functions
 │   │   ├── assessment-helpers.ts
 │   │   ├── company-validation.ts
-│   │   └── rapid-questionnaire-utils.ts
+│   │   ├── rapid-questionnaire-utils.ts
+│   │   ├── time-helpers.ts         # Local time formatting utilities (Rule 4 compliance)
+│   │   └── error-handling.ts
 │   │
 │   ├── middleware.ts               # Next.js middleware
 │   │
@@ -233,6 +257,10 @@ ai_assessment/
 - **Response Review System**: Comprehensive review before completion
 - **Auto-save Functionality**: Automatic saving every 30 seconds
 - **Asynchronous Report Generation**: External API Gateway integration
+- **Code Organization**: 
+  - Components split into smaller files (all under 500 lines)
+  - Business logic extracted to containers/services
+  - Custom hooks for reusable logic
 
 ### 3. Company Settings Module
 - Company CRUD operations
@@ -314,9 +342,48 @@ Key environment variables:
 - `SESSION_TIMEOUT`: Session timeout in milliseconds
 - `EXTERNAL_API_GATEWAY_URL`: External API Gateway endpoint
 
+## Code Organization & Compliance
+
+### Application-instruction Compliance
+
+The codebase follows strict coding rules defined in `Application-instruction.md`:
+
+- **Rule 1: NextJS Core Application** ✅
+  - Uses Next.js 14+ with App Router
+  - All components use `'use client'` directive where needed
+
+- **Rule 2: Directory Structure & Separation** ✅
+  - `components/` directory: UI components ONLY (no business logic)
+  - `containers/` directory: Business logic ONLY (no UI rendering)
+  - `lib/services/` directory: Service layer for business logic
+  - Clean separation of concerns
+
+- **Rule 3: File Size Limitation** ✅
+  - All files are under 500 lines
+  - Large components split into smaller, focused files
+  - Extracted hooks for reusable logic
+
+- **Rule 4: Time Handling** ✅
+  - All user-facing time displays use local machine time
+  - `src/utils/time-helpers.ts` provides local time utilities
+  - No UTC/server time for user-facing updates
+
+### Refactoring Summary
+
+**Files Created (14 files)**:
+- 11 extracted hook files from large components
+- 1 container logic file (`containers/ai-assessment/AssessmentContainerLogic.tsx`)
+- 1 service file (`lib/services/auth-service.ts`)
+- 1 utility file (`utils/time-helpers.ts`)
+
+**Files Refactored (8 files)**:
+- 5 large components split and refactored (all now under 500 lines)
+- 1 context refactored to use service layer
+- 3 files fixed for time handling compliance
+
 ## Current State
 
-All major features are implemented and tested. The platform is ready for production use with comprehensive assessment capabilities, company management, and asynchronous report generation.
+All major features are implemented and tested. The platform is ready for production use with comprehensive assessment capabilities, company management, and asynchronous report generation. All code complies with Application-instruction rules.
 
 ### Module Organization
 

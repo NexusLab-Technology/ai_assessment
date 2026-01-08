@@ -41,6 +41,7 @@
 - Thu Jan  8 10:59:24 +07 2026 **Modified**: `src/components/ai-assessment/AssessmentContainer.tsx` - Refactored to use container (332 lines - compliant ✅)
 - Thu Jan  8 11:00:53 +07 2026 **Created**: `src/lib/services/auth-service.ts` (234 lines) - Authentication business logic
 - Thu Jan  8 11:00:53 +07 2026 **Modified**: `src/contexts/AuthContext.tsx` - Refactored to use service (147 lines - compliant ✅)
+- Thu Jan  8 11:10:47 +07 2026 **Modified**: `document/project-structure.md` - Updated to reflect all structural changes
 
 ## Key Findings:
 1. **Missing containers/ directory** - Rule 2 violation
