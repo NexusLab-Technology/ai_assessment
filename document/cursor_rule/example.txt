@@ -4,57 +4,82 @@ alwaysApply: true
 
 # 🚨 MANDATORY WORKFLOW - 8 STEPS
 
-**⚠️ CRITICAL: Follow ALL 8 steps in order. No skipping.**
+**⚠️ CRITICAL: Follow ALL 8 steps in order. No skipping. No exceptions.**
 
 ---
 
-## 📋 THE 8 STEPS (DO IN ORDER)
+## 📋 THE 8 STEPS (DO IN ORDER - NO SKIPPING)
 
 ### STEP 1: Read Project Structure
-- Read `document/project-structure.md`
-- **Why**: Understand project before starting
+**ACTION**: Read `document/project-structure.md`
+**WHY**: Understand project architecture before starting any work
 
 ### STEP 2: Check Doing Directory
-- Check `document/doing/` exists
-- **If exists**: Read 3 files (`01_doing.md`, `02_structure.md`, `03_implement_note.md`)
-- **If not exists**: Create directory and 3 files
-- **Important**: Delete any extra files (keep only 3 files)
+**ACTION**: 
+- Check if `document/doing/` exists
+- **If exists**: Read all 3 files (`01_doing.md`, `02_structure.md`, `03_implement_note.md`)
+- **If not exists**: Create directory and 3 files using templates below
+- **CRITICAL**: Delete any extra files (keep ONLY 3 files)
 
-### STEP 3: Ask User
-- Ask: "Continue previous job or start new job?"
+### STEP 3: Ask User About Job
+**ACTION**: Ask user: "Continue previous job or start new job?"
 - **If new job**: Ask if user wants to clear work files
+- **If continue**: Read existing work files to understand context
 
 ### STEP 4: Read Application Instructions
-- Read `document/Application-instruction.md`
-- **Why**: Understand coding rules
+**ACTION**: Read `document/Application-instruction.md`
+**WHY**: Understand coding rules and conventions
 
 ### STEP 5: Read Module Documentation
-- Read relevant docs from `document/modules/`
-- **Why**: Understand the module you're working on
+**ACTION**: Read relevant docs from `document/modules/` based on task
+**WHY**: Understand the module you're working on
 
 ### STEP 6: Create/Update Work Files
-- Create/update 3 files in `document/doing/`:
-  1. `01_doing.md` - **ALL checklists go here**
-  2. `02_structure.md` - Files and changes
-  3. `03_implement_note.md` - Implementation notes
-- **Rule**: Only 3 files allowed. All checklists in `01_doing.md` only.
+**ACTION**: Create/update 3 files in `document/doing/`:
+1. `01_doing.md` - **ALL checklists go here** (use template below)
+2. `02_structure.md` - Files and changes (use template below)
+3. `03_implement_note.md` - Implementation notes (use template below)
 
-### STEP 7: Work & Update ⚠️ MOST IMPORTANT
-**After EVERY activity (create file, modify file, run test, etc.):**
-1. Run `date` → get timestamp
-2. Update `01_doing.md` → mark ✅, add log entry
-3. Update `02_structure.md` → if files changed
-4. Update `03_implement_note.md` → add details
+**CRITICAL RULE**: Only 3 files allowed. All checklists in `01_doing.md` only.
 
-**Example:**
+### STEP 7: Work & Update ⚠️ MOST IMPORTANT STEP
+**CRITICAL**: After EVERY single activity (create file, modify file, run test, delete file, etc.):
+
+1. **Run `date` command** → get timestamp
+2. **Update `01_doing.md`** → mark ✅ checkbox, add log entry with timestamp
+3. **Update `02_structure.md`** → if files changed (added/modified/deleted)
+4. **Update `03_implement_note.md`** → add implementation details
+
+**WORKFLOW PATTERN**:
 ```
-Create file X.tsx
-→ date → update 01_doing.md (✅ + log)
-→ update 02_structure.md (add file)
-→ update 03_implement_note.md (note created)
+Do ONE activity
+  ↓
+Run `date` command
+  ↓
+Update 01_doing.md (✅ + log entry)
+  ↓
+Update 02_structure.md (if files changed)
+  ↓
+Update 03_implement_note.md (add details)
+  ↓
+Do NEXT activity (repeat)
+```
+
+**EXAMPLE**:
+```
+1. Create file src/components/Button.tsx
+2. Run: date → "Thu Jan 8 10:37:11 +07 2026"
+3. Update 01_doing.md:
+   - Mark checkbox: ✅
+   - Add log: - ✅ Thu Jan 8 10:37:11 +07 2026 Created `src/components/Button.tsx` - Button component - For user interface
+4. Update 02_structure.md:
+   - Add: - Thu Jan 8 10:37:11 +07 2026 **Added**: `src/components/Button.tsx` - Button component
+5. Update 03_implement_note.md:
+   - Add: - Thu Jan 8 10:37:11 +07 2026 **Created** `src/components/Button.tsx` - Button component with onClick handler
 ```
 
 ### STEP 8: Finish
+**ACTION**:
 - Update module docs if needed
 - Update `document/project-structure.md` if structure changed
 - Wait for user confirmation
@@ -62,14 +87,14 @@ Create file X.tsx
 
 ---
 
-## 📁 THE 3 WORK FILES
+## 📁 THE 3 WORK FILES (EXACTLY 3 FILES - NO MORE, NO LESS)
 
-**Rule**: `document/doing/` must have EXACTLY 3 files:
-1. `01_doing.md` - All checklists
+**CRITICAL RULE**: `document/doing/` must have EXACTLY 3 files:
+1. `01_doing.md` - All checklists and work log
 2. `02_structure.md` - Files and changes
 3. `03_implement_note.md` - Implementation notes
 
-### File 1: `01_doing.md` Template
+### Template 1: `01_doing.md`
 ```markdown
 # [Task Name] Checklist
 
@@ -99,16 +124,16 @@ Create file X.tsx
 ## 🚀 Current Status: [Phase]
 ## 🎯 Next Action: [What next]
 
-## 📝 Work Log
+## 📝 Work Log (Add entry after EACH activity)
 - ✅ [TIMESTAMP] Read project structure
 - ✅ [TIMESTAMP] Created `file.tsx` - [What] - [Why]
 ```
 
-### File 2: `02_structure.md` Template
+### Template 2: `02_structure.md`
 ```markdown
 # Project Structure - [Module]
 
-## Updated: [TIMESTAMP]
+## Updated: [TIMESTAMP from date command]
 
 ## Files I'm Working With:
 - `src/path/file.tsx` - [Purpose]
@@ -116,15 +141,16 @@ Create file X.tsx
 ## Changes Made:
 - [TIMESTAMP] **Added**: `file.tsx` - [Why]
 - [TIMESTAMP] **Modified**: `file.ts` - [What changed]
+- [TIMESTAMP] **Deleted**: `file.ts` - [Why]
 ```
 
-### File 3: `03_implement_note.md` Template
+### Template 3: `03_implement_note.md`
 ```markdown
 # Implementation Notes - [Module]
 
 ## Goal: [What building]
-## Started: [TIMESTAMP]
-## Updated: [TIMESTAMP]
+## Started: [TIMESTAMP from date command]
+## Updated: [TIMESTAMP from date command]
 
 ## Implementation Details:
 - [TIMESTAMP] **Changed** `file.tsx` - [What] - [Why]
@@ -140,78 +166,107 @@ Create file X.tsx
 
 ---
 
-## ⚠️ CRITICAL RULES
+## ⚠️ CRITICAL RULES (NEVER VIOLATE)
 
-### Timestamps
-- ✅ ALWAYS run `date` command (never use hardcoded dates)
+### Rule 1: Timestamps
+- ✅ **ALWAYS** run `date` command (never use hardcoded dates)
 - ✅ Use output directly in work files
-- ❌ NEVER use model-generated or fixed timestamps
+- ❌ **NEVER** use model-generated or fixed timestamps
+- ❌ **NEVER** guess or make up timestamps
 
-### Doing Directory
-- ✅ Keep ONLY 3 files
+### Rule 2: Doing Directory
+- ✅ Keep **ONLY 3 files** (01_doing.md, 02_structure.md, 03_implement_note.md)
 - ✅ All checklists in `01_doing.md` only
-- ✅ Update files IMMEDIATELY after every activity
-- ❌ NEVER create extra files
-- ❌ NEVER skip updates
+- ✅ Update files **IMMEDIATELY** after every activity
+- ❌ **NEVER** create extra files
+- ❌ **NEVER** skip updates
+- ❌ **NEVER** combine files
 
-### Work Updates
-- ✅ After EVERY activity → update all 3 files
+### Rule 3: Work Updates
+- ✅ After **EVERY** activity → update all 3 files
 - ✅ One activity at a time → update → next activity
-- ❌ NEVER do multiple activities without updating
+- ❌ **NEVER** do multiple activities without updating
+- ❌ **NEVER** batch updates (update immediately)
+
+### Rule 4: Workflow Order
+- ✅ Follow 8 steps in exact order
+- ✅ Complete each step before moving to next
+- ❌ **NEVER** skip steps
+- ❌ **NEVER** do steps out of order
 
 ---
 
-## ✅ QUICK CHECKLIST
+## ✅ QUICK REFERENCE CHECKLIST
 
-**Before starting:**
-- [ ] Read project-structure.md
-- [ ] Check doing/ directory (3 files only)
-- [ ] Ask user about job
-- [ ] Read Application-instruction.md
-- [ ] Read module docs
-- [ ] Create/update 3 work files
+### Before Starting Work:
+- [ ] ✅ Read project-structure.md
+- [ ] ✅ Check doing/ directory (3 files only)
+- [ ] ✅ Ask user about job (continue/new)
+- [ ] ✅ Read Application-instruction.md
+- [ ] ✅ Read module docs
+- [ ] ✅ Create/update 3 work files
 
-**During work:**
-- [ ] After each activity → run `date`
-- [ ] Update `01_doing.md` (✅ + log)
-- [ ] Update `02_structure.md` (if files changed)
-- [ ] Update `03_implement_note.md` (add details)
+### During Work (After EACH Activity):
+- [ ] ✅ Run `date` command
+- [ ] ✅ Update `01_doing.md` (✅ checkbox + log entry)
+- [ ] ✅ Update `02_structure.md` (if files changed)
+- [ ] ✅ Update `03_implement_note.md` (add details)
 
-**Before done:**
-- [ ] All tasks marked ✅
-- [ ] All timestamps from `date` command
-- [ ] Only 3 files in doing/ directory
-- [ ] All checklists in `01_doing.md`
-- [ ] User confirmed work
-- [ ] Cleared work files
+### Before Finishing:
+- [ ] ✅ All tasks marked ✅
+- [ ] ✅ All timestamps from `date` command
+- [ ] ✅ Only 3 files in doing/ directory
+- [ ] ✅ All checklists in `01_doing.md`
+- [ ] ✅ User confirmed work
+- [ ] ✅ Cleared work files
 
 ---
 
-## 🎯 SIMPLE WORKFLOW
+## 🎯 SIMPLIFIED WORKFLOW
 
-**Start:**
+### START (Steps 1-6):
 1. Read project-structure.md
 2. Check doing/ (3 files)
-3. Ask user
-4. Read instructions
+3. Ask user (continue/new?)
+4. Read Application-instruction.md
 5. Read module docs
-6. Create work files
+6. Create/update 3 work files
 
-**Work:**
-- Do activity → `date` → update 3 files → next activity
+### WORK (Step 7 - Repeat for each activity):
+```
+Activity → date → update 3 files → next activity
+```
 
-**Finish:**
-- Update docs → wait user OK → clear work files
+### FINISH (Step 8):
+```
+Update docs → wait user OK → clear work files
+```
 
 ---
 
 ## 🚨 FINAL REMINDER
 
-**MUST DO:**
-1. Follow 8 steps in order
-2. Update doing files after EVERY activity
-3. Keep only 3 files in doing/ directory
-4. All checklists in `01_doing.md` only
-5. Use `date` command for timestamps
+**MUST DO (No Exceptions):**
+1. ✅ Follow 8 steps in order
+2. ✅ Update doing files after EVERY activity
+3. ✅ Keep only 3 files in doing/ directory
+4. ✅ All checklists in `01_doing.md` only
+5. ✅ Use `date` command for timestamps
 
-**If tempted to skip → STOP → follow exactly as written.**
+**IF TEMPTED TO SKIP → STOP → FOLLOW EXACTLY AS WRITTEN**
+
+---
+
+## 📝 KEY POINTS TO REMEMBER
+
+1. **One activity = One update cycle**: Do one thing, update all 3 files, then do next thing
+2. **Timestamps are mandatory**: Always run `date` command, never hardcode
+3. **3 files only**: Never create extra files in doing/ directory
+4. **Immediate updates**: Update files right after each activity, don't batch
+5. **Follow order**: Complete each step before moving to next
+
+---
+
+**Last Updated**: 2026-01-08
+**Purpose**: Ensure consistent workflow and documentation tracking
+**Compliance**: Mandatory for all development work
