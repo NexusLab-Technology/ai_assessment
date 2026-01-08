@@ -1,61 +1,85 @@
-# Implementation Notes - Question Display One-by-One
+# Implementation Notes - Navigation and Company Creation Fixes
 
-## Goal: Change assessment questions display from showing all questions in a list to showing one question at a time with Next/Previous navigation buttons, with auto-navigation to next subcategory/category and confirmation dialog
-## Started: Thu Jan  8 14:18:30 +07 2026
-## Updated: Thu Jan  8 14:23:28 +07 2026
+## Goal: Fix Nav bar reload issue and Company creation not showing issue
+## Started: Thu Jan  8 15:15:31 +07 2026
+## Updated: Thu Jan  8 15:17:41 +07 2026
 
 ## Problem Identified:
-- Questions were displayed all at once in a long list
-- No way to navigate between questions one by one
-- No automatic progression to next subcategory/category when completing current section
-- No confirmation when reaching the last question
+1. **Nav bar reload issue**: When clicking navigation items in the sidebar, the page was reloading instead of using client-side navigation
+2. **Company creation not showing**: After creating a new company, it didn't appear in the list until manual page refresh
 
 ## Implementation Details:
-- Thu Jan  8 14:20:04 +07 2026 **Changed** `src/components/ai-assessment/hooks/database-integrated/DatabaseIntegratedAssessmentWizardState.tsx` - Added currentQuestionIndex state management
-  - **What**: Added currentQuestionIndex state to track which question is currently displayed
-  - **Why**: Need to track current question position for one-by-one display
+- Thu Jan  8 15:16:51 +07 2026 **Changed** `src/components/Sidebar.tsx` - Fixed Nav bar reload
+  - **What**: Added prefetch and scroll props to Next.js Link component
+  - **Why**: To prevent full page reload and improve navigation performance
   - **Details**: 
-    - Added currentQuestionIndex: number to state
-    - Reset to 0 when category or subcategory changes
-    - Added to return interface for component access
+    - Added `prefetch={true}` to enable Next.js prefetching for better performance
+    - Added `scroll={false}` to prevent automatic scroll to top on navigation
+    - This ensures smooth client-side navigation without page reload
 
-- Thu Jan  8 14:20:04 +07 2026 **Changed** `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Modified question display to show one at a time
-  - **What**: Changed from displaying all questions in a list to showing one question at a time with navigation
-  - **Why**: User requested one-by-one display with Next button instead of long list
+- Thu Jan  8 15:16:51 +07 2026 **Changed** `src/components/company-settings/CompanyContainer.tsx` - Fixed Company creation not showing
+  - **What**: Fixed response extraction and state update logic
+  - **Why**: Response structure can vary, need to handle all possible formats
   - **Details**:
-    - Replaced `subcategory.questions.map()` with single question display using `currentQuestionIndex`
-    - Added Previous/Next navigation buttons with proper disabled states
-    - Added question counter showing "Question X of Y"
-    - Improved layout with flex-col for better button placement
-    - Navigation buttons disabled at first/last question appropriately
-    - Increased textarea rows from 3 to 6 for better visibility
+    - Enhanced response extraction to check multiple formats:
+      - `response.data` (standard API response)
+      - `response.company` (type definition format)
+      - `response` directly (if response is company object)
+    - Added error handling with clear error message if company data not found
+    - Ensured new company is added to state immediately after creation
+    - Improved logging for debugging
 
-- Thu Jan  8 14:23:13 +07 2026 **Changed** `src/components/ai-assessment/wizards/DatabaseIntegratedAssessmentWizard.tsx` - Enhanced navigation logic
-  - **What**: Added auto-navigation to next subcategory/category and confirmation dialog
-  - **Why**: User requested automatic progression when completing sections and confirmation before completing assessment
+- Thu Jan  8 15:17:41 +07 2026 **Changed** `src/components/company-settings/CompanyDashboard.tsx` - Enhanced filtering
+  - **What**: Added filter to exclude inactive companies
+  - **Why**: Only active companies should be displayed in the UI
   - **Details**:
-    - Enhanced handleNext() to check if at last question of subcategory, then navigate to next subcategory
-    - If at last subcategory of category, navigate to next category's first subcategory
-    - If at absolute last question, show confirmation modal instead of navigating
-    - Enhanced handlePrevious() to navigate backwards across subcategories and categories
-    - Added showCompleteConfirmModal state for confirmation dialog
-    - Added confirmation modal with options: Complete Assessment, Review Responses, or Cancel
-    - Changed Next button text to "Complete Assessment" when at last question
-    - Added XMarkIcon import for modal
+    - Added check for `company.isActive !== false` in filter logic
+    - Handles both active companies (isActive: true) and legacy companies (isActive: undefined)
 
 ## Issues & Solutions:
-- Thu Jan  8 14:23:13 +07 2026 **Problem**: User requested navigation to next subcategory/category when completing current section
- - **Solution**: Enhanced handleNext() to check if at last question of subcategory, then navigate to next subcategory. If at last subcategory of category, navigate to next category. If at absolute last question, show confirmation modal.
-- Thu Jan  8 14:23:13 +07 2026 **Problem**: User requested confirmation dialog when reaching last question
- - **Solution**: Added showCompleteConfirmModal state and confirmation modal component with options to complete, review responses, or cancel.
-- Thu Jan  8 14:23:28 +07 2026 **Problem**: Variable declaration duplication (currentSubcategoryIndex and currentCategoryIndex declared twice)
- - **Solution**: Reorganized variable declarations to declare indices first, then use them for all position checks.
+- Thu Jan  8 15:16:51 +07 2026 **Problem**: Nav bar was causing full page reload when clicking navigation items
+ - **Solution**: Added `prefetch={true}` and `scroll={false}` props to Next.js Link component to enable client-side navigation without reload
+
+- Thu Jan  8 15:16:51 +07 2026 **Problem**: Company creation response structure was inconsistent, causing new company not to appear
+ - **Solution**: Enhanced response extraction to handle multiple response formats (data, company, or direct object) with proper error handling
+
+- Thu Jan  8 15:17:41 +07 2026 **Problem**: Inactive companies might be displayed
+ - **Solution**: Added filter to exclude companies with isActive === false
+
+## Issues & Solutions (continued):
+- Thu Jan  8 15:20:39 +07 2026 **Problem**: AI Assessment page was flashing/reloading when navigating from Nav bar
+ - **Solution**: Changed initial loading state to `false` and optimized loading condition. Added `useRef` to prevent duplicate loading on navigation. Only show loading spinner when actively loading and no companies exist.
+
+- Thu Jan  8 15:23:12 +07 2026 **Problem**: Multiple loading states (RouteGuard, ApplicationShell, AssessmentContainer) were causing page flashing
+ - **Solution**: 
+   - RouteGuard: Changed loading states to return `null` instead of showing spinner to prevent flash
+   - ApplicationShell: Removed auth loading check, only show loading on initial mount
+   - AssessmentContainer: Changed from conditional rendering to overlay loading to prevent layout shift
+   - This ensures smooth navigation without full-page reloads or flashing spinners
+
+## Issues & Solutions (continued):
+- Thu Jan  8 15:25:40 +07 2026 **Problem**: User wants loading to show only in content area, nav bar must stay visible
+ - **Solution**: 
+   - Changed AI Assessment page loading from full-page to overlay in content area
+   - Updated ApplicationShell to show sidebar during initial mount loading
+   - Loading and error messages now appear as overlay in content area only
+   - Nav bar (Sidebar) is always visible during loading
+
+- Thu Jan  8 15:27:11 +07 2026 **Problem**: React Hooks error - "Rendered more hooks than during the previous render"
+ - **Solution**: 
+   - Moved `useEffect` hook that was after early return to before early return
+   - React Hooks rules require all hooks to be called in the same order on every render
+   - Early return (`if (!selectedCompany)`) was causing hooks to be called conditionally
+   - Now all hooks are called before any conditional returns
 
 ## Current Status:
-- ✅ Questions now display one at a time with navigation buttons
-- ✅ Auto-navigation to next subcategory when current subcategory is complete
-- ✅ Auto-navigation to next category when all subcategories in current category are complete
-- ✅ Confirmation dialog when reaching the absolute last question
-- ✅ Enhanced Previous button navigation across subcategories and categories
+- ✅ Nav bar now uses client-side navigation without page reload
+- ✅ Company creation immediately shows new company in list
+- ✅ Inactive companies are filtered out
+- ✅ AI Assessment page no longer flashes when navigating from Nav bar
+- ✅ RouteGuard and ApplicationShell loading states optimized to prevent flash
+- ✅ AssessmentContainer uses overlay loading instead of conditional rendering
+- ✅ Loading now shows only in content area - nav bar stays visible
+- ✅ React Hooks error fixed - all hooks called before early returns
 - ✅ No linter errors
 - ✅ Ready for user testing

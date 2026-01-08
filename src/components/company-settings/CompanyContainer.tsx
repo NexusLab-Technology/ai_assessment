@@ -72,14 +72,33 @@ const CompanyContainer: React.FC = () => {
         }
       )
       
+      // Extract company from response
+      // API returns: { success: true, data: company, message: '...' }
+      // apiRequest returns: data.data || data (which is the company object directly)
+      // But CreateCompanyResponse expects: { company: Company, message: string }
+      let newCompany: Company
+      
+      if (response.data) {
+        // Response has data property (from API)
+        newCompany = response.data
+      } else if (response.company) {
+        // Response has company property (from type definition)
+        newCompany = response.company
+      } else if (response.id || response.name) {
+        // Response is the company object directly
+        newCompany = response as Company
+      } else {
+        throw new Error('Invalid response format: company data not found')
+      }
+      
       if (editingCompany) {
-        // Update existing company - extract company from response
+        // Update existing company
         setCompanies(prev => prev.map(c => 
-          c.id === editingCompany.id ? response.company : c
+          c.id === editingCompany.id ? newCompany : c
         ))
       } else {
-        // Add new company - extract company from response
-        setCompanies(prev => [response.company, ...prev])
+        // Add new company to the beginning of the list
+        setCompanies(prev => [newCompany, ...prev])
       }
       
       // Reset form state
@@ -87,7 +106,7 @@ const CompanyContainer: React.FC = () => {
       setEditingCompany(undefined)
       
       // Show success message (you could add a toast notification here)
-      console.log(response.message)
+      console.log('Company created/updated successfully:', newCompany.name)
     } catch (err) {
       const companyError = handleApiError(err)
       logCompanyError(companyError, editingCompany ? 'updateCompany' : 'createCompany')

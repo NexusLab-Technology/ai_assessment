@@ -58,8 +58,12 @@ const CompanyDashboard: React.FC<ExtendedCompanyDashboardProps> = ({
       return
     }
     
-    // Filter out any undefined or null companies
-    const validCompanies = companies.filter(company => company && company.name)
+    // Filter out any undefined or null companies and inactive companies
+    const validCompanies = companies.filter(company => 
+      company && 
+      company.name &&
+      company.isActive !== false // Only show active companies (isActive can be true or undefined)
+    )
     
     if (!searchQuery.trim()) {
       setFilteredCompanies(validCompanies)

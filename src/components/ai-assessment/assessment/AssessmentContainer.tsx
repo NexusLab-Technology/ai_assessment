@@ -73,6 +73,15 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     }
   }, [selectedCompany, loadAssessments])
 
+  // Reset form when switching to wizard mode
+  // MUST be before any early returns to follow React Hooks rules
+  useEffect(() => {
+    if (viewMode === 'wizard') {
+      setAssessmentName('')
+      setAssessmentType('EXPLORATORY')
+    }
+  }, [viewMode])
+
   // UI handlers that update view mode
   const handleCreateAssessment = () => {
     handleCreateAssessmentLogic()
@@ -129,14 +138,6 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
       </div>
     )
   }
-
-  // Reset form when switching to wizard mode
-  useEffect(() => {
-    if (viewMode === 'wizard') {
-      setAssessmentName('')
-      setAssessmentType('EXPLORATORY')
-    }
-  }, [viewMode])
 
   if (viewMode === 'wizard') {
     const handleSubmit = async (e: React.FormEvent) => {
@@ -393,30 +394,27 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           />
         )}
 
-        {/* Loading State */}
-        {isLoadingAssessments && (
-          <LoadingSpinner 
-            size="lg" 
-            text="Loading assessments..." 
-            className="min-h-[200px]"
+        {/* Dashboard - Always render, show loading overlay if needed */}
+        <div className="p-4 sm:p-6 relative">
+          {isLoadingAssessments && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+              <LoadingSpinner 
+                size="md" 
+                text="Loading assessments..." 
+              />
+            </div>
+          )}
+          <AssessmentDashboard
+            company={selectedCompany}
+            assessments={assessments}
+            onCreateAssessment={handleCreateAssessment}
+            onSelectAssessment={handleSelectAssessment}
+            onViewAssessment={handleViewAssessment}
+            onDeleteAssessment={handleDeleteAssessment}
+            isLoading={isLoadingAssessments}
+            isDeletingAssessment={isDeletingAssessment}
           />
-        )}
-
-        {/* Dashboard */}
-        {!isLoadingAssessments && (
-          <div className="p-4 sm:p-6">
-            <AssessmentDashboard
-              company={selectedCompany}
-              assessments={assessments}
-              onCreateAssessment={handleCreateAssessment}
-              onSelectAssessment={handleSelectAssessment}
-              onViewAssessment={handleViewAssessment}
-              onDeleteAssessment={handleDeleteAssessment}
-              isLoading={false}
-              isDeletingAssessment={isDeletingAssessment}
-            />
-          </div>
-        )}
+        </div>
       </div>
     </ErrorBoundary>
   )

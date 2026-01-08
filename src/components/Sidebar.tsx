@@ -164,7 +164,12 @@ export function Sidebar({ isCollapsed, onToggle, navigationItems, onLogout }: Si
             )}
           </button>
         ) : (
-          <Link href={item.href} className={itemClasses}>
+          <Link 
+            href={item.href} 
+            className={itemClasses}
+            prefetch={true}
+            scroll={false}
+          >
             <span className={iconClasses}>
               {item.icon}
             </span>

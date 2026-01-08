@@ -75,27 +75,17 @@ export function RouteGuard({ children, requireAuth = true }: RouteGuardProps) {
   }
 
   // Show loading state while checking authentication (only when auth is enabled)
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+  // Use minimal loading to prevent flash - only show if auth is actually enabled and we're waiting
+  if (config.authEnabled && loading && requireAuth) {
+    // Return null to prevent flash - let ApplicationShell handle the layout
+    return null;
   }
 
   // Show loading state while determining authorization (only when auth is enabled)
-  if (!isAuthorized && requireAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Checking authorization...</p>
-        </div>
-      </div>
-    );
+  // Use minimal loading to prevent flash
+  if (config.authEnabled && !isAuthorized && requireAuth && !loading) {
+    // Return null to prevent flash - redirect will happen
+    return null;
   }
 
   // Render children if authorized

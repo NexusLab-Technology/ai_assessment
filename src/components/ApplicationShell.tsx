@@ -116,8 +116,42 @@ export function ApplicationShell({
 
   /**
    * Render loading state
+   * Only show loading on initial mount, not on navigation
+   * Always render sidebar even during loading to prevent flash
    */
-  if (!isMounted || (config.authEnabled && loading)) {
+  if (!isMounted) {
+    const showSidebarComponent = shouldShowSidebar();
+    
+    // If we should show sidebar, render it with loading in content area
+    if (showSidebarComponent) {
+      return (
+        <div className={`h-screen flex bg-gray-50 ${className}`}>
+          {/* Sidebar - always visible */}
+          <div className="flex-shrink-0">
+            <Sidebar
+              isCollapsed={sidebarCollapsed}
+              onToggle={handleSidebarToggle}
+              navigationItems={navigationItems}
+              onLogout={config.authEnabled && isAuthenticated ? handleLogout : undefined}
+            />
+          </div>
+          
+          {/* Main content area - show loading here */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <main className="flex-1 overflow-y-auto py-6 px-4 sm:px-6 lg:px-8">
+              <div className="max-w-7xl mx-auto h-full flex items-center justify-center">
+                <div className="text-center" role="status" aria-live="polite">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      );
+    }
+    
+    // No sidebar - show full page loading
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center" role="status" aria-live="polite">
@@ -127,6 +161,9 @@ export function ApplicationShell({
       </div>
     );
   }
+  
+  // Don't show loading spinner on navigation - just render the shell
+  // Auth loading is handled by RouteGuard
 
   /**
    * Render application shell based on authentication state
