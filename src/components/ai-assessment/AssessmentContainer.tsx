@@ -1,19 +1,23 @@
+/**
+ * Assessment Container Component
+ * Refactored to use container logic for better code organization (Rule 2 compliance)
+ * 
+ * This component handles UI rendering only. Business logic is in containers/ai-assessment/AssessmentContainerLogic.tsx
+ */
+
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Assessment, Company, AssessmentResponses, QuestionSection } from '../../types/assessment'
-import { assessmentApi } from '../../lib/api-client'
-import { getErrorMessage, logError } from '../../utils/error-handling'
+import { Company } from '../../types/assessment'
 import AssessmentDashboard from './AssessmentDashboard'
 import AssessmentViewer from './AssessmentViewer'
 import AssessmentWizard from './AssessmentWizard'
-import DatabaseIntegratedAssessmentWizard from './DatabaseIntegratedAssessmentWizard'
-import QuestionnaireFlow from './QuestionnaireFlow'
+import { DatabaseIntegratedAssessmentWizard } from './DatabaseIntegratedAssessmentWizard'
 import ReportGenerator from './ReportGenerator'
 import { ErrorBoundary } from './ErrorBoundary'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ErrorMessage } from './ErrorMessage'
-import mockQuestionnaireData from '../../data/mock-questionnaire.json'
+import { useAssessmentContainerLogic } from '../../containers/ai-assessment/AssessmentContainerLogic'
 
 interface AssessmentContainerProps {
   selectedCompany: Company | null
@@ -23,22 +27,31 @@ interface AssessmentContainerProps {
 type ViewMode = 'dashboard' | 'wizard' | 'questionnaire' | 'report' | 'viewer'
 
 export default function AssessmentContainer({ selectedCompany, onCompanySelectorDisabled }: AssessmentContainerProps) {
-  const [assessments, setAssessments] = useState<Assessment[]>([])
-  const [currentAssessment, setCurrentAssessment] = useState<Assessment | null>(null)
-  const [viewerAssessmentId, setViewerAssessmentId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
-  
-  // Loading states
-  const [isLoadingAssessments, setIsLoadingAssessments] = useState(false)
-  const [isCreatingAssessment, setIsCreatingAssessment] = useState(false)
-  const [isDeletingAssessment, setIsDeletingAssessment] = useState<string | null>(null)
-  const [isCompletingAssessment, setIsCompletingAssessment] = useState(false)
-  
-  // Error states
-  const [assessmentsError, setAssessmentsError] = useState<string | null>(null)
-  const [createAssessmentError, setCreateAssessmentError] = useState<string | null>(null)
-  const [deleteAssessmentError, setDeleteAssessmentError] = useState<string | null>(null)
-  const [completeAssessmentError, setCompleteAssessmentError] = useState<string | null>(null)
+
+  // Use container logic for all business operations
+  const {
+    assessments,
+    currentAssessment,
+    isLoadingAssessments,
+    isCreatingAssessment,
+    isDeletingAssessment,
+    isCompletingAssessment,
+    assessmentsError,
+    createAssessmentError,
+    deleteAssessmentError,
+    completeAssessmentError,
+    setCurrentAssessment,
+    setViewerAssessmentId,
+    loadAssessments,
+    handleCreateAssessment: handleCreateAssessmentLogic,
+    handleAssessmentCreated,
+    handleSelectAssessment: handleSelectAssessmentLogic,
+    handleViewAssessment: handleViewAssessmentLogic,
+    handleDeleteAssessment,
+    handleSaveResponses,
+    handleCompleteAssessment
+  } = useAssessmentContainerLogic(selectedCompany)
 
   // Track if assessment is in progress to disable company selector
   const isAssessmentInProgress = viewMode === 'questionnaire' && currentAssessment && currentAssessment.status !== 'COMPLETED'
@@ -54,75 +67,17 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
   useEffect(() => {
     if (selectedCompany) {
       loadAssessments()
-    } else {
-      setAssessments([])
-      setAssessmentsError(null)
     }
-  }, [selectedCompany])
+  }, [selectedCompany, loadAssessments])
 
-  const loadAssessments = async () => {
-    if (!selectedCompany) return
-
-    try {
-      setIsLoadingAssessments(true)
-      setAssessmentsError(null)
-      
-      const data = await assessmentApi.getAll(selectedCompany.id)
-      setAssessments(data)
-    } catch (error) {
-      const errorMessage = getErrorMessage(error)
-      setAssessmentsError(errorMessage)
-      logError(error, 'loadAssessments')
-    } finally {
-      setIsLoadingAssessments(false)
-    }
-  }
-
+  // UI handlers that update view mode
   const handleCreateAssessment = () => {
+    handleCreateAssessmentLogic()
     setViewMode('wizard')
-    setCreateAssessmentError(null)
   }
 
-  const handleAssessmentCreated = async (name: string, type: 'EXPLORATORY' | 'MIGRATION') => {
-    if (!selectedCompany) return
-
-    try {
-      setIsCreatingAssessment(true)
-      setCreateAssessmentError(null)
-      
-      // Clear any existing localStorage data for assessments
-      // This prevents old data from being loaded into new assessments
-      const storageKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith('assessment_') && key.endsWith('_responses')
-      )
-      storageKeys.forEach(key => {
-        try {
-          localStorage.removeItem(key)
-        } catch (error) {
-          console.warn('Failed to clear localStorage key:', key, error)
-        }
-      })
-      
-      const newAssessment = await assessmentApi.create({
-        name,
-        companyId: selectedCompany.id,
-        type
-      })
-      
-      setCurrentAssessment(newAssessment)
-      setViewMode('questionnaire')
-      await loadAssessments() // Refresh the list
-    } catch (error) {
-      const errorMessage = getErrorMessage(error)
-      setCreateAssessmentError(errorMessage)
-      logError(error, 'handleAssessmentCreated')
-    } finally {
-      setIsCreatingAssessment(false)
-    }
-  }
-
-  const handleSelectAssessment = (assessment: Assessment) => {
-    setCurrentAssessment(assessment)
+  const handleSelectAssessment = (assessment: any) => {
+    handleSelectAssessmentLogic(assessment)
     
     // If assessment is completed, show report view, otherwise show questionnaire
     if (assessment.status === 'COMPLETED') {
@@ -130,93 +85,22 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     } else {
       setViewMode('questionnaire')
     }
-    
-    setCompleteAssessmentError(null)
   }
 
   const handleViewAssessment = (assessmentId: string) => {
-    setViewerAssessmentId(assessmentId)
+    handleViewAssessmentLogic(assessmentId)
     setViewMode('viewer')
-  }
-
-  const handleDeleteAssessment = async (assessmentId: string) => {
-    try {
-      setIsDeletingAssessment(assessmentId)
-      setDeleteAssessmentError(null)
-      
-      await assessmentApi.delete(assessmentId)
-      await loadAssessments() // Refresh the list
-    } catch (error) {
-      const errorMessage = getErrorMessage(error)
-      setDeleteAssessmentError(errorMessage)
-      logError(error, 'handleDeleteAssessment')
-    } finally {
-      setIsDeletingAssessment(null)
-    }
-  }
-
-  const handleSaveResponses = async (responses: AssessmentResponses, currentStep: number) => {
-    if (!currentAssessment) return
-
-    try {
-      // Get the appropriate questionnaire sections based on assessment type
-      const sections = currentAssessment.type === 'EXPLORATORY' 
-        ? mockQuestionnaireData.exploratory as QuestionSection[]
-        : mockQuestionnaireData.migration as QuestionSection[]
-      
-      // Find the current section based on step
-      const currentSection = sections.find(s => s.stepNumber === currentStep)
-      if (!currentSection) return
-
-      await assessmentApi.saveResponses(
-        currentAssessment.id,
-        currentSection.id,
-        responses[currentSection.id] || {},
-        currentStep
-      )
-    } catch (error) {
-      logError(error, 'handleSaveResponses')
-      throw error // Re-throw to let the component handle the error
-    }
-  }
-
-  const handleCompleteAssessment = async (responses: AssessmentResponses) => {
-    if (!currentAssessment) return
-
-    try {
-      setIsCompletingAssessment(true)
-      setCompleteAssessmentError(null)
-      
-      // Update assessment status to completed
-      await assessmentApi.update(currentAssessment.id, {
-        status: 'COMPLETED',
-        responses
-      })
-
-      // Return to dashboard
-      setViewMode('dashboard')
-      setCurrentAssessment(null)
-      await loadAssessments() // Refresh the list
-    } catch (error) {
-      const errorMessage = getErrorMessage(error)
-      setCompleteAssessmentError(errorMessage)
-      logError(error, 'handleCompleteAssessment')
-    } finally {
-      setIsCompletingAssessment(false)
-    }
-  }
-
-  const handleReportGenerated = (reportId: string) => {
-    console.log('Report generated with ID:', reportId)
-    // Could add notification or redirect to report view
   }
 
   const handleBackToDashboard = () => {
     setViewMode('dashboard')
     setCurrentAssessment(null)
     setViewerAssessmentId(null)
-    setCreateAssessmentError(null)
-    setCompleteAssessmentError(null)
+  }
+
+  const handleReportGenerated = (reportId: string) => {
+    console.log('Report generated with ID:', reportId)
+    // Could add notification or redirect to report view
   }
 
   const handleRetryLoadAssessments = () => {
@@ -245,8 +129,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     return (
       <ErrorBoundary
         onError={(error) => {
-          logError(error, 'AssessmentWizard')
-          setCreateAssessmentError('An unexpected error occurred while creating the assessment.')
+          console.error('AssessmentWizard error:', error)
         }}
       >
         <div className="w-full max-w-none p-4 sm:p-6">
@@ -254,13 +137,16 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
             <ErrorMessage
               title="Failed to Create Assessment"
               message={createAssessmentError}
-              onDismiss={() => setCreateAssessmentError(null)}
+              onDismiss={() => {}}
               className="mb-6"
             />
           )}
           
           <AssessmentWizard
-            onAssessmentCreate={handleAssessmentCreated}
+            onAssessmentCreate={async (name, type) => {
+              await handleAssessmentCreated(name, type)
+              setViewMode('questionnaire')
+            }}
             onCancel={handleBackToDashboard}
             isLoading={isCreatingAssessment}
           />
@@ -273,8 +159,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     return (
       <ErrorBoundary
         onError={(error) => {
-          logError(error, 'AssessmentWizard')
-          setCompleteAssessmentError('An unexpected error occurred during the assessment.')
+          console.error('AssessmentWizard error:', error)
         }}
       >
         <div className="w-full max-w-none">
@@ -296,7 +181,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
               <ErrorMessage
                 title="Failed to Complete Assessment"
                 message={completeAssessmentError}
-                onDismiss={() => setCompleteAssessmentError(null)}
+                onDismiss={() => {}}
                 className="mb-6"
               />
             </div>
@@ -317,9 +202,16 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
             assessment={currentAssessment}
             assessmentType={currentAssessment.type || 'EXPLORATORY'}
             responses={currentAssessment.responses || {}}
-            onResponseChange={handleSaveResponses}
-            onComplete={() => handleCompleteAssessment(currentAssessment.responses || {})}
-            onError={(error) => setCompleteAssessmentError(error)}
+            onResponseChange={async (categoryId, responses) => {
+              // This is handled by the wizard's internal state
+            }}
+            onComplete={async (responses) => {
+              await handleCompleteAssessment(responses)
+              setViewMode('dashboard')
+            }}
+            onError={(error) => {
+              console.error('Assessment error:', error)
+            }}
             enableAutoInit={true}
           />
         </div>
@@ -349,7 +241,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
     return (
       <ErrorBoundary
         onError={(error) => {
-          logError(error, 'ReportGenerator')
+          console.error('ReportGenerator error:', error)
         }}
       >
         <div className="w-full max-w-none p-4 sm:p-6">
@@ -386,8 +278,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
   return (
     <ErrorBoundary
       onError={(error) => {
-        logError(error, 'AssessmentDashboard')
-        setAssessmentsError('An unexpected error occurred while loading the dashboard.')
+        console.error('AssessmentDashboard error:', error)
       }}
     >
       <div className="w-full max-w-none">
@@ -397,7 +288,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
             title="Failed to Load Assessments"
             message={assessmentsError}
             onRetry={handleRetryLoadAssessments}
-            onDismiss={() => setAssessmentsError(null)}
+            onDismiss={() => {}}
             className="mb-6"
           />
         )}
@@ -406,7 +297,7 @@ export default function AssessmentContainer({ selectedCompany, onCompanySelector
           <ErrorMessage
             title="Failed to Delete Assessment"
             message={deleteAssessmentError}
-            onDismiss={() => setDeleteAssessmentError(null)}
+            onDismiss={() => {}}
             className="mb-6"
           />
         )}

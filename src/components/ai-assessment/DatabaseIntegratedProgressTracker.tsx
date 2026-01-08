@@ -9,28 +9,24 @@
  * - Clickable category navigation functionality
  * - Accurate progress calculations for RAPID structure
  * - Auto-refresh capabilities
+ * 
+ * Refactored to use extracted hooks for better code organization (Rule 3 compliance)
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  CheckCircleIcon, 
-  ClockIcon, 
-  PlayCircleIcon,
-  ChevronRightIcon,
   ArrowPathIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { 
-  CheckCircleIcon as CheckCircleIconSolid 
-} from '@heroicons/react/24/solid';
-import { 
   RAPIDCategory, 
-  CategoryCompletionStatus,
-  Assessment,
-  AssessmentResponses
+  Assessment
 } from '../../types/rapid-questionnaire';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
+import { useProgressCalculation, ProgressSummary } from './DatabaseIntegratedProgressTrackerLogic';
+import { useProgressTrackerUI } from './DatabaseIntegratedProgressTrackerUI';
 
 interface DatabaseIntegratedProgressTrackerProps {
   assessment: Assessment;
@@ -40,27 +36,8 @@ interface DatabaseIntegratedProgressTrackerProps {
   className?: string;
   showDetailedProgress?: boolean;
   autoRefresh?: boolean;
-  refreshInterval?: number; // in milliseconds
+  refreshInterval?: number;
   onProgressUpdate?: (progress: ProgressSummary) => void;
-}
-
-interface ProgressSummary {
-  totalCategories: number;
-  completedCategories: number;
-  inProgressCategories: number;
-  notStartedCategories: number;
-  overallPercentage: number;
-  categoryStatuses: CategoryCompletionStatus[];
-}
-
-interface CategoryProgress {
-  categoryId: string;
-  totalQuestions: number;
-  answeredQuestions: number;
-  requiredQuestions: number;
-  answeredRequiredQuestions: number;
-  completionPercentage: number;
-  status: 'not_started' | 'partial' | 'completed';
 }
 
 export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgressTrackerProps> = ({
@@ -71,7 +48,7 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
   className = '',
   showDetailedProgress = true,
   autoRefresh = true,
-  refreshInterval = 30000, // 30 seconds
+  refreshInterval = 30000,
   onProgressUpdate
 }) => {
   const [loading, setLoading] = useState(false);
@@ -79,59 +56,16 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
   const [progressData, setProgressData] = useState<ProgressSummary | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  // Calculate category progress from responses
-  const calculateCategoryProgress = useCallback((
-    categoryId: string, 
-    responses: AssessmentResponses
-  ): CategoryProgress => {
-    const category = categories.find(cat => cat.id === categoryId);
-    if (!category) {
-      return {
-        categoryId,
-        totalQuestions: 0,
-        answeredQuestions: 0,
-        requiredQuestions: 0,
-        answeredRequiredQuestions: 0,
-        completionPercentage: 0,
-        status: 'not_started'
-      };
-    }
+  // Use extracted hooks
+  const { calculateCategoryProgress, loadProgressData: calculateProgressData } = useProgressCalculation(
+    assessment,
+    categories
+  );
 
-    const categoryResponses = responses[categoryId] || {};
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-    const requiredQuestions = allQuestions.filter(q => q.required);
-    
-    const answeredQuestions = allQuestions.filter(q => {
-      const response = categoryResponses[q.id];
-      return response !== undefined && response !== null && response !== '';
-    });
-
-    const answeredRequiredQuestions = requiredQuestions.filter(q => {
-      const response = categoryResponses[q.id];
-      return response !== undefined && response !== null && response !== '';
-    });
-
-    const completionPercentage = allQuestions.length > 0 ? 
-      Math.round((answeredQuestions.length / allQuestions.length) * 100) : 0;
-
-    let status: 'not_started' | 'partial' | 'completed' = 'not_started';
-    
-    if (answeredRequiredQuestions.length === requiredQuestions.length && requiredQuestions.length > 0) {
-      status = 'completed';
-    } else if (answeredQuestions.length > 0) {
-      status = 'partial';
-    }
-
-    return {
-      categoryId,
-      totalQuestions: allQuestions.length,
-      answeredQuestions: answeredQuestions.length,
-      requiredQuestions: requiredQuestions.length,
-      answeredRequiredQuestions: answeredRequiredQuestions.length,
-      completionPercentage,
-      status
-    };
-  }, [categories]);
+  const { getCategoryStatus, getStatusIcon, getStatusColors } = useProgressTrackerUI(
+    progressData,
+    currentCategory
+  );
 
   // Load progress data from assessment
   const loadProgressData = useCallback(async () => {
@@ -139,37 +73,7 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
       setLoading(true);
       setError(null);
 
-      // Calculate progress for each category
-      const categoryProgresses = categories.map(category => 
-        calculateCategoryProgress(category.id, assessment.responses)
-      );
-
-      // Convert to CategoryCompletionStatus format
-      const categoryStatuses: CategoryCompletionStatus[] = categoryProgresses.map(progress => ({
-        categoryId: progress.categoryId,
-        status: progress.status,
-        completionPercentage: progress.completionPercentage,
-        lastModified: new Date()
-      }));
-
-      // Calculate overall progress
-      const totalCategories = categories.length;
-      const completedCategories = categoryProgresses.filter(p => p.status === 'completed').length;
-      const inProgressCategories = categoryProgresses.filter(p => p.status === 'partial').length;
-      const notStartedCategories = totalCategories - completedCategories - inProgressCategories;
-      
-      const overallPercentage = totalCategories > 0 ? 
-        Math.round(((completedCategories + (inProgressCategories * 0.5)) / totalCategories) * 100) : 0;
-
-      const progressSummary: ProgressSummary = {
-        totalCategories,
-        completedCategories,
-        inProgressCategories,
-        notStartedCategories,
-        overallPercentage,
-        categoryStatuses
-      };
-
+      const progressSummary = await calculateProgressData();
       setProgressData(progressSummary);
       setLastRefresh(new Date());
       onProgressUpdate?.(progressSummary);
@@ -181,7 +85,7 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
     } finally {
       setLoading(false);
     }
-  }, [assessment.responses, categories, calculateCategoryProgress, onProgressUpdate]);
+  }, [calculateProgressData, onProgressUpdate]);
 
   // Auto-refresh effect
   useEffect(() => {
@@ -202,97 +106,6 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
   const handleRefresh = useCallback(() => {
     loadProgressData();
   }, [loadProgressData]);
-
-  // Get completion status for a specific category
-  const getCategoryStatus = useCallback((categoryId: string): CategoryCompletionStatus => {
-    if (!progressData) {
-      return {
-        categoryId,
-        status: 'not_started',
-        completionPercentage: 0,
-        lastModified: new Date()
-      };
-    }
-
-    return progressData.categoryStatuses.find(status => status.categoryId === categoryId) || {
-      categoryId,
-      status: 'not_started',
-      completionPercentage: 0,
-      lastModified: new Date()
-    };
-  }, [progressData]);
-
-  // Get status icon for a category
-  const getStatusIcon = useCallback((category: RAPIDCategory, status: CategoryCompletionStatus) => {
-    const isActive = category.id === currentCategory;
-    
-    switch (status.status) {
-      case 'completed':
-        return (
-          <CheckCircleIconSolid 
-            className={`w-6 h-6 ${isActive ? 'text-green-600' : 'text-green-500'}`} 
-          />
-        );
-      case 'partial':
-        return (
-          <div className={`relative w-6 h-6 ${isActive ? 'ring-2 ring-blue-600 ring-offset-1' : ''} rounded-full`}>
-            <ClockIcon className="w-6 h-6 text-blue-500" />
-            <div 
-              className="absolute inset-0 rounded-full border-2 border-blue-500"
-              style={{
-                background: `conic-gradient(#3b82f6 ${status.completionPercentage * 3.6}deg, transparent 0deg)`
-              }}
-            />
-          </div>
-        );
-      case 'not_started':
-      default:
-        return (
-          <PlayCircleIcon 
-            className={`w-6 h-6 ${isActive ? 'text-gray-700 ring-2 ring-gray-600 ring-offset-1 rounded-full' : 'text-gray-400'}`} 
-          />
-        );
-    }
-  }, [currentCategory]);
-
-  // Get status color classes
-  const getStatusColors = useCallback((category: RAPIDCategory, status: CategoryCompletionStatus) => {
-    const isActive = category.id === currentCategory;
-    
-    if (isActive) {
-      return {
-        container: 'bg-blue-50 border-blue-200 shadow-md',
-        title: 'text-blue-900',
-        subtitle: 'text-blue-700',
-        progress: 'bg-blue-600'
-      };
-    }
-
-    switch (status.status) {
-      case 'completed':
-        return {
-          container: 'bg-green-50 border-green-200 hover:bg-green-100',
-          title: 'text-green-900',
-          subtitle: 'text-green-700',
-          progress: 'bg-green-600'
-        };
-      case 'partial':
-        return {
-          container: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
-          title: 'text-blue-900',
-          subtitle: 'text-blue-700',
-          progress: 'bg-blue-600'
-        };
-      case 'not_started':
-      default:
-        return {
-          container: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-          title: 'text-gray-900',
-          subtitle: 'text-gray-600',
-          progress: 'bg-gray-400'
-        };
-    }
-  }, [currentCategory]);
 
   if (loading && !progressData) {
     return (
@@ -488,7 +301,6 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => {
-              // Find first incomplete category
               const nextCategory = categories.find(cat => {
                 const status = getCategoryStatus(cat.id);
                 return status.status !== 'completed';
@@ -504,7 +316,6 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
           
           <button
             onClick={() => {
-              // Find first not started category
               const firstIncomplete = categories.find(cat => {
                 const status = getCategoryStatus(cat.id);
                 return status.status === 'not_started';
@@ -531,5 +342,3 @@ export const DatabaseIntegratedProgressTracker: React.FC<DatabaseIntegratedProgr
     </div>
   );
 };
-
-export default DatabaseIntegratedProgressTracker;

@@ -1,6 +1,11 @@
+/**
+ * Questionnaire Flow Component
+ * Refactored to use extracted hooks for better code organization (Rule 3 compliance)
+ */
+
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   ArrowLeftIcon, 
   ArrowRightIcon,
@@ -11,10 +16,12 @@ import {
 } from '@heroicons/react/24/outline'
 import { Assessment, QuestionSection, AssessmentResponses } from '../../types/assessment'
 import { assessmentApi } from '../../lib/api-client'
-import { useAutoSave } from '../../hooks/useAutoSave'
 import QuestionStep from './QuestionStep'
 import ProgressTracker from './ProgressTracker'
 import ResponseReviewModal from './ResponseReviewModal'
+import { useQuestionnaireAutoSave } from './QuestionnaireFlowAutoSave'
+import { useQuestionnaireNavigation } from './QuestionnaireFlowNavigation'
+import { useQuestionnaireResponses } from './QuestionnaireFlowResponses'
 
 interface QuestionnaireFlowProps {
   assessment: Assessment
@@ -22,13 +29,6 @@ interface QuestionnaireFlowProps {
   onComplete: (responses: AssessmentResponses) => void
   onSave?: (responses: AssessmentResponses, currentStep: number) => void
   className?: string
-}
-
-interface StepValidation {
-  [questionId: string]: {
-    isValid: boolean
-    error?: string
-  }
 }
 
 const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
@@ -39,207 +39,54 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   className = ''
 }) => {
   const [currentStep, setCurrentStep] = useState(assessment.currentStep || 1)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0) // Track current question in section
-  const [responses, setResponses] = useState<AssessmentResponses>({})
-  const [stepValidation, setStepValidation] = useState<StepValidation>({})
-  const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingResponses, setIsLoadingResponses] = useState(true)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [showReviewModal, setShowReviewModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Auto-save hook with API integration
-  const { saveStatus, lastSaved, saveNow, hasUnsavedChanges } = useAutoSave(
+  // Use extracted hooks
+  const {
+    responses,
+    setResponses,
+    stepValidation,
+    completedSteps,
+    setCompletedSteps,
+    isLoadingResponses,
+    handleResponseChange,
+    handleQuestionValidation,
+    validateCurrentQuestion,
+    validateAllRequiredQuestions
+  } = useQuestionnaireResponses(assessment, sections, currentStep, currentQuestionIndex)
+
+  const {
+    saveStatus,
+    lastSaved,
+    saveNow,
+    hasUnsavedChanges
+  } = useQuestionnaireAutoSave(
+    assessment,
     responses,
     currentStep,
-    {
-      assessmentId: assessment.id,
-      autoSaveInterval: 30000, // 30 seconds
-      onSaveSuccess: () => {
-        // Call the optional onSave callback for compatibility
-        onSave?.(responses, currentStep)
-      },
-      onSaveError: (error) => {
-        console.error('Auto-save error:', error)
-      }
-    }
+    completedSteps,
+    isLoadingResponses,
+    onSave
   )
 
-  // Load responses from server on mount
-  useEffect(() => {
-    const loadResponses = async () => {
-      try {
-        setIsLoadingResponses(true)
-        
-        // Clear previous state first
-        setResponses({})
-        setCompletedSteps([])
-        setCurrentStep(1)
-        setCurrentQuestionIndex(0)
-        setStepValidation({})
-        
-        const data = await assessmentApi.getResponses(assessment.id)
-        
-        setResponses(data.responses || {})
-        setCurrentStep(data.currentStep || 1)
-        
-        // Determine completed steps based on responses
-        const completed: number[] = []
-        Object.keys(data.responses || {}).forEach(stepId => {
-          const stepNumber = parseInt(stepId.replace('step-', ''))
-          if (!isNaN(stepNumber)) {
-            completed.push(stepNumber)
-          }
-        })
-        setCompletedSteps(completed)
-        
-      } catch (error) {
-        console.error('Failed to load assessment responses:', error)
-        // Clear state on error and don't fallback to localStorage for new assessments
-        setResponses({})
-        setCompletedSteps([])
-        setCurrentStep(1)
-        setCurrentQuestionIndex(0)
-        setStepValidation({})
-        
-        // Only fallback to localStorage if this is not a newly created assessment
-        // Check if assessment was created recently (within last 5 minutes)
-        const assessmentAge = Date.now() - new Date(assessment.createdAt).getTime()
-        const isNewAssessment = assessmentAge < 5 * 60 * 1000 // 5 minutes
-        
-        if (!isNewAssessment) {
-          try {
-            const storageKey = `assessment_${assessment.id}_responses`
-            const savedData = localStorage.getItem(storageKey)
-            if (savedData) {
-              const { responses: savedResponses, completedSteps: savedCompleted } = JSON.parse(savedData)
-              setResponses(savedResponses || {})
-              setCompletedSteps(savedCompleted || [])
-            }
-          } catch (localError) {
-            console.error('Failed to load from localStorage:', localError)
-          }
-        }
-      } finally {
-        setIsLoadingResponses(false)
-      }
-    }
-
-    loadResponses()
-  }, [assessment.id, assessment.createdAt])
-
-  // Cleanup function to clear localStorage when component unmounts or assessment changes
-  useEffect(() => {
-    return () => {
-      // Clear localStorage for this specific assessment when component unmounts
-      // This prevents stale data from being loaded later
-      try {
-        const storageKey = `assessment_${assessment.id}_responses`
-        localStorage.removeItem(storageKey)
-      } catch (error) {
-        console.warn('Failed to clear localStorage on cleanup:', error)
-      }
-    }
-  }, [assessment.id])
-
-  // Backup to localStorage for offline support
-  useEffect(() => {
-    if (isLoadingResponses) return
-    
-    try {
-      const storageKey = `assessment_${assessment.id}_responses`
-      const dataToSave = {
-        responses,
-        completedSteps,
-        lastSaved: new Date().toISOString()
-      }
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave))
-    } catch (error) {
-      console.error('Failed to backup to localStorage:', error)
-    }
-  }, [responses, completedSteps, assessment.id, isLoadingResponses])
-
-  const getCurrentSection = () => {
-    return sections.find(section => section.stepNumber === currentStep)
-  }
-
-  const handleResponseChange = (questionId: string, value: any) => {
-    const currentSection = getCurrentSection()
-    if (!currentSection) return
-
-    setResponses(prev => ({
-      ...prev,
-      [currentSection.id]: {
-        ...prev[currentSection.id],
-        [questionId]: value
-      }
-    }))
-  }
-
-  const handleQuestionValidation = (questionId: string, isValid: boolean, error?: string) => {
-    setStepValidation(prev => ({
-      ...prev,
-      [questionId]: { isValid, error }
-    }))
-  }
-
-  const validateCurrentQuestion = (): boolean => {
-    const currentSection = getCurrentSection()
-    if (!currentSection || !currentSection.questions[currentQuestionIndex]) {
-      return false
-    }
-
-    const currentQuestion = currentSection.questions[currentQuestionIndex]
-    const sectionResponses = responses[currentSection.id] || {}
-    const response = sectionResponses[currentQuestion.id]
-    const validation = stepValidation[currentQuestion.id]
-
-    // If question is not required and no response, it's valid
-    if (!currentQuestion.required && (response === null || response === undefined || response === '')) {
-      return true
-    }
-
-    // Check if required question is answered
-    if (currentQuestion.required) {
-      if (response === null || response === undefined || response === '') {
-        return false
-      }
-      // For array responses (multiselect, checkbox)
-      if (Array.isArray(response) && response.length === 0) {
-        return false
-      }
-    }
-
-    // Check if validation failed (only if validation exists)
-    if (validation && !validation.isValid) {
-      return false
-    }
-
-    return true
-  }
-
-  const validateAllRequiredQuestions = (): boolean => {
-    // Check all required questions across all sections are answered
-    for (const section of sections) {
-      const sectionResponses = responses[section.id] || {}
-      
-      for (const question of section.questions) {
-        if (question.required) {
-          const response = sectionResponses[question.id]
-          
-          if (response === null || response === undefined || response === '') {
-            return false
-          }
-          
-          // For array responses (multiselect, checkbox)
-          if (Array.isArray(response) && response.length === 0) {
-            return false
-          }
-        }
-      }
-    }
-    
-    return true
-  }
+  const {
+    handleNext,
+    handlePrevious,
+    isFirstQuestion,
+    isLastQuestion
+  } = useQuestionnaireNavigation(
+    sections,
+    currentStep,
+    currentQuestionIndex,
+    setCurrentStep,
+    setCurrentQuestionIndex,
+    setCompletedSteps,
+    completedSteps,
+    validateCurrentQuestion,
+    saveNow
+  )
 
   const handleShowReview = () => {
     setShowReviewModal(true)
@@ -249,15 +96,17 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     setShowReviewModal(false)
   }
 
-  const handleEditFromReview = (stepNumber: number, questionId: string) => {
-    // Find the section and question
+  const handleEditFromReview = (stepNumberOrCategoryId: string | number, questionId: string) => {
+    // Handle both number (legacy) and string (RAPID) formats
+    const stepNumber = typeof stepNumberOrCategoryId === 'number' 
+      ? stepNumberOrCategoryId 
+      : parseInt(String(stepNumberOrCategoryId), 10);
     const targetSection = sections.find(s => s.stepNumber === stepNumber)
     if (!targetSection) return
     
     const questionIndex = targetSection.questions.findIndex(q => q.id === questionId)
     if (questionIndex === -1) return
     
-    // Navigate to the specific question
     setCurrentStep(stepNumber)
     setCurrentQuestionIndex(questionIndex)
     setShowReviewModal(false)
@@ -266,57 +115,6 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
   const handleCompleteFromReview = async () => {
     setShowReviewModal(false)
     await handleComplete()
-  }
-
-  const handleNext = async () => {
-    const currentSection = getCurrentSection()
-    if (!currentSection) return
-
-    if (!validateCurrentQuestion()) {
-      return
-    }
-
-    // Auto save current response before moving to next question
-    try {
-      await saveNow()
-    } catch (error) {
-      console.error('Failed to auto-save:', error)
-      // Continue navigation even if save fails
-    }
-
-    // Check if this is the last question in current section
-    const isLastQuestionInSection = currentQuestionIndex === currentSection.questions.length - 1
-
-    if (isLastQuestionInSection) {
-      // Mark current step as completed
-      if (!completedSteps.includes(currentStep)) {
-        setCompletedSteps(prev => [...prev, currentStep])
-      }
-
-      // Move to next section
-      if (currentStep < sections.length) {
-        setCurrentStep(currentStep + 1)
-        setCurrentQuestionIndex(0) // Reset to first question of next section
-      }
-    } else {
-      // Move to next question in same section
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      // Go to previous question in same section
-      setCurrentQuestionIndex(currentQuestionIndex - 1)
-    } else if (currentStep > 1) {
-      // Go to previous section, last question
-      const prevStep = currentStep - 1
-      const prevSection = sections.find(s => s.stepNumber === prevStep)
-      if (prevSection) {
-        setCurrentStep(prevStep)
-        setCurrentQuestionIndex(prevSection.questions.length - 1)
-      }
-    }
   }
 
   const handleComplete = async () => {
@@ -351,9 +149,11 @@ const QuestionnaireFlow: React.FC<QuestionnaireFlowProps> = ({
     }
   }
 
+  const getCurrentSection = () => {
+    return sections.find(section => section.stepNumber === currentStep)
+  }
+
   const currentSection = getCurrentSection()
-  const isFirstQuestion = currentStep === 1 && currentQuestionIndex === 0
-  const isLastQuestion = currentStep === sections.length && currentSection && currentQuestionIndex === currentSection.questions.length - 1
   const canProceed = validateCurrentQuestion()
 
   // Show loading state while fetching responses

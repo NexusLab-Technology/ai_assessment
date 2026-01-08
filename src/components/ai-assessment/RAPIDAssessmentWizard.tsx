@@ -1,7 +1,7 @@
 /**
  * AssessmentWizard Component
  * Enhanced wizard with category-based navigation for RAPID questionnaires
- * Integrates with CategoryNavigationSidebar and FixedQuestionContainer
+ * Refactored to use extracted hooks for better code organization (Rule 3 compliance)
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -16,16 +16,15 @@ import {
 import { 
   Assessment, 
   AssessmentResponses, 
-  RAPIDQuestionnaireStructure,
-  RAPIDCategory,
-  RAPIDQuestion,
-  CategoryCompletionStatus,
-  CompletionStatus
+  RAPIDQuestionnaireStructure
 } from '@/types/rapid-questionnaire';
 import CategoryNavigationSidebar from './CategoryNavigationSidebar';
 import FixedQuestionContainer from './FixedQuestionContainer';
 import QuestionStep from './QuestionStep';
 import ResponseReviewModal from './ResponseReviewModal';
+import { useRAPIDCategoryManagement } from './RAPIDAssessmentWizardCategories';
+import { useRAPIDQuestionHandling } from './RAPIDAssessmentWizardQuestions';
+import { useRAPIDProgressTracking } from './RAPIDAssessmentWizardProgress';
 
 interface AssessmentWizardProps {
   assessment: Assessment;
@@ -63,71 +62,6 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Get current category data
-  const getCurrentCategory = useCallback((): RAPIDCategory | undefined => {
-    return rapidQuestions.categories.find(cat => cat.id === currentCategory);
-  }, [rapidQuestions.categories, currentCategory]);
-
-  // Get current question
-  const getCurrentQuestion = useCallback((): RAPIDQuestion | undefined => {
-    const category = getCurrentCategory();
-    if (!category) return undefined;
-    
-    // Flatten all questions from all subcategories
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-    return allQuestions[currentQuestionIndex];
-  }, [getCurrentCategory, currentQuestionIndex]);
-
-  // Calculate category completion status
-  const calculateCategoryCompletion = useCallback((categoryId: string): CategoryCompletionStatus => {
-    const category = rapidQuestions.categories.find(cat => cat.id === categoryId);
-    if (!category) {
-      return {
-        categoryId,
-        status: 'not_started',
-        completionPercentage: 0,
-        lastModified: new Date()
-      };
-    }
-
-    const categoryResponses = responses[categoryId] || {};
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-    const requiredQuestions = allQuestions.filter(q => q.required);
-    const answeredRequired = requiredQuestions.filter(q => {
-      const response = categoryResponses[q.id];
-      return response !== null && response !== undefined && response !== '' && 
-             (!Array.isArray(response) || response.length > 0);
-    });
-
-    const totalAnswered = allQuestions.filter(q => {
-      const response = categoryResponses[q.id];
-      return response !== null && response !== undefined && response !== '' && 
-             (!Array.isArray(response) || response.length > 0);
-    });
-
-    const completionPercentage = allQuestions.length > 0 ? 
-      Math.round((totalAnswered.length / allQuestions.length) * 100) : 0;
-
-    let status: CompletionStatus = 'not_started';
-    if (completionPercentage === 100) {
-      status = 'completed';
-    } else if (completionPercentage > 0) {
-      status = 'partial';
-    }
-
-    return {
-      categoryId,
-      status,
-      completionPercentage,
-      lastModified: new Date()
-    };
-  }, [rapidQuestions.categories, responses]);
-
-  // Get completion status for all categories
-  const getAllCategoryStatuses = useCallback((): CategoryCompletionStatus[] => {
-    return rapidQuestions.categories.map(cat => calculateCategoryCompletion(cat.id));
-  }, [rapidQuestions.categories, calculateCategoryCompletion]);
-
   // Auto-save functionality
   const autoSave = useCallback(async () => {
     if (!hasUnsavedChanges) return;
@@ -156,123 +90,59 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
     return () => clearInterval(interval);
   }, [autoSave]);
 
-  // Handle response changes
-  const handleResponseChange = useCallback((questionId: string, value: any) => {
-    const categoryResponses = responses[currentCategory] || {};
-    const updatedResponses = {
-      ...categoryResponses,
-      [questionId]: value
-    };
+  // Use extracted hooks
+  const {
+    getCurrentCategory,
+    getAllCategoryStatuses,
+    handleCategorySelect
+  } = useRAPIDCategoryManagement(
+    rapidQuestions,
+    currentCategory,
+    responses,
+    setCurrentCategory,
+    setCurrentQuestionIndex,
+    onCategoryChange,
+    hasUnsavedChanges,
+    autoSave
+  );
 
-    onResponseChange(currentCategory, updatedResponses);
-    setHasUnsavedChanges(true);
-  }, [currentCategory, responses, onResponseChange]);
+  const {
+    getCurrentQuestion,
+    handleResponseChange,
+    handleQuestionValidation,
+    validateCurrentQuestion
+  } = useRAPIDQuestionHandling(
+    rapidQuestions,
+    currentCategory,
+    currentQuestionIndex,
+    responses,
+    questionValidation,
+    getCurrentCategory,
+    onResponseChange,
+    setHasUnsavedChanges,
+    setQuestionValidation
+  );
 
-  // Handle question validation
-  const handleQuestionValidation = useCallback((questionId: string, isValid: boolean, error?: string) => {
-    setQuestionValidation(prev => ({
-      ...prev,
-      [questionId]: { isValid, error }
-    }));
-  }, []);
-
-  // Validate current question
-  const validateCurrentQuestion = useCallback((): boolean => {
-    const question = getCurrentQuestion();
-    if (!question) return false;
-
-    const categoryResponses = responses[currentCategory] || {};
-    const response = categoryResponses[question.id];
-    const validation = questionValidation[question.id];
-
-    // If question is not required and no response, it's valid
-    if (!question.required && (response === null || response === undefined || response === '')) {
-      return true;
-    }
-
-    // Check if required question is answered
-    if (question.required) {
-      if (response === null || response === undefined || response === '') {
-        return false;
-      }
-      // For array responses (multiselect, checkbox)
-      if (Array.isArray(response) && response.length === 0) {
-        return false;
-      }
-    }
-
-    // Check if validation failed
-    if (validation && !validation.isValid) {
-      return false;
-    }
-
-    return true;
-  }, [getCurrentQuestion, currentCategory, responses, questionValidation]);
-
-  // Handle category selection
-  const handleCategorySelect = useCallback((categoryId: string) => {
-    // Auto-save before switching categories
-    if (hasUnsavedChanges) {
-      autoSave();
-    }
-
-    setCurrentCategory(categoryId);
-    setCurrentQuestionIndex(0);
-    onCategoryChange(categoryId);
-  }, [hasUnsavedChanges, autoSave, onCategoryChange]);
-
-  // Navigation handlers
-  const handleNext = useCallback(async () => {
-    if (!validateCurrentQuestion()) return;
-
-    const category = getCurrentCategory();
-    if (!category) return;
-
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-    
-    if (currentQuestionIndex < allQuestions.length - 1) {
-      // Move to next question in same category
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      // Move to next category
-      const currentCategoryIndex = rapidQuestions.categories.findIndex(cat => cat.id === currentCategory);
-      if (currentCategoryIndex < rapidQuestions.categories.length - 1) {
-        const nextCategory = rapidQuestions.categories[currentCategoryIndex + 1];
-        handleCategorySelect(nextCategory.id);
-      }
-    }
-
-    // Auto-save after navigation
-    if (hasUnsavedChanges) {
-      await autoSave();
-    }
-  }, [validateCurrentQuestion, getCurrentCategory, currentQuestionIndex, rapidQuestions.categories, currentCategory, handleCategorySelect, hasUnsavedChanges, autoSave]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentQuestionIndex > 0) {
-      // Go to previous question in same category
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else {
-      // Go to previous category, last question
-      const currentCategoryIndex = rapidQuestions.categories.findIndex(cat => cat.id === currentCategory);
-      if (currentCategoryIndex > 0) {
-        const prevCategory = rapidQuestions.categories[currentCategoryIndex - 1];
-        const prevCategoryData = rapidQuestions.categories.find(cat => cat.id === prevCategory.id);
-        if (prevCategoryData) {
-          const allQuestions = prevCategoryData.subcategories.flatMap(sub => sub.questions);
-          setCurrentCategory(prevCategory.id);
-          setCurrentQuestionIndex(allQuestions.length - 1);
-          onCategoryChange(prevCategory.id);
-        }
-      }
-    }
-  }, [currentQuestionIndex, rapidQuestions.categories, currentCategory, onCategoryChange]);
-
-  // Check if assessment is complete
-  const isAssessmentComplete = useCallback((): boolean => {
-    const statuses = getAllCategoryStatuses();
-    return statuses.every(status => status.status === 'completed');
-  }, [getAllCategoryStatuses]);
+  const {
+    isFirstQuestion,
+    isLastQuestion,
+    isAssessmentComplete,
+    handleNext,
+    handlePrevious
+  } = useRAPIDProgressTracking(
+    rapidQuestions,
+    currentCategory,
+    currentQuestionIndex,
+    setCurrentCategory,
+    setCurrentQuestionIndex,
+    getCurrentCategory,
+    validateCurrentQuestion,
+    handleCategorySelect,
+    hasUnsavedChanges,
+    autoSave,
+    getAllCategoryStatuses,
+    onCategoryChange
+  );
 
   // Handle complete assessment
   const handleComplete = useCallback(async () => {
@@ -317,14 +187,6 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
   const currentQuestion = getCurrentQuestion();
   const category = getCurrentCategory();
   const categoryStatuses = getAllCategoryStatuses();
-  const isFirstQuestion = rapidQuestions.categories[0]?.id === currentCategory && currentQuestionIndex === 0;
-  const isLastQuestion = (() => {
-    const lastCategory = rapidQuestions.categories[rapidQuestions.categories.length - 1];
-    if (currentCategory !== lastCategory?.id) return false;
-    
-    const allQuestions = lastCategory.subcategories.flatMap(sub => sub.questions);
-    return currentQuestionIndex === allQuestions.length - 1;
-  })();
 
   if (!category || !currentQuestion) {
     return (
@@ -531,5 +393,3 @@ export const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
     </div>
   );
 };
-
-export default AssessmentWizard;

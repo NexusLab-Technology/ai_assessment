@@ -12,6 +12,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline'
 import { AssessmentReport, Assessment, Company } from '../../types/assessment'
+import { formatLocalDate } from '../../utils/time-helpers'
 
 interface ReportViewerProps {
   report: AssessmentReport
@@ -313,7 +314,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `AI_Assessment_Report_${company.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`
+    a.download = `AI_Assessment_Report_${company.name.replace(/\s+/g, '_')}_${formatLocalDate(new Date())}.html`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

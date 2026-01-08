@@ -8,6 +8,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
+import { formatLocalDateTime } from '../../utils/time-helpers'
 
 interface Props {
   children: ReactNode
@@ -65,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
+      timestamp: formatLocalDateTime(new Date()),
       userAgent: navigator.userAgent,
       url: window.location.href
     }

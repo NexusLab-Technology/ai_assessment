@@ -7,54 +7,44 @@
  * - Handles questionnaire loading states and errors
  * - Provides fallback to static data
  * - Auto-initializes database if needed
+ * 
+ * Refactored to use extracted hooks for better code organization (Rule 3 compliance)
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { 
   CheckIcon,
   ExclamationTriangleIcon,
   CloudArrowUpIcon,
   DocumentTextIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { 
   Assessment, 
   AssessmentResponses, 
-  RAPIDQuestionnaireStructure,
-  RAPIDCategory,
-  RAPIDQuestion,
-  CategoryCompletionStatus,
-  CompletionStatus,
   AssessmentType
 } from '../../types/rapid-questionnaire';
 import EnhancedRAPIDQuestionnaireLoader from './EnhancedRAPIDQuestionnaireLoader';
 import EnhancedCategoryNavigationWithSubcategories from './EnhancedCategoryNavigationWithSubcategories';
 import FixedQuestionContainer from './FixedQuestionContainer';
-import QuestionStep from './RAPIDQuestionStep';
 import ResponseReviewModal from './ResponseReviewModal';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
+import { useQuestionnaireLoader } from './DatabaseIntegratedAssessmentWizardLoader';
+import { useAssessmentWizardState } from './DatabaseIntegratedAssessmentWizardState';
+import { useAssessmentWizardValidation } from './DatabaseIntegratedAssessmentWizardValidation';
 
 interface DatabaseIntegratedAssessmentWizardProps {
-  assessment?: Assessment; // Optional for new assessments
+  assessment?: Assessment;
   assessmentType: AssessmentType;
-  version?: string; // Optional specific version
+  version?: string;
   responses?: AssessmentResponses;
   onResponseChange?: (categoryId: string, responses: any) => void;
   onCategoryChange?: (categoryId: string) => void;
   onComplete?: (responses: AssessmentResponses) => void;
   onError?: (error: string) => void;
   className?: string;
-  enableAutoInit?: boolean; // Auto-initialize database if needed
-}
-
-interface QuestionValidation {
-  [questionId: string]: {
-    isValid: boolean;
-    error?: string;
-  };
+  enableAutoInit?: boolean;
 }
 
 export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAssessmentWizardProps> = ({
@@ -69,227 +59,68 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
   className = '',
   enableAutoInit = true
 }) => {
-  // Ensure assessmentType is valid
   const validAssessmentType = assessmentType || assessment?.type || 'EXPLORATORY';
-  
-  // Questionnaire loading state
-  const [questionnaire, setQuestionnaire] = useState<RAPIDQuestionnaireStructure | null>(null);
-  const [questionnaireLoading, setQuestionnaireLoading] = useState(true);
-  const [questionnaireError, setQuestionnaireError] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
 
-  // Assessment state
-  const [responses, setResponses] = useState<AssessmentResponses>(initialResponses);
-  const [currentCategory, setCurrentCategory] = useState<string>('');
-  const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<QuestionValidation>({});
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  // Use extracted hooks
+  const {
+    questionnaire,
+    questionnaireLoading,
+    questionnaireError,
+    isInitializing,
+    handleQuestionsLoaded,
+    handleQuestionnaireError,
+    handleAutoInitialization
+  } = useQuestionnaireLoader(
+    validAssessmentType,
+    enableAutoInit,
+    onCategoryChange,
+    assessment?.currentCategory,
+    onError
+  );
 
-  // Auto-initialize database if questionnaire loading fails
-  const handleAutoInitialization = useCallback(async () => {
-    if (!enableAutoInit) return false;
+  const {
+    responses,
+    currentCategory,
+    currentSubcategory,
+    showReviewModal,
+    autoSaveStatus,
+    setResponses,
+    setCurrentCategory,
+    setCurrentSubcategory,
+    setShowReviewModal,
+    handleCategorySelect,
+    handleSubcategorySelect,
+    handleResponseChange
+  } = useAssessmentWizardState(
+    initialResponses,
+    questionnaire,
+    onResponseChange,
+    onCategoryChange
+  );
 
-    try {
-      setIsInitializing(true);
-      console.log('🔄 Auto-initializing RAPID questionnaires...');
-
-      const response = await fetch('/api/questionnaires/rapid/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'auto-init' })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        console.log('✅ Auto-initialization successful');
-        return true;
-      } else {
-        console.error('❌ Auto-initialization failed:', result.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Auto-initialization error:', error);
-      return false;
-    } finally {
-      setIsInitializing(false);
-    }
-  }, [enableAutoInit]);
-
-  // Handle questionnaire loading success
-  const handleQuestionsLoaded = useCallback((loadedQuestionnaire: RAPIDQuestionnaireStructure) => {
-    console.log('📝 RAPID questionnaire loaded:', loadedQuestionnaire);
-    setQuestionnaire(loadedQuestionnaire);
-    setQuestionnaireLoading(false);
-    setQuestionnaireError(null);
-
-    // Set initial category if not set
-    if (!currentCategory && loadedQuestionnaire.categories.length > 0) {
-      const initialCategory = assessment?.currentCategory || loadedQuestionnaire.categories[0].id;
-      setCurrentCategory(initialCategory);
-      onCategoryChange?.(initialCategory);
-    }
-  }, [currentCategory, assessment?.currentCategory, onCategoryChange]);
-
-  // Handle questionnaire loading error
-  const handleQuestionnaireError = useCallback(async (error: string) => {
-    console.error('❌ RAPID questionnaire loading error:', error);
-    setQuestionnaireError(error);
-    setQuestionnaireLoading(false);
-    onError?.(error);
-
-    // Try auto-initialization if enabled
-    if (enableAutoInit && !isInitializing) {
-      console.log('🔄 Attempting auto-initialization...');
-      const initSuccess = await handleAutoInitialization();
-      
-      if (initSuccess) {
-        // Retry loading after successful initialization
-        setQuestionnaireLoading(true);
-        setQuestionnaireError(null);
-        // The EnhancedRAPIDQuestionnaireLoader will automatically retry
-      }
-    }
-  }, [onError, enableAutoInit, isInitializing, handleAutoInitialization]);
-
-  // Handle category selection
-  const handleCategorySelect = useCallback((categoryId: string) => {
-    setCurrentCategory(categoryId);
-    // Auto-select first subcategory when category changes
-    const category = questionnaire?.categories.find(cat => cat.id === categoryId);
-    if (category && category.subcategories.length > 0) {
-      setCurrentSubcategory(category.subcategories[0].id);
-    }
-    onCategoryChange?.(categoryId);
-    setValidationErrors({}); // Clear validation errors when switching categories
-  }, [questionnaire, onCategoryChange]);
-
-  // Handle subcategory selection
-  const handleSubcategorySelect = useCallback((categoryId: string, subcategoryId: string) => {
-    setCurrentCategory(categoryId);
-    setCurrentSubcategory(subcategoryId);
-    onCategoryChange?.(categoryId);
-    setValidationErrors({}); // Clear validation errors when switching subcategories
-  }, [onCategoryChange]);
-
-  // Handle response changes
-  const handleResponseChange = useCallback((questionId: string, value: any) => {
-    const updatedResponses = {
-      ...responses,
-      [currentCategory]: {
-        ...responses[currentCategory],
-        [questionId]: value
-      }
-    };
-
-    setResponses(updatedResponses);
-    onResponseChange?.(currentCategory, updatedResponses[currentCategory]);
-
-    // Clear validation error for this question
-    if (validationErrors[questionId]) {
-      setValidationErrors(prev => {
-        const updated = { ...prev };
-        delete updated[questionId];
-        return updated;
-      });
-    }
-
-    // Auto-save (debounced)
-    setAutoSaveStatus('saving');
-    // In a real implementation, you would debounce this
-    setTimeout(() => setAutoSaveStatus('saved'), 1000);
-  }, [responses, currentCategory, onResponseChange, validationErrors]);
-
-  // Validate current category responses
-  const validateCurrentCategory = useCallback((): boolean => {
-    if (!questionnaire || !currentCategory) return true;
-
-    const category = questionnaire.categories.find(cat => cat.id === currentCategory);
-    if (!category) return true;
-
-    const categoryResponses = responses[currentCategory] || {};
-    const errors: QuestionValidation = {};
-    let hasErrors = false;
-
-    // Get all questions in the category
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-
-    allQuestions.forEach(question => {
-      if (question.required) {
-        const response = categoryResponses[question.id];
-        if (!response || (typeof response === 'string' && response.trim() === '')) {
-          errors[question.id] = {
-            isValid: false,
-            error: 'This field is required'
-          };
-          hasErrors = true;
-        }
-      }
-    });
-
-    setValidationErrors(errors);
-    return !hasErrors;
-  }, [questionnaire, currentCategory, responses]);
-
-  // Calculate category completion status
-  const getCategoryCompletionStatus = useCallback((categoryId: string): CompletionStatus => {
-    if (!questionnaire) return 'not_started';
-
-    const category = questionnaire.categories.find(cat => cat.id === categoryId);
-    if (!category) return 'not_started';
-
-    const categoryResponses = responses[categoryId] || {};
-    const allQuestions = category.subcategories.flatMap(sub => sub.questions);
-    const requiredQuestions = allQuestions.filter(q => q.required);
-    
-    if (requiredQuestions.length === 0) return 'completed';
-
-    const answeredRequired = requiredQuestions.filter(q => {
-      const response = categoryResponses[q.id];
-      return response && (typeof response !== 'string' || response.trim() !== '');
-    });
-
-    if (answeredRequired.length === 0) return 'not_started';
-    if (answeredRequired.length === requiredQuestions.length) return 'completed';
-    return 'partial';
-  }, [questionnaire, responses]);
-
-  // Get completion statuses for all categories
-  const getCompletionStatuses = useCallback((): CategoryCompletionStatus[] => {
-    if (!questionnaire) return [];
-
-    return questionnaire.categories.map(category => ({
-      categoryId: category.id,
-      status: getCategoryCompletionStatus(category.id),
-      completionPercentage: 0, // Could be calculated based on answered questions
-      lastModified: new Date()
-    }));
-  }, [questionnaire, getCategoryCompletionStatus]);
+  const {
+    validationErrors,
+    getCategoryCompletionStatus,
+    getCompletionStatuses,
+    validateAllCategories
+  } = useAssessmentWizardValidation(
+    questionnaire,
+    currentCategory,
+    responses,
+    setCurrentCategory
+  );
 
   // Handle assessment completion
-  const handleComplete = useCallback(() => {
+  const handleComplete = () => {
     if (!questionnaire) return;
 
-    // Validate all categories
-    let allValid = true;
-    for (const category of questionnaire.categories) {
-      const prevCategory = currentCategory;
-      setCurrentCategory(category.id);
-      if (!validateCurrentCategory()) {
-        allValid = false;
-        break;
-      }
-      setCurrentCategory(prevCategory);
-    }
-
-    if (!allValid) {
+    if (!validateAllCategories()) {
       alert('Please complete all required fields before submitting.');
       return;
     }
 
     onComplete?.(responses);
-  }, [questionnaire, currentCategory, validateCurrentCategory, onComplete, responses]);
+  };
 
   // Initialize current category when questionnaire loads
   useEffect(() => {
@@ -297,7 +128,6 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
       const initialCategory = assessment?.currentCategory || questionnaire.categories[0].id;
       setCurrentCategory(initialCategory);
       
-      // Set initial subcategory
       const category = questionnaire.categories.find(cat => cat.id === initialCategory);
       if (category && category.subcategories.length > 0) {
         setCurrentSubcategory(category.subcategories[0].id);
@@ -305,12 +135,12 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
       
       onCategoryChange?.(initialCategory);
     }
-  }, [questionnaire, currentCategory, assessment?.currentCategory, onCategoryChange]);
+  }, [questionnaire, currentCategory, assessment?.currentCategory, onCategoryChange, setCurrentCategory, setCurrentSubcategory]);
 
   // Update responses when initial responses change
   useEffect(() => {
     setResponses(initialResponses);
-  }, [initialResponses]);
+  }, [initialResponses, setResponses]);
 
   return (
     <div className={`h-full ${className}`}>
@@ -357,8 +187,7 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
             message={questionnaireError}
             title="Failed to Load Assessment"
             onRetry={() => {
-              setQuestionnaireLoading(true);
-              setQuestionnaireError(null);
+              // Retry logic handled by loader hook
             }}
             className="mb-4"
           />
@@ -650,5 +479,3 @@ export const DatabaseIntegratedAssessmentWizard: React.FC<DatabaseIntegratedAsse
     </div>
   );
 };
-
-export default DatabaseIntegratedAssessmentWizard;

@@ -10,20 +10,22 @@
 import React, { useMemo } from 'react'
 import { XMarkIcon, ExclamationTriangleIcon, CheckCircleIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { 
-  Assessment, 
+  Assessment as RAPIDAssessment, 
   AssessmentResponses, 
   RAPIDQuestionnaireStructure,
   RAPIDQuestion,
   RAPIDCategory 
 } from '@/types/rapid-questionnaire'
+import { QuestionSection, Assessment as LegacyAssessment } from '@/types/assessment'
 
 interface ResponseReviewModalProps {
   isOpen: boolean;
-  assessment: Assessment;
+  assessment?: RAPIDAssessment | LegacyAssessment; // Support both RAPID and legacy Assessment types
   responses: AssessmentResponses;
-  rapidQuestions: RAPIDQuestionnaireStructure;
+  rapidQuestions?: RAPIDQuestionnaireStructure;
+  questions?: QuestionSection[]; // For legacy QuestionnaireFlow
   onClose: () => void;
-  onEditResponse: (categoryId: string, questionId: string) => void;
+  onEditResponse: (categoryIdOrStep: string | number, questionId: string) => void;
   onComplete: () => void;
 }
 
@@ -62,10 +64,143 @@ const ResponseReviewModal: React.FC<ResponseReviewModalProps> = ({
   assessment,
   responses,
   rapidQuestions,
+  questions, // Legacy QuestionSection[] support
   onClose,
   onEditResponse,
   onComplete
 }) => {
+  // Support legacy QuestionSection[] structure
+  if (questions && !rapidQuestions) {
+    // Legacy mode - convert QuestionSection[] to a simple review
+    const legacySummary = useMemo((): CategoryReviewSummary[] => {
+      return questions.map(section => {
+        const sectionResponses = responses[section.id] || {};
+        const sectionQuestions = section.questions.map(q => {
+          const answer = sectionResponses[q.id];
+          const isEmpty = answer === undefined || answer === null || answer === '' || 
+                         (Array.isArray(answer) && answer.length === 0);
+          return {
+            id: q.id,
+            number: q.number || q.id,
+            text: q.text,
+            description: q.description,
+            answer: answer,
+            required: q.required || false,
+            isEmpty: isEmpty,
+            type: q.type || 'text'
+          };
+        });
+        
+        const requiredQuestions = sectionQuestions.filter(q => q.required);
+        const answeredRequired = requiredQuestions.filter(q => !q.isEmpty);
+        const completionPercentage = requiredQuestions.length > 0
+          ? Math.round((answeredRequired.length / requiredQuestions.length) * 100)
+          : sectionQuestions.length > 0
+          ? Math.round((sectionQuestions.filter(q => !q.isEmpty).length / sectionQuestions.length) * 100)
+          : 100;
+        
+        return {
+          categoryId: section.id,
+          categoryTitle: section.title,
+          categoryDescription: section.description,
+          subcategories: [{
+            subcategoryId: section.id,
+            subcategoryTitle: section.title,
+            questions: sectionQuestions
+          }],
+          totalQuestions: sectionQuestions.length,
+          answeredQuestions: sectionQuestions.filter(q => !q.isEmpty).length,
+          requiredQuestions: requiredQuestions.length,
+          answeredRequiredQuestions: answeredRequired.length,
+          completionPercentage,
+          isComplete: requiredQuestions.length > 0
+            ? answeredRequired.length === requiredQuestions.length
+            : sectionQuestions.length === sectionQuestions.filter(q => !q.isEmpty).length
+        };
+      });
+    }, [questions, responses]);
+    
+    // Render legacy version (simplified UI)
+    if (!isOpen) return null;
+    
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Review All Responses</h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-6 max-h-[calc(90vh-120px)]">
+              {legacySummary.map((section) => (
+                <div key={section.categoryId} className="mb-6 border-b border-gray-200 pb-6 last:border-b-0">
+                  <h4 className="text-base font-medium text-gray-900 mb-2">{section.categoryTitle}</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {section.answeredRequiredQuestions} / {section.requiredQuestions} required questions answered ({section.completionPercentage}%)
+                  </p>
+                  <div className="space-y-2">
+                    {section.subcategories[0].questions.map((q) => (
+                      <div key={q.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-700">{q.number}</span>
+                            {q.required && <span className="text-red-500 text-xs">*</span>}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{q.text}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {q.isEmpty ? (
+                              <span className="text-red-600">Not answered</span>
+                            ) : (
+                              <span className="text-green-600">Answered: {String(q.answer)}</span>
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => onEditResponse(section.categoryId, q.id)}
+                          className="text-blue-600 hover:text-blue-700 text-sm"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Close
+              </button>
+              <button
+                onClick={onComplete}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Complete Assessment
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // RAPID structure mode (existing implementation)
+  if (!rapidQuestions || !assessment) {
+    return null;
+  }
+  
+  // Type guard: ensure we have RAPID Assessment in RAPID mode
+  const rapidAssessment = assessment as RAPIDAssessment;
+  
   // Generate category-based review summary from responses and RAPID questions
   const categoryReviewSummary = useMemo((): CategoryReviewSummary[] => {
     return rapidQuestions.categories.map(category => {
@@ -206,7 +341,7 @@ const ResponseReviewModal: React.FC<ResponseReviewModalProps> = ({
                 Review Your Assessment Responses
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                {assessment.name} • {assessment.type === 'EXPLORATORY' ? 'New AI Development' : 'Migrate Existing AI'} • RAPID Questionnaire v{rapidQuestions.version}
+                {rapidAssessment.name} • {rapidAssessment.type === 'EXPLORATORY' ? 'New AI Development' : 'Migrate Existing AI'} • RAPID Questionnaire v{rapidQuestions.version}
               </p>
             </div>
             <button
