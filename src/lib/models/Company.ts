@@ -9,10 +9,15 @@ export class CompanyModel {
     return getCollection(this.collectionName)
   }
 
-  static async findAll(userId: string): Promise<Company[]> {
+  static async findAll(): Promise<Company[]> {
     const collection = await this.getCollection()
     const documents = await collection
-      .find({ userId })
+      .find({ 
+        $or: [
+          { isActive: true },
+          { isActive: { $exists: false } } // Backward compatibility for existing records
+        ]
+      })
       .sort({ createdAt: -1 })
       .toArray()
 
@@ -21,7 +26,7 @@ export class CompanyModel {
     // Get assessment counts for all companies
     if (companies.length > 0) {
       const companyIds = companies.map(c => c.id)
-      const assessmentCounts = await this.getAssessmentCounts(companyIds, userId)
+      const assessmentCounts = await this.getAssessmentCounts(companyIds)
       
       // Update companies with their assessment counts
       companies.forEach(company => {
@@ -32,11 +37,14 @@ export class CompanyModel {
     return companies
   }
 
-  static async findById(id: string, userId: string): Promise<Company | null> {
+  static async findById(id: string): Promise<Company | null> {
     const collection = await this.getCollection()
     const document = await collection.findOne({ 
       _id: new ObjectId(id), 
-      userId 
+      $or: [
+        { isActive: true },
+        { isActive: { $exists: false } } // Backward compatibility for existing records
+      ]
     })
 
     if (!document) {
@@ -46,17 +54,17 @@ export class CompanyModel {
     const company = this.documentToCompany(document)
     
     // Get assessment count for this company
-    company.assessmentCount = await this.getAssessmentCount(id, userId)
+    company.assessmentCount = await this.getAssessmentCount(id)
 
     return company
   }
 
-  static async search(query: string, userId: string): Promise<Company[]> {
+  static async search(query: string): Promise<Company[]> {
     const collection = await this.getCollection()
     
     if (!query.trim()) {
       // Return all companies if no query
-      return this.findAll(userId)
+      return this.findAll()
     }
     
     // Escape special regex characters
@@ -64,10 +72,19 @@ export class CompanyModel {
     
     // Use text search if available, otherwise use regex
     const searchQuery = {
-      userId,
-      $or: [
-        { name: { $regex: escapedQuery, $options: 'i' } },
-        { description: { $regex: escapedQuery, $options: 'i' } }
+      $and: [
+        {
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } } // Backward compatibility for existing records
+          ]
+        },
+        {
+          $or: [
+            { name: { $regex: escapedQuery, $options: 'i' } },
+            { description: { $regex: escapedQuery, $options: 'i' } }
+          ]
+        }
       ]
     }
     
@@ -81,7 +98,7 @@ export class CompanyModel {
     // Get assessment counts for all companies
     if (companies.length > 0) {
       const companyIds = companies.map(c => c.id)
-      const assessmentCounts = await this.getAssessmentCounts(companyIds, userId)
+      const assessmentCounts = await this.getAssessmentCounts(companyIds)
       
       // Update companies with their assessment counts
       companies.forEach(company => {
@@ -95,7 +112,6 @@ export class CompanyModel {
   static async create(data: {
     name: string
     description?: string
-    userId: string
   }): Promise<Company> {
     const collection = await this.getCollection()
     const now = new Date()
@@ -103,7 +119,7 @@ export class CompanyModel {
     const document: Omit<CompanyDocument, '_id'> = {
       name: data.name.trim(),
       description: data.description?.trim() || undefined, // Store as undefined for consistency
-      userId: data.userId,
+      isActive: true, // New companies are active by default
       createdAt: now,
       updatedAt: now
     }
@@ -124,7 +140,6 @@ export class CompanyModel {
 
   static async update(
     id: string, 
-    userId: string, 
     data: {
       name?: string
       description?: string
@@ -132,10 +147,13 @@ export class CompanyModel {
   ): Promise<Company | null> {
     const collection = await this.getCollection()
     
-    // First check if the company exists
+    // First check if the company exists and is active
     const existing = await collection.findOne({ 
       _id: new ObjectId(id), 
-      userId 
+      $or: [
+        { isActive: true },
+        { isActive: { $exists: false } } // Backward compatibility for existing records
+      ]
     })
     
     if (!existing) {
@@ -159,7 +177,7 @@ export class CompanyModel {
     }
 
     const result = await collection.findOneAndUpdate(
-      { _id: new ObjectId(id), userId },
+      { _id: new ObjectId(id) },
       { $set: updateData },
       { returnDocument: 'after' }
     )
@@ -171,38 +189,49 @@ export class CompanyModel {
     const company = this.documentToCompany(result)
     
     // Get current assessment count
-    company.assessmentCount = await this.getAssessmentCount(id, userId)
+    company.assessmentCount = await this.getAssessmentCount(id)
 
     return company
   }
 
-  static async delete(id: string, userId: string): Promise<boolean> {
+  static async delete(id: string): Promise<boolean> {
     const collection = await this.getCollection()
-    const result = await collection.deleteOne({ 
-      _id: new ObjectId(id), 
-      userId 
-    })
+    
+    // Soft delete: Set isActive to false instead of deleting the record
+    const result = await collection.findOneAndUpdate(
+      { 
+        _id: new ObjectId(id)
+      },
+      { 
+        $set: { 
+          isActive: false,
+          updatedAt: new Date()
+        } 
+      },
+      { returnDocument: 'after' }
+    )
 
-    return result.deletedCount === 1
+    return result !== null
   }
 
-  static async getAssessmentCount(companyId: string, userId: string): Promise<number> {
+  static async getAssessmentCount(companyId: string): Promise<number> {
     const assessmentCollection = await getCollection('assessments')
     return assessmentCollection.countDocuments({ 
-      companyId, 
-      userId 
+      companyId: new ObjectId(companyId)
     })
   }
 
-  static async getAssessmentCounts(companyIds: string[], userId: string): Promise<{ [companyId: string]: number }> {
+  static async getAssessmentCounts(companyIds: string[]): Promise<{ [companyId: string]: number }> {
     const assessmentCollection = await getCollection('assessments')
+    
+    // Convert companyIds to ObjectIds
+    const objectIds = companyIds.map(id => new ObjectId(id))
     
     // Use aggregation pipeline to get counts for all companies at once
     const pipeline = [
       {
         $match: {
-          companyId: { $in: companyIds },
-          userId: userId
+          companyId: { $in: objectIds }
         }
       },
       {
@@ -215,14 +244,14 @@ export class CompanyModel {
     
     const results = await assessmentCollection.aggregate(pipeline).toArray()
     
-    // Convert to object with companyId as key
+    // Convert to object with companyId as key (string)
     const counts: { [companyId: string]: number } = {}
     companyIds.forEach(id => {
       counts[id] = 0 // Initialize all to 0
     })
     
     results.forEach(result => {
-      counts[result._id] = result.count
+      counts[result._id.toString()] = result.count
     })
     
     return counts
@@ -243,11 +272,11 @@ export class CompanyModel {
   static async createIndexes() {
     const collection = await this.getCollection()
     
-    // Index for user queries
-    await collection.createIndex({ userId: 1 })
+    // Index for createdAt (for sorting)
+    await collection.createIndex({ createdAt: -1 })
     
-    // Compound index for user + createdAt (for sorting)
-    await collection.createIndex({ userId: 1, createdAt: -1 })
+    // Index for isActive (for filtering active companies)
+    await collection.createIndex({ isActive: 1 })
     
     // Text index for search functionality
     await collection.createIndex({ 

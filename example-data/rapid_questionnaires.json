@@ -1,0 +1,287 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439030"
+    },
+    "version": "3.0",
+    "assessmentType": "EXPLORATORY",
+    "totalQuestions": 162,
+    "categories": [
+      {
+        "id": "use-case-discovery",
+        "title": "Use Case Discovery",
+        "description": "Identify and define AI use cases for new AI development",
+        "subcategories": [
+          {
+            "id": "business-context-use-case-definition",
+            "title": "Business Context and Use Case Definition",
+            "questions": [
+              {
+                "id": "q1.1",
+                "number": "Q1.1",
+                "text": "What business problem(s) does your GenAI application aim to solve? Can you describe the user and use case in terms of your business or operational needs?",
+                "description": "Establishes the fundamental business purpose and identifies key user personas for the application.",
+                "type": "textarea",
+                "required": true,
+                "category": "use-case-discovery",
+                "subcategory": "business-context-use-case-definition"
+              },
+              {
+                "id": "q1.2",
+                "number": "Q1.2",
+                "text": "What is the current state of this use case (in progress, ideated, etc.)?",
+                "type": "select",
+                "required": true,
+                "options": [
+                  "ideated",
+                  "in_progress",
+                  "prototype",
+                  "production"
+                ],
+                "category": "use-case-discovery",
+                "subcategory": "business-context-use-case-definition"
+              },
+              {
+                "id": "q1.3",
+                "number": "Q1.3",
+                "text": "What is the expected scale or volume of usage for this application?",
+                "description": "Helps understand the expected load and scalability requirements.",
+                "type": "textarea",
+                "required": true,
+                "category": "use-case-discovery",
+                "subcategory": "business-context-use-case-definition"
+              }
+            ],
+            "questionCount": 12
+          },
+          {
+            "id": "evaluation-success-metrics",
+            "title": "Evaluation and Success Metrics",
+            "questions": [
+              {
+                "id": "q1.13",
+                "number": "Q1.13",
+                "text": "What are the key success metrics for this GenAI application?",
+                "type": "textarea",
+                "required": true,
+                "category": "use-case-discovery",
+                "subcategory": "evaluation-success-metrics"
+              }
+            ],
+            "questionCount": 10
+          }
+        ],
+        "totalQuestions": 48
+      },
+      {
+        "id": "data-readiness",
+        "title": "Data Readiness Assessment",
+        "description": "Evaluate data availability, quality, and readiness for AI implementation",
+        "subcategories": [
+          {
+            "id": "data-sources-availability",
+            "title": "Data Sources and Availability",
+            "questions": [
+              {
+                "id": "q2.1",
+                "number": "Q2.1",
+                "text": "What types of data do you have available for training and inference?",
+                "type": "textarea",
+                "required": true,
+                "category": "data-readiness",
+                "subcategory": "data-sources-availability"
+              },
+              {
+                "id": "q2.2",
+                "number": "Q2.2",
+                "text": "Do you have data quality processes in place?",
+                "type": "radio",
+                "required": true,
+                "options": [
+                  "Yes",
+                  "No",
+                  "Partially"
+                ],
+                "category": "data-readiness",
+                "subcategory": "data-sources-availability"
+              }
+            ],
+            "questionCount": 8
+          }
+        ],
+        "totalQuestions": 25
+      },
+      {
+        "id": "compliance-integration",
+        "title": "Compliance & Integration",
+        "description": "Assess compliance requirements and integration needs",
+        "subcategories": [
+          {
+            "id": "regulatory-compliance",
+            "title": "Regulatory Compliance",
+            "questions": [
+              {
+                "id": "q3.1",
+                "number": "Q3.1",
+                "text": "What regulatory requirements must your GenAI application comply with?",
+                "type": "textarea",
+                "required": true,
+                "category": "compliance-integration",
+                "subcategory": "regulatory-compliance"
+              }
+            ],
+            "questionCount": 5
+          }
+        ],
+        "totalQuestions": 27
+      },
+      {
+        "id": "model-evaluation",
+        "title": "Model Evaluation",
+        "description": "Guided process for model evaluation",
+        "subcategories": [],
+        "totalQuestions": 0
+      },
+      {
+        "id": "business-value-roi",
+        "title": "Business Value & ROI",
+        "description": "Assess expected business value and return on investment",
+        "subcategories": [
+          {
+            "id": "roi-expectations",
+            "title": "ROI Expectations",
+            "questions": [
+              {
+                "id": "q5.1",
+                "number": "Q5.1",
+                "text": "What is the expected ROI for this GenAI application?",
+                "type": "textarea",
+                "required": true,
+                "category": "business-value-roi",
+                "subcategory": "roi-expectations"
+              }
+            ],
+            "questionCount": 10
+          }
+        ],
+        "totalQuestions": 10
+      }
+    ],
+    "createdAt": {
+      "$date": "2026-01-01T00:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-01T00:00:00.000Z"
+    },
+    "isActive": true
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439032"
+    },
+    "version": "2.9",
+    "assessmentType": "EXPLORATORY",
+    "totalQuestions": 150,
+    "categories": [],
+    "createdAt": {
+      "$date": "2025-12-01T00:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-01T00:00:00.000Z"
+    },
+    "isActive": false
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439031"
+    },
+    "version": "3.0",
+    "assessmentType": "MIGRATION",
+    "totalQuestions": 214,
+    "categories": [
+      {
+        "id": "use-case-discovery",
+        "title": "Use Case Discovery",
+        "description": "Identify and define AI use cases for migration",
+        "subcategories": [
+          {
+            "id": "business-context-use-case-definition",
+            "title": "Business Context and Use Case Definition",
+            "questions": [
+              {
+                "id": "q1.1",
+                "number": "Q1.1",
+                "text": "What business problem(s) does your GenAI application aim to solve?",
+                "type": "textarea",
+                "required": true,
+                "category": "use-case-discovery",
+                "subcategory": "business-context-use-case-definition"
+              }
+            ],
+            "questionCount": 12
+          }
+        ],
+        "totalQuestions": 48
+      },
+      {
+        "id": "current-system-assessment",
+        "title": "Current System Assessment",
+        "description": "Evaluate existing AI system before migration",
+        "subcategories": [
+          {
+            "id": "current-system-overview",
+            "title": "Current System Overview",
+            "questions": [
+              {
+                "id": "q2.1",
+                "number": "Q2.1",
+                "text": "Describe your current AI system architecture and capabilities.",
+                "type": "textarea",
+                "required": true,
+                "category": "current-system-assessment",
+                "subcategory": "current-system-overview"
+              }
+            ],
+            "questionCount": 8
+          }
+        ],
+        "totalQuestions": 52
+      },
+      {
+        "id": "data-readiness",
+        "title": "Data Readiness Assessment",
+        "description": "Evaluate data availability, quality, and readiness for migration",
+        "subcategories": [],
+        "totalQuestions": 25
+      },
+      {
+        "id": "compliance-integration",
+        "title": "Compliance & Integration",
+        "description": "Assess compliance requirements and integration needs",
+        "subcategories": [],
+        "totalQuestions": 27
+      },
+      {
+        "id": "model-evaluation",
+        "title": "Model Evaluation",
+        "description": "Guided process for model evaluation",
+        "subcategories": [],
+        "totalQuestions": 0
+      },
+      {
+        "id": "business-value-roi",
+        "title": "Business Value & ROI",
+        "description": "Assess expected business value and return on investment",
+        "subcategories": [],
+        "totalQuestions": 10
+      }
+    ],
+    "createdAt": {
+      "$date": "2026-01-01T00:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-01T00:00:00.000Z"
+    },
+    "isActive": true
+  }
+]

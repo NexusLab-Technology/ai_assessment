@@ -122,6 +122,7 @@ interface Assessment {
   companyId: string
   type: 'EXPLORATORY' | 'MIGRATION'
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED'
+  isActive: boolean  // Soft delete: true = active, false = deleted
   currentCategory: string
   totalCategories: number
   responses: {
@@ -143,6 +144,12 @@ interface Assessment {
 }
 ```
 
+**Soft Delete Pattern:**
+- When an assessment is deleted, `isActive` is set to `false` instead of removing the record
+- All queries automatically filter for `isActive: true` or records where `isActive` doesn't exist (backward compatibility)
+- This prevents data loss and allows for recovery if needed
+- Deleted assessments are not displayed in normal queries
+
 ### Report Generation Request [Report Generation]
 
 ```typescript
@@ -151,6 +158,7 @@ interface ReportGenerationRequest {
   assessmentId: string
   companyId: string
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  isActive: boolean  // Soft delete: true = active, false = deleted
   requestedAt: Date
   completedAt?: Date
   errorMessage?: string
@@ -158,6 +166,11 @@ interface ReportGenerationRequest {
   retryCount: number
 }
 ```
+
+**Soft Delete Pattern:**
+- When a report request is deleted, `isActive` is set to `false` instead of removing the record
+- All queries automatically filter for `isActive: true` or records where `isActive` doesn't exist (backward compatibility)
+- This prevents data loss and allows for recovery if needed
 
 ### Session Data [Assessment Status UI]
 

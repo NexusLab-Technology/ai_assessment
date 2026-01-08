@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CompanyModel } from '@/lib/models/Company'
 import { 
-  getUserId, 
   createSuccessResponse, 
   createErrorResponse, 
   handleApiError,
@@ -17,10 +16,8 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request)
-    
     // List companies from database
-    const companies = await CompanyModel.findAll(userId)
+    const companies = await CompanyModel.findAll()
     
     return createSuccessResponse({
       companies,
@@ -33,7 +30,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const body = await parseRequestBody(request)
     
     // Validate required fields
@@ -56,8 +52,7 @@ export async function POST(request: NextRequest) {
     // Create company in database
     const company = await CompanyModel.create({
       name: body.name.trim(),
-      description: body.description?.trim(),
-      userId
+      description: body.description?.trim()
     })
 
     return createSuccessResponse(

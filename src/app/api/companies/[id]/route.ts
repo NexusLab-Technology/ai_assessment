@@ -7,7 +7,6 @@ import {
   createSuccessResponse, 
   createErrorResponse, 
   handleApiError, 
-  getUserId,
   parseRequestBody,
   isValidObjectId
 } from '../../../../lib/api-utils'
@@ -25,25 +24,18 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-    const userId = getUserId(request)
     
     if (!isValidObjectId(id)) {
       return createErrorResponse('Invalid company ID format', 400)
     }
     
-    const company = await CompanyModel.findById(id, userId)
+    const company = await CompanyModel.findById(id)
     
     if (!company) {
       return createErrorResponse('Company not found', 404)
     }
     
-    // Get assessment count
-    const assessmentCount = await CompanyModel.getAssessmentCount(id, userId)
-    
-    return createSuccessResponse({
-      ...company,
-      assessmentCount
-    })
+    return createSuccessResponse(company)
   } catch (error) {
     return handleApiError(error)
   }
@@ -56,7 +48,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-    const userId = getUserId(request)
     const body = await parseRequestBody(request)
     
     if (!isValidObjectId(id)) {
@@ -77,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.name) updateData.name = body.name.trim()
     if (body.description !== undefined) updateData.description = body.description?.trim()
     
-    const company = await CompanyModel.update(id, userId, updateData)
+    const company = await CompanyModel.update(id, updateData)
     
     if (!company) {
       return createErrorResponse('Company not found', 404)
@@ -96,29 +87,42 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-    const userId = getUserId(request)
     
     if (!isValidObjectId(id)) {
       return createErrorResponse('Invalid company ID format', 400)
     }
     
-    // Get assessment count for confirmation message
+    // Get assessment count for confirmation message (only active assessments)
     const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
     const assessmentCount = await assessmentsCollection.countDocuments({
       companyId: new ObjectId(id),
-      userId
+      $or: [
+        { isActive: true },
+        { isActive: { $exists: false } } // Backward compatibility
+      ]
     })
     
-    // Delete all associated assessments first
-    const deleteResult = await assessmentsCollection.deleteMany({
-      companyId: new ObjectId(id),
-      userId
-    })
+    // Soft delete all associated assessments first
+    const deleteResult = await assessmentsCollection.updateMany(
+      {
+        companyId: new ObjectId(id),
+        $or: [
+          { isActive: true },
+          { isActive: { $exists: false } } // Backward compatibility
+        ]
+      },
+      {
+        $set: {
+          isActive: false,
+          updatedAt: new Date()
+        }
+      }
+    )
     
-    const deletedAssessments = deleteResult.deletedCount
+    const deletedAssessments = deleteResult.modifiedCount
     
-    // Now delete the company
-    const deleted = await CompanyModel.delete(id, userId)
+    // Now soft delete the company
+    const deleted = await CompanyModel.delete(id)
     
     if (!deleted) {
       return createErrorResponse('Company not found', 404)

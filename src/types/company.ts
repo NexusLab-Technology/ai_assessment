@@ -16,7 +16,7 @@ export interface CompanyDocument {
   description?: string
   createdAt: Date
   updatedAt: Date
-  userId: string
+  isActive: boolean
 }
 
 export interface CompanyFormData {

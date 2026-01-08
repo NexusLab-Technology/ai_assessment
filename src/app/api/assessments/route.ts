@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AssessmentService } from '@/lib/services/assessment-service'
 import { RAPIDQuestionnaireService } from '@/lib/services/rapid-questionnaire-service'
 import { 
-  getUserId, 
   createSuccessResponse, 
   createErrorResponse, 
   handleApiError,
@@ -19,13 +18,11 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const { searchParams } = new URL(request.url)
     const companyId = searchParams.get('companyId')
     
     // List assessments from database
     const assessments = await AssessmentService.listAssessments(
-      userId,
       companyId || undefined
     )
     
@@ -41,7 +38,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const body = await parseRequestBody(request)
     const { name, companyId, type } = body
 
@@ -84,7 +80,6 @@ export async function POST(request: NextRequest) {
     const result = await AssessmentService.createAssessment({
       name: name.trim(),
       companyId,
-      userId,
       type,
       rapidQuestionnaireVersion: questionnaire.version
     })

@@ -1,0 +1,88 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439040"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439021"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "isActive": true,
+    "htmlContent": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>AI Assessment Report - Migration Assessment - Legacy System</title></head><body><h1>AI Assessment Report</h1><div class=\"metadata\"><p><strong>Assessment Name:</strong> Migration Assessment - Legacy System</p><p><strong>Assessment Type:</strong> MIGRATION</p><p><strong>Generated:</strong> 1/6/2026</p><p><strong>Status:</strong> COMPLETED</p></div><div class=\"section\"><h2>Executive Summary</h2><p>This migration assessment has been completed and analyzed using AI-powered evaluation techniques. The assessment covered 6 key areas of evaluation.</p></div></body></html>",
+    "generatedAt": {
+      "$date": "2026-01-06T16:00:00.000Z"
+    },
+    "metadata": {
+      "assessmentType": "MIGRATION",
+      "assessmentName": "Migration Assessment - Legacy System",
+      "companyName": "Acme Corporation",
+      "totalQuestions": 214,
+      "answeredQuestions": 202,
+      "generationDuration": 1500,
+      "rapidQuestionnaireVersion": "3.0",
+      "categoryBreakdown": {
+        "use-case-discovery": {
+          "categoryName": "Use Case Discovery",
+          "totalQuestions": 48,
+          "answeredQuestions": 48,
+          "completionPercentage": 100
+        },
+        "current-system-assessment": {
+          "categoryName": "Current System Assessment",
+          "totalQuestions": 52,
+          "answeredQuestions": 52,
+          "completionPercentage": 100
+        },
+        "data-readiness": {
+          "categoryName": "Data Readiness Assessment",
+          "totalQuestions": 25,
+          "answeredQuestions": 25,
+          "completionPercentage": 100
+        },
+        "compliance-integration": {
+          "categoryName": "Compliance & Integration",
+          "totalQuestions": 27,
+          "answeredQuestions": 27,
+          "completionPercentage": 100
+        },
+        "model-evaluation": {
+          "categoryName": "Model Evaluation",
+          "totalQuestions": 0,
+          "answeredQuestions": 0,
+          "completionPercentage": 100
+        },
+        "business-value-roi": {
+          "categoryName": "Business Value & ROI",
+          "totalQuestions": 10,
+          "answeredQuestions": 10,
+          "completionPercentage": 100
+        }
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439041"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "isActive": false,
+    "htmlContent": "<!DOCTYPE html><html>...</html>",
+    "generatedAt": {
+      "$date": "2026-01-05T10:00:00.000Z"
+    },
+    "metadata": {
+      "assessmentType": "EXPLORATORY",
+      "assessmentName": "Deleted Report Example",
+      "companyName": "Acme Corporation",
+      "totalQuestions": 162,
+      "answeredQuestions": 50
+    }
+  }
+]

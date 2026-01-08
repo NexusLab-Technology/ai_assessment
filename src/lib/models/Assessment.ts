@@ -38,9 +38,9 @@ export interface AssessmentDocument {
   _id?: ObjectId
   name: string
   companyId: ObjectId
-  userId: string
   type: 'EXPLORATORY' | 'MIGRATION'
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED'
+  isActive: boolean  // Soft delete: true = active, false = deleted
   
   // RAPID-specific fields
   currentCategory: string
@@ -91,8 +91,8 @@ export interface ReportRequestDocument {
   _id?: ObjectId
   assessmentId: ObjectId
   companyId: ObjectId
-  userId: string
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  isActive: boolean  // Soft delete: true = active, false = deleted
   requestedAt: Date
   processedAt?: Date
   completedAt?: Date
@@ -112,9 +112,9 @@ export interface ReportDocument {
   _id?: ObjectId
   assessmentId: ObjectId
   companyId: ObjectId
-  userId: string
   htmlContent: string
   generatedAt: Date
+  isActive: boolean  // Soft delete: true = active, false = deleted
   metadata: {
     assessmentType: 'EXPLORATORY' | 'MIGRATION'
     assessmentName: string
@@ -143,7 +143,7 @@ export interface CompanyDocument {
   description?: string
   industry?: string
   size?: string
-  userId: string
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -159,15 +159,16 @@ export const COLLECTIONS = {
 
 // Enhanced indexes for RAPID structure
 export const ASSESSMENT_INDEXES = [
-  { key: { companyId: 1, userId: 1 } as const, name: 'companyId_userId' },
-  { key: { userId: 1, status: 1 } as const, name: 'userId_status' },
+  { key: { companyId: 1 } as const, name: 'companyId' },
+  { key: { status: 1 } as const, name: 'status' },
+  { key: { isActive: 1 } as const, name: 'isActive' },
   { key: { createdAt: -1 } as const, name: 'createdAt_desc' },
   { key: { updatedAt: -1 } as const, name: 'updatedAt_desc' },
   
   // RAPID-specific indexes
   { key: { rapidQuestionnaireVersion: 1, type: 1 } as const, name: 'rapidVersion_type' },
   { key: { currentCategory: 1, status: 1 } as const, name: 'currentCategory_status' },
-  { key: { userId: 1, type: 1, status: 1 } as const, name: 'userId_type_status' },
+  { key: { type: 1, status: 1 } as const, name: 'type_status' },
   { key: { 'categoryStatuses.status': 1 } as const, name: 'categoryStatuses_status' }
 ]
 
@@ -181,7 +182,8 @@ export const RAPID_QUESTIONNAIRE_INDEXES = [
 
 export const REPORT_REQUEST_INDEXES = [
   { key: { assessmentId: 1 } as const, name: 'assessmentId' },
-  { key: { userId: 1, status: 1 } as const, name: 'userId_status' },
+  { key: { status: 1 } as const, name: 'status' },
+  { key: { isActive: 1 } as const, name: 'isActive' },
   { key: { requestedAt: -1 } as const, name: 'requestedAt_desc' },
   { key: { externalRequestId: 1 } as const, name: 'externalRequestId', sparse: true },
   
@@ -191,7 +193,8 @@ export const REPORT_REQUEST_INDEXES = [
 
 export const REPORT_INDEXES = [
   { key: { assessmentId: 1 } as const, name: 'assessmentId', unique: true },
-  { key: { companyId: 1, userId: 1 } as const, name: 'companyId_userId' },
+  { key: { companyId: 1 } as const, name: 'companyId' },
+  { key: { isActive: 1 } as const, name: 'isActive' },
   { key: { generatedAt: -1 } as const, name: 'generatedAt_desc' },
   
   // RAPID-specific indexes
@@ -199,7 +202,7 @@ export const REPORT_INDEXES = [
 ]
 
 export const COMPANY_INDEXES = [
-  { key: { userId: 1 } as const, name: 'userId' },
-  { key: { name: 1, userId: 1 } as const, name: 'name_userId', unique: true },
-  { key: { createdAt: -1 } as const, name: 'createdAt_desc' }
+  { key: { name: 1 } as const, name: 'name', unique: true },
+  { key: { createdAt: -1 } as const, name: 'createdAt_desc' },
+  { key: { isActive: 1 } as const, name: 'isActive' }
 ]

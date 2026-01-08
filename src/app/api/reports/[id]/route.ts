@@ -4,7 +4,6 @@ import {
   createSuccessResponse, 
   createErrorResponse, 
   handleApiError, 
-  getUserId,
   parseRequestBody,
   isValidObjectId
 } from '../../../../lib/api-utils'
@@ -18,7 +17,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
     
     // Validate ObjectId format
@@ -26,7 +24,7 @@ export async function GET(
       return createErrorResponse('Invalid report ID format', 400)
     }
     
-    const report = await ReportModel.findById(id, userId)
+    const report = await ReportModel.findById(id)
     
     if (!report) {
       return createErrorResponse('Report not found', 404)
@@ -47,7 +45,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
     const body = await parseRequestBody(request)
     
@@ -57,7 +54,7 @@ export async function PUT(
     }
     
     // Check if report exists
-    const existingReport = await ReportModel.findById(id, userId)
+    const existingReport = await ReportModel.findById(id)
     if (!existingReport) {
       return createErrorResponse('Report not found', 404)
     }
@@ -80,7 +77,7 @@ export async function PUT(
     }
     
     // Update report
-    const updatedReport = await ReportModel.update(id, userId, updateData)
+    const updatedReport = await ReportModel.update(id, updateData)
     
     if (!updatedReport) {
       return createErrorResponse('Failed to update report', 500)
@@ -101,7 +98,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = getUserId(request)
     const { id } = params
     
     // Validate ObjectId format
@@ -110,12 +106,12 @@ export async function DELETE(
     }
     
     // Check if report exists
-    const existingReport = await ReportModel.findById(id, userId)
+    const existingReport = await ReportModel.findById(id)
     if (!existingReport) {
       return createErrorResponse('Report not found', 404)
     }
     
-    const deleted = await ReportModel.delete(id, userId)
+    const deleted = await ReportModel.delete(id)
     
     if (!deleted) {
       return createErrorResponse('Failed to delete report', 500)

@@ -26,7 +26,6 @@ export class AssessmentService {
   static async createAssessment(data: {
     name: string
     companyId: string
-    userId: string
     type: AssessmentType
     rapidQuestionnaireVersion: string
   }): Promise<{ success: boolean; assessmentId?: string; error?: string }> {
@@ -58,9 +57,9 @@ export class AssessmentService {
       const document: AssessmentDocument = {
         name: data.name,
         companyId: new ObjectId(data.companyId),
-        userId: data.userId,
         type: data.type,
         status: 'DRAFT',
+        isActive: true, // New assessments are active by default
         
         // RAPID-specific fields
         currentCategory: questionnaire.categories[0]?.id || '',
@@ -98,14 +97,18 @@ export class AssessmentService {
       const collection = await this.getCollection()
       
       const document = await collection.findOne({
-        _id: new ObjectId(assessmentId)
+        _id: new ObjectId(assessmentId),
+        $or: [
+          { isActive: true },
+          { isActive: { $exists: false } } // Backward compatibility for existing records
+        ]
       })
 
       if (!document) {
         return null
       }
 
-      return this.documentToAssessment(document)
+      return this.documentToAssessment(document as AssessmentDocument)
     } catch (error) {
       console.error('Error getting assessment:', error)
       return null
@@ -124,7 +127,13 @@ export class AssessmentService {
       const collection = await this.getCollection()
       
       const result = await collection.updateOne(
-        { _id: new ObjectId(assessmentId) },
+        { 
+          _id: new ObjectId(assessmentId),
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } } // Backward compatibility
+          ]
+        },
         {
           $set: {
             [`responses.${categoryId}`]: responses,
@@ -157,7 +166,13 @@ export class AssessmentService {
       const collection = await this.getCollection()
       
       const result = await collection.updateOne(
-        { _id: new ObjectId(assessmentId) },
+        { 
+          _id: new ObjectId(assessmentId),
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } } // Backward compatibility
+          ]
+        },
         {
           $set: {
             [`categoryStatuses.${categoryId}`]: status,
@@ -199,7 +214,13 @@ export class AssessmentService {
       }
 
       const result = await collection.updateOne(
-        { _id: new ObjectId(assessmentId) },
+        { 
+          _id: new ObjectId(assessmentId),
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } } // Backward compatibility
+          ]
+        },
         { $set: updateData }
       )
 
@@ -226,7 +247,13 @@ export class AssessmentService {
       
       const now = new Date()
       const result = await collection.updateOne(
-        { _id: new ObjectId(assessmentId) },
+        { 
+          _id: new ObjectId(assessmentId),
+          $or: [
+            { isActive: true },
+            { isActive: { $exists: false } } // Backward compatibility
+          ]
+        },
         {
           $set: {
             status: 'COMPLETED',
@@ -252,13 +279,17 @@ export class AssessmentService {
    * List assessments for a user
    */
   static async listAssessments(
-    userId: string,
     companyId?: string
   ): Promise<Assessment[]> {
     try {
       const collection = await this.getCollection()
       
-      const filter: any = { userId }
+      const filter: any = {
+        $or: [
+          { isActive: true },
+          { isActive: { $exists: false } } // Backward compatibility for existing records
+        ]
+      }
       if (companyId) {
         // Validate ObjectId format before converting
         // ObjectId must be 24 hex characters
@@ -277,7 +308,7 @@ export class AssessmentService {
         sort: { updatedAt: -1 }
       }).toArray()
 
-      return documents.map(doc => this.documentToAssessment(doc))
+      return documents.map(doc => this.documentToAssessment(doc as AssessmentDocument))
     } catch (error) {
       console.error('Error listing assessments:', error)
       return []
@@ -293,12 +324,22 @@ export class AssessmentService {
     try {
       const collection = await this.getCollection()
       
-      const result = await collection.deleteOne({
-        _id: new ObjectId(assessmentId)
-      })
+      // Soft delete: Set isActive to false instead of deleting the record
+      const result = await collection.findOneAndUpdate(
+        { 
+          _id: new ObjectId(assessmentId)
+        },
+        { 
+          $set: { 
+            isActive: false,
+            updatedAt: new Date()
+          } 
+        },
+        { returnDocument: 'after' }
+      )
 
       return {
-        success: result.deletedCount > 0
+        success: result !== null
       }
     } catch (error) {
       console.error('Error deleting assessment:', error)
@@ -356,7 +397,6 @@ export class AssessmentService {
       id: document._id!.toString(),
       name: document.name,
       companyId: document.companyId.toString(),
-      userId: document.userId,
       type: document.type,
       status: document.status,
       currentCategory: document.currentCategory,

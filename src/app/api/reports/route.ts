@@ -7,22 +7,20 @@ import {
   createSuccessResponse, 
   createErrorResponse, 
   handleApiError, 
-  getUserId,
   parseRequestBody,
   validateRequiredFields
 } from '../../../lib/api-utils'
 
 /**
  * GET /api/reports
- * Get all reports for the authenticated user, optionally filtered by company
+ * Get all reports, optionally filtered by company
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const { searchParams } = new URL(request.url)
     const companyId = searchParams.get('companyId')
     
-    const reports = await ReportModel.findAll(userId, companyId || undefined)
+    const reports = await ReportModel.findAll(companyId || undefined)
     
     return createSuccessResponse({
       reports,
@@ -39,7 +37,6 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request)
     const body = await parseRequestBody(request)
     
     // Validate required fields
@@ -51,11 +48,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Verify assessment exists and belongs to user
+    // Verify assessment exists and is active
     const assessmentsCollection = await getCollection(COLLECTIONS.ASSESSMENTS)
     const assessment = await assessmentsCollection.findOne({
       _id: new ObjectId(body.assessmentId),
-      userId
+      $or: [
+        { isActive: true },
+        { isActive: { $exists: false } } // Backward compatibility
+      ]
     })
     
     if (!assessment) {
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if report already exists for this assessment
-    const existingReport = await ReportModel.findByAssessmentId(body.assessmentId, userId)
+    const existingReport = await ReportModel.findByAssessmentId(body.assessmentId)
     if (existingReport) {
       return createErrorResponse('Report already exists for this assessment', 409)
     }
@@ -87,8 +87,7 @@ export async function POST(request: NextRequest) {
         companyName: 'Mock Company', // Will be populated from actual company data
         generationDuration: 1500, // Mock duration in ms
         bedrockModel: 'mock-model-v1'
-      },
-      userId
+      }
     })
     
     return createSuccessResponse(report, 'Report generated successfully')

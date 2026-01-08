@@ -294,11 +294,14 @@ ai_assessment/
 
 ### MongoDB Collections
 
-1. **companies**: Company information
-2. **assessments**: Assessment data with category-based responses
-3. **rapid_questionnaires**: RAPID questionnaire structure
-4. **reports**: Generated assessment reports
-5. **report_requests**: Asynchronous report generation requests
+1. **companies**: Company information (with `isActive` for soft delete)
+2. **assessments**: Assessment data with category-based responses (with `isActive` for soft delete)
+3. **rapid_questionnaires**: RAPID questionnaire structure (with `isActive` for soft delete)
+4. **reports**: Generated assessment reports (with `isActive` for soft delete)
+5. **report_requests**: Asynchronous report generation requests (with `isActive` for soft delete)
+
+**Soft Delete Pattern:**
+All collections use soft delete pattern where `isActive: false` indicates a deleted record. When a record is "deleted", `isActive` is set to `false` instead of removing the record. All queries automatically filter for `isActive: true` or records where `isActive` doesn't exist (backward compatibility). This prevents data loss and allows for recovery if needed.
 
 ## API Structure
 

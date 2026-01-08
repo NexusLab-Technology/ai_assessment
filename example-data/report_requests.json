@@ -1,0 +1,127 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439050"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439021"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "isActive": true,
+    "status": "COMPLETED",
+    "requestedAt": {
+      "$date": "2026-01-06T15:30:00.000Z"
+    },
+    "processedAt": {
+      "$date": "2026-01-06T15:35:00.000Z"
+    },
+    "completedAt": {
+      "$date": "2026-01-06T16:00:00.000Z"
+    },
+    "retryCount": 0,
+    "externalRequestId": "ext-req-12345",
+    "rapidQuestionnaireVersion": "3.0",
+    "assessmentType": "MIGRATION",
+    "categoryCount": 6,
+    "completedCategories": 6
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439051"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "userId": "user-123",
+    "status": "PENDING",
+    "requestedAt": {
+      "$date": "2026-01-08T11:30:00.000Z"
+    },
+    "retryCount": 0,
+    "rapidQuestionnaireVersion": "3.0",
+    "assessmentType": "EXPLORATORY",
+    "categoryCount": 5,
+    "completedCategories": 0
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439052"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "userId": "user-123",
+    "status": "FAILED",
+    "requestedAt": {
+      "$date": "2026-01-08T10:00:00.000Z"
+    },
+    "processedAt": {
+      "$date": "2026-01-08T10:05:00.000Z"
+    },
+    "errorMessage": "External API timeout after 30 seconds",
+    "retryCount": 2,
+    "externalRequestId": "ext-req-12346",
+    "rapidQuestionnaireVersion": "3.0",
+    "assessmentType": "EXPLORATORY",
+    "categoryCount": 5,
+    "completedCategories": 0
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439053"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "userId": "user-123",
+    "status": "PROCESSING",
+    "requestedAt": {
+      "$date": "2026-01-08T12:00:00.000Z"
+    },
+    "processedAt": {
+      "$date": "2026-01-08T12:05:00.000Z"
+    },
+    "retryCount": 0,
+    "externalRequestId": "ext-req-12347",
+    "rapidQuestionnaireVersion": "3.0",
+    "assessmentType": "EXPLORATORY",
+    "categoryCount": 5,
+    "completedCategories": 2
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439054"
+    },
+    "assessmentId": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "isActive": false,
+    "status": "FAILED",
+    "requestedAt": {
+      "$date": "2026-01-07T08:00:00.000Z"
+    },
+    "processedAt": {
+      "$date": "2026-01-07T08:05:00.000Z"
+    },
+    "errorMessage": "This request was soft deleted",
+    "retryCount": 0,
+    "rapidQuestionnaireVersion": "3.0",
+    "assessmentType": "EXPLORATORY",
+    "categoryCount": 5,
+    "completedCategories": 0
+  }
+]

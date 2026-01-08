@@ -1,0 +1,58 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "name": "Acme Corporation",
+    "description": "Leading technology solutions provider specializing in enterprise software",
+    "isActive": true,
+    "createdAt": {
+      "$date": "2026-01-08T10:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-08T10:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439012"
+    },
+    "name": "TechStart Inc",
+    "description": "Innovative startup company focused on AI and machine learning solutions",
+    "isActive": true,
+    "createdAt": {
+      "$date": "2026-01-07T14:30:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-07T14:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439013"
+    },
+    "name": "Global Enterprises Ltd",
+    "description": null,
+    "isActive": true,
+    "createdAt": {
+      "$date": "2026-01-06T09:15:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-06T09:15:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439014"
+    },
+    "name": "Deleted Company Example",
+    "description": "This company was soft deleted",
+    "isActive": false,
+    "createdAt": {
+      "$date": "2026-01-05T08:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-07T16:00:00.000Z"
+    }
+  }
+]

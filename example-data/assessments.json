@@ -1,0 +1,245 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439020"
+    },
+    "name": "Q1 2026 AI Readiness Assessment",
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "type": "EXPLORATORY",
+    "status": "IN_PROGRESS",
+    "currentCategory": "use-case-discovery",
+    "currentSubcategory": "business-context-use-case-definition",
+    "totalCategories": 5,
+    "rapidQuestionnaireVersion": "3.0",
+    "isActive": true,
+    "responses": {
+      "use-case-discovery": {
+        "q1.1": "Our GenAI application aims to automate customer service responses and improve response time by 50%. The primary users are our customer support team and end customers who need quick, accurate responses to their inquiries.",
+        "q1.2": "in_progress",
+        "q1.3": "We expect to handle approximately 10,000 customer inquiries per day, with peak times during business hours (9 AM - 5 PM EST).",
+        "q1.4": "Our target users include customer service representatives, end customers seeking support, and internal staff who need quick information retrieval."
+      },
+      "data-readiness": {
+        "q2.1": "We have structured data in our CRM system and unstructured data in email archives and chat logs.",
+        "q2.2": "Yes, we have data quality processes in place, including regular data cleaning and validation procedures."
+      }
+    },
+    "categoryStatuses": {
+      "use-case-discovery": {
+        "categoryId": "use-case-discovery",
+        "status": "partial",
+        "completionPercentage": 25,
+        "lastModified": {
+          "$date": "2026-01-08T10:30:00.000Z"
+        },
+        "requiredQuestionsCount": 12,
+        "answeredRequiredCount": 3,
+        "totalQuestionsCount": 48,
+        "answeredTotalCount": 12
+      },
+      "data-readiness": {
+        "categoryId": "data-readiness",
+        "status": "partial",
+        "completionPercentage": 15,
+        "lastModified": {
+          "$date": "2026-01-08T11:00:00.000Z"
+        },
+        "requiredQuestionsCount": 8,
+        "answeredRequiredCount": 2,
+        "totalQuestionsCount": 25,
+        "answeredTotalCount": 4
+      },
+      "compliance-integration": {
+        "categoryId": "compliance-integration",
+        "status": "not_started",
+        "completionPercentage": 0,
+        "lastModified": {
+          "$date": "2026-01-08T10:00:00.000Z"
+        },
+        "requiredQuestionsCount": 10,
+        "answeredRequiredCount": 0,
+        "totalQuestionsCount": 27,
+        "answeredTotalCount": 0
+      },
+      "model-evaluation": {
+        "categoryId": "model-evaluation",
+        "status": "not_started",
+        "completionPercentage": 0,
+        "lastModified": {
+          "$date": "2026-01-08T10:00:00.000Z"
+        },
+        "requiredQuestionsCount": 0,
+        "answeredRequiredCount": 0,
+        "totalQuestionsCount": 0,
+        "answeredTotalCount": 0
+      },
+      "business-value-roi": {
+        "categoryId": "business-value-roi",
+        "status": "not_started",
+        "completionPercentage": 0,
+        "lastModified": {
+          "$date": "2026-01-08T10:00:00.000Z"
+        },
+        "requiredQuestionsCount": 5,
+        "answeredRequiredCount": 0,
+        "totalQuestionsCount": 10,
+        "answeredTotalCount": 0
+      }
+    },
+    "createdAt": {
+      "$date": "2026-01-08T10:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-08T11:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439021"
+    },
+    "name": "Migration Assessment - Legacy System",
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "type": "MIGRATION",
+    "status": "COMPLETED",
+    "currentCategory": "business-value-roi",
+    "totalCategories": 6,
+    "rapidQuestionnaireVersion": "3.0",
+    "isActive": true,
+    "responses": {
+      "use-case-discovery": {
+        "q1.1": "Migrating our existing customer service chatbot to a more advanced GenAI model to improve accuracy and reduce false positives.",
+        "q1.2": "production"
+      },
+      "current-system-assessment": {
+        "q2.1": "Our current system uses rule-based responses with limited NLP capabilities.",
+        "q2.2": "The system handles approximately 5,000 queries per day with 70% accuracy."
+      },
+      "data-readiness": {
+        "q3.1": "We have historical conversation logs spanning 2 years with over 1 million interactions.",
+        "q3.2": "Data is stored in our data warehouse and accessible via API."
+      },
+      "compliance-integration": {
+        "q4.1": "Yes, we are GDPR compliant and have data retention policies in place.",
+        "q4.2": "Customer data is encrypted at rest and in transit."
+      },
+      "model-evaluation": {
+        "evaluation_notes": "Model evaluation completed through A/B testing with 10% traffic."
+      },
+      "business-value-roi": {
+        "q5.1": "Expected ROI: 35% reduction in support costs within 6 months.",
+        "q5.2": "Target metrics: 90% accuracy, 50% reduction in response time."
+      }
+    },
+    "categoryStatuses": {
+      "use-case-discovery": {
+        "categoryId": "use-case-discovery",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-05T15:00:00.000Z"
+        },
+        "requiredQuestionsCount": 12,
+        "answeredRequiredCount": 12,
+        "totalQuestionsCount": 48,
+        "answeredTotalCount": 48
+      },
+      "current-system-assessment": {
+        "categoryId": "current-system-assessment",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-05T16:00:00.000Z"
+        },
+        "requiredQuestionsCount": 15,
+        "answeredRequiredCount": 15,
+        "totalQuestionsCount": 52,
+        "answeredTotalCount": 52
+      },
+      "data-readiness": {
+        "categoryId": "data-readiness",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-05T17:00:00.000Z"
+        },
+        "requiredQuestionsCount": 8,
+        "answeredRequiredCount": 8,
+        "totalQuestionsCount": 25,
+        "answeredTotalCount": 25
+      },
+      "compliance-integration": {
+        "categoryId": "compliance-integration",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-06T10:00:00.000Z"
+        },
+        "requiredQuestionsCount": 10,
+        "answeredRequiredCount": 10,
+        "totalQuestionsCount": 27,
+        "answeredTotalCount": 27
+      },
+      "model-evaluation": {
+        "categoryId": "model-evaluation",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-06T14:00:00.000Z"
+        },
+        "requiredQuestionsCount": 0,
+        "answeredRequiredCount": 0,
+        "totalQuestionsCount": 0,
+        "answeredTotalCount": 0
+      },
+      "business-value-roi": {
+        "categoryId": "business-value-roi",
+        "status": "completed",
+        "completionPercentage": 100,
+        "lastModified": {
+          "$date": "2026-01-06T15:00:00.000Z"
+        },
+        "requiredQuestionsCount": 5,
+        "answeredRequiredCount": 5,
+        "totalQuestionsCount": 10,
+        "answeredTotalCount": 10
+      }
+    },
+    "createdAt": {
+      "$date": "2026-01-05T10:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-06T15:00:00.000Z"
+    },
+    "completedAt": {
+      "$date": "2026-01-06T15:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439022"
+    },
+    "name": "New AI Project Assessment",
+    "companyId": {
+      "$oid": "507f1f77bcf86cd799439012"
+    },
+    "userId": "user-123",
+    "type": "EXPLORATORY",
+    "status": "DRAFT",
+    "currentCategory": "use-case-discovery",
+    "totalCategories": 5,
+    "rapidQuestionnaireVersion": "3.0",
+    "isActive": true,
+    "responses": {},
+    "categoryStatuses": {},
+    "createdAt": {
+      "$date": "2026-01-08T12:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-01-08T12:00:00.000Z"
+    }
+  }
+]

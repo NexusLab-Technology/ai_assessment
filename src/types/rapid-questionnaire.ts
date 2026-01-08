@@ -63,7 +63,6 @@ export interface Assessment {
   id: string;
   name: string;
   companyId: string;
-  userId: string;
   type: AssessmentType;
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED';
   currentCategory: string;

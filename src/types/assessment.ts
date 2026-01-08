@@ -281,21 +281,37 @@ export interface CompanyDocument {
   _id: string
   name: string
   description?: string
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
-  userId: string
 }
 
 export interface AssessmentDocument {
   _id: string
   name: string
   companyId: string
-  userId: string
   type: 'EXPLORATORY' | 'MIGRATION'
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED'
-  currentStep: number
-  totalSteps: number
+  isActive: boolean  // Soft delete: true = active, false = deleted
+  currentCategory?: string
+  currentSubcategory?: string
+  totalCategories?: number
+  rapidQuestionnaireVersion?: string
+  currentStep?: number
+  totalSteps?: number
   responses: AssessmentResponses
+  categoryStatuses?: {
+    [categoryId: string]: {
+      categoryId: string
+      status: 'not_started' | 'partial' | 'completed'
+      completionPercentage: number
+      lastModified: Date
+      requiredQuestionsCount: number
+      answeredRequiredCount: number
+      totalQuestionsCount: number
+      answeredTotalCount: number
+    }
+  }
   createdAt: Date
   updatedAt: Date
   completedAt?: Date
@@ -305,9 +321,9 @@ export interface ReportDocument {
   _id: string
   assessmentId: string
   companyId: string
-  userId: string
   htmlContent: string
   generatedAt: Date
+  isActive: boolean  // Soft delete: true = active, false = deleted
   metadata: ReportMetadata
 }
 
@@ -315,8 +331,8 @@ export interface ReportRequestDocument {
   _id: string
   assessmentId: string
   companyId: string
-  userId: string
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  isActive: boolean  // Soft delete: true = active, false = deleted
   requestedAt: Date
   processedAt?: Date
   completedAt?: Date
