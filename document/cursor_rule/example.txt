@@ -36,7 +36,7 @@ alwaysApply: true
 **When**: After Step 3, before reading any code
 
 ### **STEP 5: Read Module Documentation**
-**Action**: Read relevant module docs from `docs/modules/` based on the task
+**Action**: Read relevant module docs from `document/modules/` based on the task
 **Why**: Understand the specific module you're working on
 **When**: After Step 4, before reading code
 
@@ -277,7 +277,7 @@ write document/doing/03_implement_note.md ""
 2. **Check** → `document/doing/` folder
 3. **Ask** → User about job continuation
 4. **Read** → `document/Application-instruction.md`
-5. **Read** → Relevant module docs
+5. **Read** → Relevant module `document/modules/`
 6. **Create** → 3 work files in `document/doing/`
 7. **Work** → One step at a time, update checklist immediately
 8. **Finish** → Update docs, wait for user OK, clear work files

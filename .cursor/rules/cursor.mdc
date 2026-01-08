@@ -1,269 +1,310 @@
 ---
-alwaysApply: false
+alwaysApply: true
 ---
-## 🚨 **MANDATORY WORKFLOW - 8 SIMPLE STEPS**
 
-**⚠️ CRITICAL: You MUST do ALL 8 steps in order. No skipping. No shortcuts.**
+## 🚨 **MANDATORY WORKFLOW - FOLLOW THESE 8 STEPS IN ORDER**
 
-### **Step 1: Read Project Structure (REQUIRED FIRST)**
-- **MUST** read `document/project-structure.md` before any other action
-- **Purpose**: Understand project architecture and organization
-- **Timing**: Before reading any other files or starting work
-
-### **Step 2: Check Existing Work (REQUIRED SECOND)**
-- **MUST** check if `document/doing/` directory exists
-- **If EXISTS**: Read all three files completely (`01_doing.md`, `02_structure.md`, `03_implement_note.md`)
-- **If NOT EXISTS**: Create the directory and files
-- **Purpose**: Track progress and ensure nothing is missed, enable work continuation
-- **Timing**: After reading project structure, before starting work
-
-### **Step 3: Ask About Job Continuation (REQUIRED THIRD)**
-- **MUST** ask user if switching modules/functions OR task is not related to current work
-- **Ask**: "Continue previous job or start new job?"
-- **If starting new job**: Ask "Do you want me to clear the work files (01-03) to prepare for the new task?"
-- **Purpose**: Prevent work disruption and ensure proper task management
-- **Timing**: After checking existing work, before proceeding
-
-### **Step 4: Read Application Instructions (REQUIRED FOURTH)**
-- **MUST** read `document/Application-instruction.md` for coding rules
-- **Purpose**: Understand development requirements and constraints
-- **Timing**: After asking about job continuation, before reading code
-
-### **Step 5: Read Module Documentation (REQUIRED FIFTH)**
-- **MUST** read relevant module documentation for context
-- **Purpose**: Understand the specific module being worked on
-- **Timing**: After reading application instructions, before reading code
-
-### **Step 6: Create/Update Work Files (REQUIRED SIXTH)**
-- **MUST** create/update these three files in `document/doing/`:
-  - `01_doing.md` - Current checklist and tasks
-  - `02_structure.md` - Project structure for current module
-  - `03_implement_note.md` - Implementation notes and logs
-- **Purpose**: Track progress and maintain work history
-- **Timing**: After reading module documentation, before starting work
-
-### **Step 7: Execute Work with Updates**
-- **MUST** update checklist after completing each step
-- **MUST** include detailed file information and descriptions for each completed step
-- **Required Information**: File path, what was changed, why it was changed, and any important details
-- **Purpose**: Maintain progress tracking, accountability, and create comprehensive work history for future reference
-- **Timing**: Throughout the entire work process
-
-### **Step 8: Update Documentation & Cleanup**
-- **MUST** update relevant module documentation if changes were made
-- **MUST** update `document/project-structure.md` if project structure changed
-- **MUST** wait for user to confirm work is satisfactory
-- **MUST** clear all three work files after user confirms completion
-- **Purpose**: Keep documentation current and accurate, prevent file accumulation
-- **Timing**: After all work is complete and user approves
+**⚠️ CRITICAL: Execute ALL 8 steps sequentially. No skipping. No shortcuts.**
 
 ---
 
-## 📁 **THE 3 WORK FILES YOU NEED**
+## 📋 **THE 8 STEPS - DO IN THIS EXACT ORDER**
 
-### `document/doing/01_doing.md` - Your Task Checklist
+### **STEP 1: Read Project Structure** ⭐ START HERE
+**Action**: Read `document/project-structure.md` completely
+**Why**: Understand project architecture before doing anything else
+**When**: Before reading any other files or starting work
+**How**: Use `read_file` tool to read the file
+
+### **STEP 2: Check Existing Work**
+**Action**: 
+- Check if `document/doing/` directory exists using `list_dir`
+- **If EXISTS**: Read all 3 files (`01_doing.md`, `02_structure.md`, `03_implement_note.md`)
+- **If NOT EXISTS**: Create the directory and initialize the 3 files
+**Why**: Track progress and continue previous work if any
+**When**: Immediately after Step 1
+
+### **STEP 3: Ask About Job Continuation**
+**Action**: Ask user: "Continue previous job or start new job?"
+- If starting new job: Ask "Do you want me to clear the work files (01-03) to prepare for the new task?"
+**Why**: Prevent disrupting ongoing work
+**When**: After Step 2, before proceeding
+
+### **STEP 4: Read Application Instructions**
+**Action**: Read `document/Application-instruction.md` completely
+**Why**: Understand coding rules and constraints
+**When**: After Step 3, before reading any code
+
+### **STEP 5: Read Module Documentation**
+**Action**: Read relevant module docs from `document/modules/` based on the task
+**Why**: Understand the specific module you're working on
+**When**: After Step 4, before reading code
+
+### **STEP 6: Create/Update Work Files**
+**Action**: Create or update these 3 files in `document/doing/`:
+- `01_doing.md` - Task checklist (use template below)
+- `02_structure.md` - Files you're working with
+- `03_implement_note.md` - Implementation notes
+**Why**: Track progress and maintain work history
+**When**: After Step 5, before starting actual work
+
+### **STEP 7: Execute Work with Real-Time Updates**
+**Action**: 
+- Do ONE sub-step at a time
+- **IMMEDIATELY** mark task as ✅ in `01_doing.md` after completing
+- **IMMEDIATELY** update `01_doing.md` with: timestamp (run `date`), file path, what changed, why changed
+- Update `02_structure.md` and `03_implement_note.md` as you work
+**Why**: Maintain accountability and progress tracking
+**When**: Throughout entire work process
+
+### **STEP 8: Update Documentation & Cleanup**
+**Action**: 
+- Update relevant module documentation if changes were made
+- Update `document/project-structure.md` if structure changed
+- Wait for user confirmation
+- Clear all 3 work files after user confirms completion
+**Why**: Keep docs current and prevent file accumulation
+**When**: After all work is complete and user approves
+
+---
+
+## 📁 **THE 3 WORK FILES - USE THESE TEMPLATES**
+
+### **File 1: `document/doing/01_doing.md`** - Task Checklist
+**Purpose**: Track your progress with checkboxes and timestamps
+
 ```markdown
-# [Your Task Name] Checklist
+# [Task Name] Checklist
 
-## 🎯 What I'm doing: [Describe your task]
+## 🎯 What I'm doing: [Brief task description]
 
-## 📋 My Checklist (Mark ✅ when done)
-### Phase 1: Get Ready
-- [ ] Read project docs
-- [ ] Check existing work
-- [ ] Ask user if switching tasks
-- [ ] Read module docs
-- [ ] Create work files
+## 📋 Checklist (Mark ✅ immediately after completing each item)
 
-### Phase 2: Plan
-- [ ] Figure out what files to change
-- [ ] Understand the code
-- [ ] Plan my approach
+### Phase 1: Preparation (Steps 1-6)
+- [ ] Read `document/project-structure.md`
+- [ ] Checked `document/doing/` directory
+- [ ] Asked user about job continuation
+- [ ] Read `document/Application-instruction.md`
+- [ ] Read relevant module documentation
+- [ ] Created/updated work files
 
-### Phase 3: Do the Work
-- [ ] [Your specific task 1]
-- [ ] [Your specific task 2]
-- [ ] [Your specific task 3]
+### Phase 2: Planning
+- [ ] Identified files to modify
+- [ ] Understood existing code structure
+- [ ] Planned implementation approach
 
-### Phase 4: Test
-- [ ] Test it works
-- [ ] Check for errors
+### Phase 3: Implementation
+- [ ] [Specific task 1]
+- [ ] [Specific task 2]
+- [ ] [Specific task 3]
 
-### Phase 5: Finish Up
-- [ ] Update module documentation (requirements, features, structure, flow)
-- [ ] Make sure docs reflect what I actually did
-- [ ] Run `date` command to get fresh system time for all updates
-- [ ] Clean up
+### Phase 4: Testing
+- [ ] Tested functionality
+- [ ] Checked for errors/linter issues
 
-### Phase 6: Done
-- [ ] Review everything
-- [ ] Wait for user OK
-- [ ] Clear work files
+### Phase 5: Documentation
+- [ ] Updated module documentation
+- [ ] Updated `document/project-structure.md` (if needed)
 
-## 🚀 Status: [What phase you're in]
-## 🎯 Next: [What to do next]
-## ⏰ Updated: [Run `date` command to get current time]
+### Phase 6: Completion
+- [ ] Reviewed all work
+- [ ] Waiting for user confirmation
+- [ ] Cleared work files (after user OK)
 
-## 📝 What I Did (Add after each step)
-- ✅ [Run `date` command] Read docs
-- ✅ [Run `date` command] Started working on [task]
-- 🔄 [Run `date` command] Currently doing [specific thing]
+## 🚀 Current Status: [Phase number and description]
+## 🎯 Next Action: [What to do next]
+
+## 📝 Work Log (Add entry after EACH completed step)
+- ✅ [TIMESTAMP from `date` command] Read project structure
+- ✅ [TIMESTAMP] Checked existing work files
+- ✅ [TIMESTAMP] Started working on [specific task]
+- 🔄 [TIMESTAMP] Currently: [what you're doing now]
 ```
 
-### `document/doing/02_structure.md` - Project Info
-```markdown
-# Project Structure
+### **File 2: `document/doing/02_structure.md`** - Files & Changes
+**Purpose**: Track which files you're working with and what changed
 
-## Module: [What you're working on]
-## Updated: [Run `date` command to get current time]
+```markdown
+# Project Structure - [Module Name]
+
+## Module: [Module you're working on]
+## Updated: [TIMESTAMP from `date` command]
 
 ## Files I'm Working With:
-- `file1.py` - [What I'm doing with it]
-- `file2.js` - [What I'm doing with it]
+- `src/path/to/file1.tsx` - [Purpose: what you're doing with it]
+- `src/path/to/file2.ts` - [Purpose: what you're doing with it]
 
 ## Changes Made:
-- [Run `date` command] Added: `newfile.py` - [Why]
-- [Run `date` command] Changed: `existing.js` - [What changed]
+- [TIMESTAMP] **Added**: `src/path/to/newfile.tsx` - [Why: reason for adding]
+- [TIMESTAMP] **Modified**: `src/path/to/existing.tsx` - [What: specific changes made]
+- [TIMESTAMP] **Deleted**: `src/path/to/oldfile.tsx` - [Why: reason for deletion]
 ```
 
-### `document/doing/03_implement_note.md` - My Notes
+### **File 3: `document/doing/03_implement_note.md`** - Implementation Details
+**Purpose**: Detailed notes about implementation decisions and issues
+
 ```markdown
-# My Implementation Notes
+# Implementation Notes - [Module Name]
 
-## Goal: [What I'm building]
-## Started: [Run `date` command to get current time]
-## Updated: [Run `date` command to get current time]
+## Goal: [What you're building/implementing]
+## Started: [TIMESTAMP from `date` command]
+## Updated: [TIMESTAMP from `date` command]
 
-## What I Changed:
-- [Run `date` command] Changed `file.py` - [What I did and why]
-- [Run `date` command] Added function `doSomething()` - [What it does]
+## Implementation Details:
+- [TIMESTAMP] **Changed** `file.tsx` - [What: specific change] - [Why: reason]
+- [TIMESTAMP] **Added** function `functionName()` - [What: what it does] - [Why: purpose]
 
-## Problems I Fixed:
-- [Run `date` command] Problem: [What was wrong]
-  - Fixed by: [How I fixed it]
+## Issues Encountered & Solutions:
+- [TIMESTAMP] **Problem**: [Description of issue]
+  - **Solution**: [How you fixed it]
+  - **Files affected**: `path/to/file.tsx`
 
 ## Current Status:
-[What's working, what's not, what's next]
+- ✅ Working: [What's completed and working]
+- 🔄 In Progress: [What you're currently working on]
+- ⏳ Next: [What needs to be done next]
+```
+
+---
+
+## ⚠️ **CRITICAL RULES - TIMESTAMP HANDLING**
+
+**🚨 NEVER:**
+- ❌ Use model-generated dates or timestamps
+- ❌ Use fixed dates or hardcoded timestamps
+- ❌ Use UTC/server time for timestamps
+- ❌ Reuse old timestamps from previous entries
+
+**✅ ALWAYS:**
+- ✅ Run `date` command EVERY TIME you need a timestamp
+- ✅ Use the output from `date` command directly
+- ✅ Use local machine time for all timestamps
+- ✅ Get fresh timestamp for each entry
+
+**Example:**
+```bash
+# Run this command every time you need a timestamp
+date
+# Output: Wed Jan  7 16:14:29 +07 2026
+# Use this exact output in your work files
 ```
 
 ---
 
 ## ❌ **NEVER DO THIS**
 
-- ❌ Start work without reading `document/project-structure.md` first
-- ❌ Start work without checking `document/doing/` folder
-- ❌ Skip reading `document/Application-instruction.md`
-- ❌ Skip reading relevant module documentation
-- ❌ Start coding before understanding the project structure
-- ❌ Skip updating the checklist after each step
-- ❌ Skip user confirmation before cleanup
-- ❌ Leave work files in `document/doing/` after completion
-- ❌ **CRITICAL**: Use model-generated dates or timestamps
-- ❌ **CRITICAL**: Use fixed dates instead of current local machine time
-- ❌ **CRITICAL**: Use UTC/server time for user-facing datetime fields
-- ❌ **CRITICAL**: Reuse old timestamps - ALWAYS get fresh time
-- ❌ Switch tasks without asking user first
-- ❌ Skip marking completed tasks as ✅ in checklist
-- ❌ Work without detailed sub-step breakdown
-- ❌ Skip any of the 8 mandatory steps
+1. **Skip Steps**: Never skip any of the 8 mandatory steps
+2. **Start Without Reading**: Never start work without reading `document/project-structure.md` first
+3. **Ignore Existing Work**: Never start without checking `document/doing/` folder
+4. **Skip Documentation**: Never skip reading `document/Application-instruction.md` or module docs
+5. **Code Before Understanding**: Never start coding before understanding project structure
+6. **Forget Updates**: Never skip updating checklist after completing each step
+7. **No User Confirmation**: Never cleanup without user confirmation
+8. **Leave Work Files**: Never leave work files in `document/doing/` after completion
+9. **Switch Tasks**: Never switch tasks without asking user first
+10. **No Progress Tracking**: Never work without marking completed tasks as ✅
 
 ---
 
 ## ✅ **ALWAYS DO THIS**
 
-- ✅ Read `document/project-structure.md` FIRST
-- ✅ Check `document/doing/` folder SECOND (read or create files)
-- ✅ Ask user about job continuation THIRD (if switching tasks)
-- ✅ Read `document/Application-instruction.md` FOURTH
-- ✅ Read relevant module documentation FIFTH
-- ✅ Create/update the 3 work files SIXTH
-- ✅ Break down work into detailed sub-steps in checklist
-- ✅ Do ONE sub-step at a time
-- ✅ IMMEDIATELY mark each completed task as ✅ in the checklist
-- ✅ IMMEDIATELY update `01_doing.md` after each sub-step
-- ✅ Update module documentation if new requirements/features are added
-- ✅ Update docs if project structure changes
-- ✅ Wait for user confirmation when done
-- ✅ Clear all three work files after confirmation
-- ✅ **CRITICAL**: Use local machine datetime for all timestamps
-- ✅ **CRITICAL**: Get current time using system commands (e.g., `date`)
-- ✅ **CRITICAL**: Use local timezone format for datetime fields
-- ✅ **CRITICAL**: Run `date` command EVERY TIME you need to mention time
-- ✅ **CRITICAL**: Follow ALL 8 steps in order - no skipping
+1. **Follow 8 Steps**: Execute all 8 steps in exact order
+2. **Read First**: Read `document/project-structure.md` before anything else
+3. **Check Work Files**: Check `document/doing/` folder second
+4. **Ask User**: Ask about job continuation third
+5. **Read Instructions**: Read `document/Application-instruction.md` fourth
+6. **Read Module Docs**: Read relevant module documentation fifth
+7. **Create Work Files**: Create/update 3 work files sixth
+8. **Update Real-Time**: Update checklist IMMEDIATELY after each step
+9. **One Step at a Time**: Do ONE sub-step, mark ✅, then move to next
+10. **Fresh Timestamps**: Run `date` command for every timestamp entry
+11. **Update Docs**: Update module documentation when changes are made
+12. **Wait for Confirmation**: Wait for user confirmation before cleanup
+13. **Clear Files**: Clear all 3 work files after user confirms completion
 
 ---
 
-## ⚡ **QUICK COMMANDS**
+## ⚡ **QUICK REFERENCE COMMANDS**
 
-**Check if work files exist:**
+### **Check Work Files:**
 ```bash
-ls -la document/doing/
+list_dir document/doing/
+# Or use: ls -la document/doing/
 ```
 
-**Get current time (USE THIS EVERY TIME YOU NEED TIME):**
+### **Get Current Timestamp (USE EVERY TIME):**
 ```bash
 date
+# Example output: Wed Jan  7 16:14:29 +07 2026
+# Copy this exact output into your work files
 ```
 
-**Clear work files when done:**
+### **Clear Work Files (After User Confirmation):**
 ```bash
-echo "" > document/doing/01_doing.md
-echo "" > document/doing/02_structure.md  
-echo "" > document/doing/03_implement_note.md
+write document/doing/01_doing.md ""
+write document/doing/02_structure.md ""
+write document/doing/03_implement_note.md ""
 ```
 
 ---
 
-## 🚨 **SIMPLE RULES TO REMEMBER**
+## 📋 **COMPLETION CHECKLIST - BEFORE SAYING "DONE"**
 
-### **DO THIS:**
-- ✅ Follow the 8 steps in order
-- ✅ Use the 3 work files
-- ✅ Mark tasks ✅ when done
-- ✅ Update module documentation after each task
-- ✅ **CRITICAL**: Always run `date` command to get fresh system time
-- ✅ Check checklist before saying "done"
-- ✅ Ask user before switching tasks
+**Verify ALL of these before claiming work is complete:**
 
-### **DON'T DO THIS:**
-- ❌ Skip reading docs
-- ❌ Skip checking existing work
-- ❌ Forget to mark tasks as done
-- ❌ Forget to update module documentation
-- ❌ **CRITICAL**: Reuse old timestamps (always get fresh system time)
-- ❌ Say "done" without checking checklist
-- ❌ Switch tasks without asking user
-- ❌ Skip any of the 8 mandatory steps
+- [ ] ✅ All 8 steps completed in order
+- [ ] ✅ All tasks in checklist marked as ✅
+- [ ] ✅ All timestamps used `date` command output (not hardcoded)
+- [ ] ✅ `01_doing.md` updated after each step
+- [ ] ✅ `02_structure.md` lists all files worked on
+- [ ] ✅ `03_implement_note.md` has implementation details
+- [ ] ✅ Module documentation updated (if changes were made)
+- [ ] ✅ `document/project-structure.md` updated (if structure changed)
+- [ ] ✅ All code tested and working
+- [ ] ✅ No linter errors
+- [ ] ✅ User confirmed work is satisfactory
+- [ ] ✅ All 3 work files cleared (after user confirmation)
+
+**Only say "done" when ALL items above are checked!**
 
 ---
 
-## 📋 **BEFORE YOU SAY "DONE"**
+## 🎯 **WORKFLOW SUMMARY - QUICK GUIDE**
 
-**Check this list:**
-- [ ] All my tasks are marked ✅
-- [ ] I updated my progress log with fresh timestamps (ran `date` command)
-- [ ] I updated module documentation to reflect what I did
-- [ ] I used fresh system time (ran `date` command) for all updates
-- [ ] I checked the whole checklist
-- [ ] Nothing is missing
-- [ ] User said it's OK
+**When starting ANY task:**
 
-**That's it! Keep it simple and follow the steps.**
+1. **Read** → `document/project-structure.md`
+2. **Check** → `document/doing/` folder
+3. **Ask** → User about job continuation
+4. **Read** → `document/Application-instruction.md`
+5. **Read** → Relevant module `document/modules/`
+6. **Create** → 3 work files in `document/doing/`
+7. **Work** → One step at a time, update checklist immediately
+8. **Finish** → Update docs, wait for user OK, clear work files
+
+**During work:**
+- ✅ Mark task as ✅ immediately after completing
+- ✅ Run `date` command for every timestamp
+- ✅ Update `01_doing.md` after each step
+- ✅ Update `02_structure.md` when files change
+- ✅ Update `03_implement_note.md` with details
+
+**Before saying done:**
+- ✅ Check completion checklist above
+- ✅ Wait for user confirmation
+- ✅ Clear work files after user OK
 
 ---
 
 ## 🚨 **FINAL REMINDER**
 
-**⚠️ CRITICAL: These rules are NOT suggestions - they are MANDATORY REQUIREMENTS.**
+**⚠️ These are MANDATORY REQUIREMENTS, not suggestions.**
 
-**Every time you start work, you MUST:**
-1. ✅ Complete the pre-work checklist above
-2. ✅ Follow ALL 8 steps in order
-3. ✅ Use the exact templates provided
-4. ✅ Never skip steps or take shortcuts
-5. ✅ Always run `date` command for timestamps
+**Every task MUST:**
+1. Follow ALL 8 steps in exact order
+2. Use the 3 work files with provided templates
+3. Run `date` command for every timestamp
+4. Update checklist immediately after each step
+5. Wait for user confirmation before cleanup
 
-**If you find yourself trying to modify these rules or skip steps, STOP and follow them exactly as written.**
-5. ✅ Always run `date` command for timestamps
-
-**If you find yourself trying to modify these rules or skip steps, STOP and follow them exactly as written.**
+**If you're tempted to skip steps or modify this workflow, STOP and follow it exactly as written.**
