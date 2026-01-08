@@ -52,11 +52,44 @@ export const createCompanyError = (
 
 export const handleApiError = (error: unknown): CompanyError => {
   if (error instanceof Error) {
-    // Check for specific error types
-    if (error.message.includes('duplicate') || error.message.includes('already exists')) {
+    // Check for HTTP status codes from API response
+    const status = (error as any).status
+    const responseData = (error as any).responseData
+    
+    // Handle 409 Conflict (duplicate name)
+    if (status === 409 || error.message.includes('409')) {
+      const message = responseData?.error || responseData?.message || error.message || 'Company with this name already exists'
       return createCompanyError(
         CompanyErrorCode.DUPLICATE_NAME,
-        'A company with this name already exists',
+        message,
+        error.message,
+        true,
+        false
+      )
+    }
+    
+    // Check for specific error types in message
+    if (error.message.includes('duplicate') || 
+        error.message.includes('already exists') ||
+        error.message.includes('E11000') ||
+        error.message.includes('duplicate key')) {
+      return createCompanyError(
+        CompanyErrorCode.DUPLICATE_NAME,
+        error.message.includes('Company with name') 
+          ? error.message 
+          : 'A company with this name already exists',
+        error.message,
+        true,
+        false
+      )
+    }
+    
+    // Handle 400 Bad Request (validation errors)
+    if (status === 400 || error.message.includes('400')) {
+      const message = responseData?.error || responseData?.message || error.message || 'Invalid input'
+      return createCompanyError(
+        CompanyErrorCode.VALIDATION_ERROR,
+        message,
         error.message,
         true,
         false

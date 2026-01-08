@@ -42,3 +42,8 @@
 - ✅ Thu Jan  8 15:25:40 +07 2026 Changed AI Assessment page loading to show only in content area - Nav bar stays visible
 - ✅ Thu Jan  8 15:25:40 +07 2026 Updated ApplicationShell to show sidebar during initial mount loading
 - ✅ Thu Jan  8 15:27:11 +07 2026 Fixed React Hooks error - Moved useEffect before early return to follow React Hooks rules
+- ✅ Thu Jan  8 15:30:52 +07 2026 Fixed duplicate key error when creating company - Drop old name_userId index and create unique name index
+- ✅ Thu Jan  8 15:33:36 +07 2026 Improved company name uniqueness - Only check against active companies, allow duplicates for inactive
+- ✅ Thu Jan  8 15:33:36 +07 2026 Enhanced error handling - Better error messages and status codes for different error types
+- ✅ Thu Jan  8 15:37:23 +07 2026 Removed unique indexes temporarily - Drop all unique name indexes to allow creation without conflicts
+- ✅ Thu Jan  8 15:37:23 +07 2026 Enhanced error handling in API client - Extract error messages from API response properly

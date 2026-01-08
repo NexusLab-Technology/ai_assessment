@@ -26,8 +26,21 @@ const apiRequest = async <T>(
   })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
-    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+    const errorData = await response.json().catch(() => ({ 
+      error: `HTTP ${response.status}: ${response.statusText}`,
+      message: `HTTP ${response.status}: ${response.statusText}`
+    }))
+    
+    // Extract error message from API response
+    const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+    
+    // Create error with more context
+    const error = new Error(errorMessage)
+    ;(error as any).status = response.status
+    ;(error as any).statusText = response.statusText
+    ;(error as any).responseData = errorData
+    
+    throw error
   }
 
   const data = await response.json()

@@ -72,6 +72,46 @@
    - Early return (`if (!selectedCompany)`) was causing hooks to be called conditionally
    - Now all hooks are called before any conditional returns
 
+## Issues & Solutions (continued):
+- Thu Jan  8 15:30:52 +07 2026 **Problem**: Duplicate key error when creating company - MongoDB still has `name_userId` index
+ - **Solution**: 
+   - Added logic to drop old indexes (`name_userId`, `userId_1`, `userId_1_createdAt_-1`) in `createIndexes()` method
+   - Created unique index on `name` field (since userId is removed)
+   - Added duplicate name check before creating company
+   - Added error handling for duplicate key errors with user-friendly messages
+   - Updated `db-init.ts` to drop old indexes during initialization
+
+- Thu Jan  8 15:33:36 +07 2026 **Problem**: User wants company name uniqueness only for active companies, and better error handling
+ - **Solution**: 
+   - Changed duplicate check to only check against active companies (isActive: true or undefined)
+   - Inactive companies (isActive: false) can have duplicate names
+   - Created partial unique index `name_unique_active` that only applies to active companies using `partialFilterExpression`
+   - Enhanced error handling in `Company.create()` with specific error types:
+     - Empty name validation
+     - Duplicate name detection
+     - MongoDB duplicate key error handling
+     - Generic error handling with context
+   - Enhanced API route error handling:
+     - 409 Conflict for duplicate names
+     - 400 Bad Request for validation errors
+     - 500 for other errors with detailed messages
+   - Updated `db-init.ts` to create partial unique index instead of full unique index
+
+- Thu Jan  8 15:37:23 +07 2026 **Problem**: Still having issues creating companies (409 error) and error handling not clear
+ - **Solution**: 
+   - Removed all unique indexes on name temporarily (user doesn't want database optimization yet)
+   - Drops indexes: `name_userId`, `name_unique`, `name_unique_active`
+   - Creates non-unique index `name_1` for performance only
+   - Uniqueness checking is now done in application code only
+   - Enhanced error extraction in `company-api-client.ts`:
+     - Extracts error message from API response properly
+     - Includes status code and response data in error object
+   - Enhanced error detection in `company-error-handling.ts`:
+     - Checks HTTP status codes (409, 400) from API response
+     - Extracts error message from responseData
+     - Better detection of duplicate name errors with specific messages
+   - This allows creating companies without index conflicts while maintaining uniqueness check in code
+
 ## Current Status:
 - ✅ Nav bar now uses client-side navigation without page reload
 - ✅ Company creation immediately shows new company in list
@@ -81,5 +121,10 @@
 - ✅ AssessmentContainer uses overlay loading instead of conditional rendering
 - ✅ Loading now shows only in content area - nav bar stays visible
 - ✅ React Hooks error fixed - all hooks called before early returns
+- ✅ Duplicate key error fixed - all unique indexes dropped temporarily
+- ✅ Company name uniqueness only applies to active companies - inactive companies can have duplicates
+- ✅ Enhanced error handling with specific error types and user-friendly messages
+- ✅ Error messages now properly extracted from API response and displayed to users
+- ✅ Non-unique index created for performance - uniqueness checked in application code
 - ✅ No linter errors
 - ✅ Ready for user testing

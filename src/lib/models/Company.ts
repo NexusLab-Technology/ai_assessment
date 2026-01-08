@@ -115,27 +115,76 @@ export class CompanyModel {
   }): Promise<Company> {
     const collection = await this.getCollection()
     const now = new Date()
+    
+    const trimmedName = data.name.trim()
+    
+    // Validate name is not empty
+    if (!trimmedName) {
+      throw new Error('Company name cannot be empty')
+    }
+    
+    // Check if active company with same name already exists
+    // Only check active companies - inactive companies can have duplicate names
+    const existingActive = await collection.findOne({ 
+      name: trimmedName,
+      $or: [
+        { isActive: true },
+        { isActive: { $exists: false } } // Backward compatibility - treat as active
+      ]
+    })
+    
+    if (existingActive) {
+      throw new Error(`Company with name "${trimmedName}" already exists`)
+    }
 
     const document: Omit<CompanyDocument, '_id'> = {
-      name: data.name.trim(),
+      name: trimmedName,
       description: data.description?.trim() || undefined, // Store as undefined for consistency
       isActive: true, // New companies are active by default
       createdAt: now,
       updatedAt: now
     }
 
-    const result = await collection.insertOne(document)
-    const created = await collection.findOne({ _id: result.insertedId })
+    try {
+      const result = await collection.insertOne(document)
+      const created = await collection.findOne({ _id: result.insertedId })
 
-    if (!created) {
-      throw new Error('Failed to create company')
+      if (!created) {
+        throw new Error('Failed to create company: Company was not found after creation')
+      }
+
+      const company = this.documentToCompany(created)
+      // New companies have 0 assessments
+      company.assessmentCount = 0
+
+      return company
+    } catch (error: any) {
+      // Handle MongoDB duplicate key error
+      if (error.code === 11000) {
+        // Check if it's a name duplicate
+        if (error.keyPattern && error.keyPattern.name) {
+          throw new Error(`Company with name "${trimmedName}" already exists`)
+        }
+        // Generic duplicate key error
+        throw new Error(`Duplicate key error: ${error.keyValue ? JSON.stringify(error.keyValue) : 'Unknown field'}`)
+      }
+      
+      // Handle validation errors
+      if (error.name === 'ValidationError') {
+        throw new Error(`Validation error: ${error.message}`)
+      }
+      
+      // Re-throw our custom errors as-is
+      if (error.message && (
+        error.message.includes('already exists') || 
+        error.message.includes('cannot be empty')
+      )) {
+        throw error
+      }
+      
+      // Generic error with more context
+      throw new Error(`Failed to create company: ${error.message || 'Unknown error occurred'}`)
     }
-
-    const company = this.documentToCompany(created)
-    // New companies have 0 assessments
-    company.assessmentCount = 0
-
-    return company
   }
 
   static async update(
@@ -272,16 +321,78 @@ export class CompanyModel {
   static async createIndexes() {
     const collection = await this.getCollection()
     
+    // Drop old index that includes userId (if exists)
+    try {
+      await collection.dropIndex('name_userId')
+      console.log('✅ Dropped old index: name_userId')
+    } catch (error: any) {
+      // Index doesn't exist, that's fine
+      if (error.code !== 27) { // 27 = IndexNotFound
+        console.warn('⚠️  Could not drop name_userId index:', error.message)
+      }
+    }
+    
+    // Drop old userId indexes (if exist)
+    try {
+      await collection.dropIndex('userId_1')
+      console.log('✅ Dropped old index: userId_1')
+    } catch (error: any) {
+      if (error.code !== 27) {
+        console.warn('⚠️  Could not drop userId_1 index:', error.message)
+      }
+    }
+    
+    try {
+      await collection.dropIndex('userId_1_createdAt_-1')
+      console.log('✅ Dropped old index: userId_1_createdAt_-1')
+    } catch (error: any) {
+      if (error.code !== 27) {
+        console.warn('⚠️  Could not drop userId_1_createdAt_-1 index:', error.message)
+      }
+    }
+    
+    // Drop all unique indexes on name (temporary - user doesn't want database optimization yet)
+    const nameIndexesToDrop = ['name_unique', 'name_unique_active', 'name_userId']
+    for (const indexName of nameIndexesToDrop) {
+      try {
+        await collection.dropIndex(indexName)
+        console.log(`✅ Dropped index: ${indexName}`)
+      } catch (error: any) {
+        if (error.code !== 27) { // 27 = IndexNotFound
+          console.warn(`⚠️  Could not drop index ${indexName}:`, error.message)
+        }
+      }
+    }
+    
+    // Create non-unique index on name (for performance, not uniqueness)
+    // Uniqueness will be checked in application code
+    try {
+      await collection.createIndex({ name: 1 }, { name: 'name_1', background: true })
+      console.log('✅ Created non-unique index: name_1 (for performance only)')
+    } catch (error: any) {
+      if (error.code === 85) { // Index already exists
+        console.log('ℹ️  Index already exists: name_1')
+      } else {
+        console.warn('⚠️  Could not create name_1 index:', error.message)
+      }
+    }
+    
     // Index for createdAt (for sorting)
-    await collection.createIndex({ createdAt: -1 })
+    await collection.createIndex({ createdAt: -1 }, { name: 'createdAt_desc' })
     
     // Index for isActive (for filtering active companies)
-    await collection.createIndex({ isActive: 1 })
+    await collection.createIndex({ isActive: 1 }, { name: 'isActive' })
     
     // Text index for search functionality
-    await collection.createIndex({ 
-      name: 'text', 
-      description: 'text' 
-    })
+    try {
+      await collection.createIndex({ 
+        name: 'text', 
+        description: 'text' 
+      }, { name: 'name_description_text' })
+    } catch (error: any) {
+      if (error.code === 85) {
+        console.log('ℹ️  Text index already exists')
+      }
+    }
   }
 }

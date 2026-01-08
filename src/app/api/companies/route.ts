@@ -29,8 +29,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let body: any = null
+  
   try {
-    const body = await parseRequestBody(request)
+    body = await parseRequestBody(request)
     
     // Validate required fields
     const validation = validateRequiredFields(body, ['name'])
@@ -50,16 +52,54 @@ export async function POST(request: NextRequest) {
     }
 
     // Create company in database
-    const company = await CompanyModel.create({
-      name: body.name.trim(),
-      description: body.description?.trim()
-    })
+    try {
+      const company = await CompanyModel.create({
+        name: body.name.trim(),
+        description: body.description?.trim()
+      })
 
-    return createSuccessResponse(
-      company,
-      'Company created successfully'
-    )
+      return createSuccessResponse(
+        company,
+        'Company created successfully'
+      )
+    } catch (error: any) {
+      // Handle specific errors with better messages
+      if (error.message && error.message.includes('already exists')) {
+        return createErrorResponse(
+          error.message,
+          409 // Conflict status code
+        )
+      }
+      
+      if (error.message && error.message.includes('cannot be empty')) {
+        return createErrorResponse(
+          error.message,
+          400 // Bad request
+        )
+      }
+      
+      // Re-throw to be handled by outer catch
+      throw error
+    }
   } catch (error) {
+    // Enhanced error handling with more context
+    if (error instanceof Error) {
+      // Check for MongoDB duplicate key error
+      if (error.message.includes('E11000') || error.message.includes('duplicate key')) {
+        const companyName = body?.name?.trim() || 'Unknown'
+        return createErrorResponse(
+          `Company with name "${companyName}" already exists`,
+          409
+        )
+      }
+      
+      // Return error with message
+      return createErrorResponse(
+        error.message || 'Failed to create company',
+        500
+      )
+    }
+    
     return handleApiError(error)
   }
 }

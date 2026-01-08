@@ -61,3 +61,53 @@
   - Moved `useEffect` for wizard mode reset before early return
   - This follows React Hooks rules: all hooks must be called in the same order on every render
   - Prevents "Rendered more hooks than during the previous render" error
+
+- Thu Jan  8 15:30:52 +07 2026 **Modified**: `src/lib/models/Company.ts` - Fixed duplicate key error when creating company
+  - Added logic to drop old indexes: `name_userId`, `userId_1`, `userId_1_createdAt_-1`
+  - Created unique index on `name` field (since userId is removed)
+  - Added duplicate name check before creating company
+  - Added error handling for duplicate key errors with better error messages
+
+- Thu Jan  8 15:30:52 +07 2026 **Modified**: `src/lib/db-init.ts` - Updated company index initialization
+  - Added logic to drop old userId-related indexes before creating new ones
+  - Ensures clean index migration when userId is removed
+
+- Thu Jan  8 15:33:36 +07 2026 **Modified**: `src/lib/models/Company.ts` - Improved company name uniqueness logic
+  - Changed duplicate check to only check against active companies (isActive: true)
+  - Inactive companies can have duplicate names
+  - Created partial unique index `name_unique_active` that only applies to active companies
+  - Enhanced error handling with specific error types and messages
+  - Added validation for empty company name
+
+- Thu Jan  8 15:33:36 +07 2026 **Modified**: `src/app/api/companies/route.ts` - Enhanced error handling
+  - Added specific error handling for duplicate name errors (409 Conflict)
+  - Added specific error handling for empty name errors (400 Bad Request)
+  - Enhanced MongoDB duplicate key error detection and messaging
+  - Better error context and user-friendly messages
+
+- Thu Jan  8 15:33:36 +07 2026 **Modified**: `src/lib/db-init.ts` - Updated to create partial unique index
+  - Creates partial unique index `name_unique_active` for active companies only
+  - Drops old `name_unique` index if exists
+  - Allows inactive companies to have duplicate names
+
+- Thu Jan  8 15:37:23 +07 2026 **Modified**: `src/lib/models/Company.ts` - Removed unique indexes temporarily
+  - Drops all unique indexes on name: `name_unique`, `name_unique_active`, `name_userId`
+  - Creates non-unique index `name_1` for performance only (not uniqueness)
+  - Uniqueness checking is now done in application code only
+  - This allows creating companies without index conflicts
+
+- Thu Jan  8 15:37:23 +07 2026 **Modified**: `src/lib/db-init.ts` - Removed unique indexes temporarily
+  - Drops all unique name indexes before creating new ones
+  - Creates non-unique index `name_1` instead of unique index
+  - User doesn't want database optimization yet
+
+- Thu Jan  8 15:37:23 +07 2026 **Modified**: `src/lib/company-api-client.ts` - Enhanced error extraction
+  - Extracts error message from API response properly
+  - Includes status code and response data in error object
+  - Better error context for error handling
+
+- Thu Jan  8 15:37:23 +07 2026 **Modified**: `src/utils/company-error-handling.ts` - Enhanced error detection
+  - Checks HTTP status codes (409, 400) from API response
+  - Extracts error message from responseData
+  - Better detection of duplicate name errors
+  - More specific error messages for different error types
