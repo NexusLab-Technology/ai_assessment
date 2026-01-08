@@ -2,7 +2,7 @@
 
 ## Overview
 
-Company Settings module เป็นระบบจัดการข้อมูลบริษัทที่ทำงานร่วมกับ AI Assessment module โดยให้ผู้ใช้สามารถสร้าง แก้ไข และลบข้อมูลบริษัทได้ พร้อมทั้งแสดงจำนวน assessments ที่เกี่ยวข้องกับแต่ละบริษัท
+The Company Settings module is a company data management system that works with the AI Assessment module. It enables users to create, edit, and delete company data, and displays the number of assessments associated with each company.
 
 ## Key Features
 

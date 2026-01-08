@@ -2,26 +2,26 @@
 
 ## Introduction
 
-AI Assessment module เป็นส่วนหนึ่งของ application ที่ให้ผู้ใช้สามารถประเมินความพร้อมในการใช้ GenAI ได้ โดยรองรับทั้งการพัฒนา AI ใหม่และการ migrate AI ที่มีอยู่ ผ่านการตอบแบบสอบถามแบบขั้นตอน และสร้างรายงานผลการประเมินด้วย AI
+The AI Assessment module is part of the application that enables users to assess their GenAI readiness. It supports both new AI development and migration of existing AI systems through step-by-step questionnaires and generates assessment reports using AI.
 
-Module นี้รวมถึง:
+This module includes:
 - Core Assessment Functionality
-- Assessment Status UI (รวมอยู่ใน module นี้)
-- Report Generation (รวมอยู่ใน module นี้)
+- Assessment Status UI (included in this module)
+- Report Generation (included in this module)
 
 ## Glossary
 
-- **AI_Assessment_System**: ระบบประเมินความพร้อม GenAI
-- **Assessment**: การประเมินหนึ่งครั้ง ประกอบด้วยคำถามหลายขั้นตอน
-- **Company**: บริษัทหรือองค์กรที่ทำการประเมิน
-- **Exploratory_Path**: เส้นทางสำหรับการพัฒนา AI ใหม่
-- **Migration_Path**: เส้นทางสำหรับการ migrate AI ที่มีอยู่
-- **Assessment_Report**: รายงานผลการประเมินที่สร้างด้วย AI
-- **RAPID_Questionnaire**: แบบสอบถาม RAPID ที่มี 162 คำถาม
-- **Category**: หมวดหมู่ของคำถาม (5 สำหรับ Exploratory, 6 สำหรับ Migration)
-- **Subcategory**: หมวดหมู่ย่อยภายในแต่ละ category
-- **Status_Indicator**: สัญลักษณ์แสดงสถานะของ Assessment
-- **View_Mode**: โหมดแสดงข้อมูลที่กรอกแล้วโดยไม่สามารถแก้ไขได้
+- **AI_Assessment_System**: GenAI readiness assessment system
+- **Assessment**: A single assessment consisting of multiple step questions
+- **Company**: Company or organization conducting the assessment
+- **Exploratory_Path**: Path for new AI development
+- **Migration_Path**: Path for migrating existing AI
+- **Assessment_Report**: Assessment report generated using AI
+- **RAPID_Questionnaire**: RAPID questionnaire with 162 questions
+- **Category**: Question category (5 for Exploratory, 6 for Migration)
+- **Subcategory**: Subcategory within each category
+- **Status_Indicator**: Status indicator for Assessment
+- **View_Mode**: View mode displaying entered data without editing capability
 
 ## Requirements
 
